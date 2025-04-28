@@ -17,7 +17,7 @@ app = FastAPI(docs_url="/", lifespan=lifespan)
 for route in registered_routers:
     app.include_router(route.router, tags=[route.tag])
 
-
+#komentarz
 # origins = [
 #     "http://localhost:3000",
 #     "http://localhost:8000",
