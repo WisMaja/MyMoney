@@ -5,3 +5,7 @@
 /app/*/__pycache__
 .DS_Store
 /.idea
+
+# Node dependencies
+node_modules/
+/frontend/node_modules/
