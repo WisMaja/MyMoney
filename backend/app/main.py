@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-
+from .api.endpoints import budgets
 from core.routers import registered_routers
 
 @asynccontextmanager
@@ -16,7 +16,8 @@ app = FastAPI(docs_url="/", lifespan=lifespan)
 
 for route in registered_routers:
     app.include_router(route.router, tags=[route.tag])
-
+    
+app.include_router(budgets.router, prefix="/budgets", tags=["budgets"])
 
 # origins = [
 #     "http://localhost:3000",
