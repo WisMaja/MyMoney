@@ -75,15 +75,27 @@ const Dashboard = () => {
     navigate('/statistics');
   };
 
+  const navigateToAccounts = () => {
+    navigate('/accounts');
+  };
+
+  const navigateToSocial = () => {
+    navigate('/social');
+  };
+
+  const navigateToSettings = () => {
+    navigate('/settings');
+  };
+
   return (
     <Box className="dashboard-container">
       {/* Sidebar */}
       <Box className="sidebar">
         <HomeIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} />
         <ShowChartIcon className="sidebar-icon" onClick={navigateToStatistics} />
-        <AccountBalanceWalletIcon className="sidebar-icon" />
-        <PeopleIcon className="sidebar-icon" />
-        <SettingsIcon className="sidebar-icon" />
+        <AccountBalanceWalletIcon className="sidebar-icon" onClick={navigateToAccounts} />
+        <PeopleIcon className="sidebar-icon" onClick={navigateToSocial} />
+        <SettingsIcon className="sidebar-icon" onClick={navigateToSettings} />
       </Box>
 
       {/* Main Content */}
