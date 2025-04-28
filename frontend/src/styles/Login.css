@@ -1,0 +1,72 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #e0f2ff 0%, #f0f8ff 100%);
+  padding: 20px;
+}
+
+.login-paper {
+  padding: 40px;
+  max-width: 500px;
+  width: 100%;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1) !important;
+}
+
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.welcome-text {
+  margin-bottom: 8px !important;
+  font-weight: 400 !important;
+}
+
+.app-name {
+  margin-bottom: 24px !important;
+  font-weight: 700 !important;
+}
+
+.divider {
+  width: 100%;
+  margin-bottom: 32px !important;
+  background-color: #000;
+  height: 1px !important;
+}
+
+.login-with-text {
+  margin-bottom: 24px !important;
+  font-weight: 500 !important;
+}
+
+.social-buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+}
+
+.social-button {
+  min-width: 50px !important;
+  height: 50px !important;
+  border-radius: 50% !important;
+  padding: 12px !important;
+}
+
+.google-button {
+  color: #DB4437 !important;
+  border-color: #DB4437 !important;
+}
+
+.facebook-button {
+  color: #4267B2 !important;
+  border-color: #4267B2 !important;
+}
+
+.apple-button {
+  color: #000 !important;
+  border-color: #000 !important;
+} 
