@@ -1,0 +1,164 @@
+.settings-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.settings-main-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.settings-title {
+  color: #4a148c;
+  font-weight: 600;
+}
+
+.settings-layout {
+  display: grid;
+  grid-template-columns: 250px 1fr;
+  gap: 20px;
+}
+
+.settings-nav {
+  background-color: #c5cae9;
+  border-radius: 15px;
+  padding: 20px;
+  height: fit-content;
+}
+
+.settings-nav-title {
+  font-size: 1.2rem;
+  color: #4a148c;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.settings-nav-list {
+  display: flex;
+  flex-direction: column;
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.settings-nav-item:hover {
+  background-color: #d1c4e9;
+}
+
+.settings-nav-item.active {
+  background-color: #d1c4e9;
+  font-weight: 500;
+}
+
+.settings-nav-icon {
+  margin-right: 10px;
+  color: #4a148c;
+}
+
+.settings-content {
+  background-color: #c5cae9;
+  border-radius: 15px;
+  padding: 30px;
+}
+
+.settings-section {
+  margin-bottom: 30px;
+}
+
+.settings-section-title {
+  font-size: 1.3rem;
+  color: #4a148c;
+  margin-bottom: 20px;
+  font-weight: 500;
+  border-bottom: 1px solid #b2b2b2;
+  padding-bottom: 10px;
+}
+
+.settings-form-group {
+  margin-bottom: 20px;
+}
+
+.settings-form-label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 500;
+  color: #4a148c;
+}
+
+.settings-input {
+  width: 100%;
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #ddd;
+  margin-bottom: 5px;
+}
+
+.settings-input-helper {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+.settings-switch-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.settings-switch-label {
+  font-weight: 500;
+  color: #4a148c;
+}
+
+.settings-button-group {
+  display: flex;
+  gap: 15px;
+  margin-top: 30px;
+  justify-content: flex-end;
+}
+
+.settings-save-button {
+  background-color: #4a148c !important;
+  color: white !important;
+}
+
+.settings-section-divider {
+  margin: 30px 0;
+  border-top: 1px solid #ddd;
+}
+
+.danger-zone {
+  background-color: #ffebee;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 30px;
+}
+
+.danger-zone-title {
+  color: #c62828;
+  font-weight: 500;
+  margin-bottom: 15px;
+}
+
+.danger-button {
+  background-color: #c62828 !important;
+  color: white !important;
+  margin-top: 15px !important;
+} 

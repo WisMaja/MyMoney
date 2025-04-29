@@ -1,0 +1,154 @@
+.accounts-container {
+  display: flex;
+  min-height: 100vh;
+  background-color: #f5f7fa;
+}
+
+.accounts-main-content {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.accounts-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.accounts-title {
+  color: #4a148c;
+  font-weight: 600;
+}
+
+.accounts-actions {
+  display: flex;
+  gap: 15px;
+}
+
+.accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.account-card {
+  background-color: #c5cae9;
+  border-radius: 15px;
+  padding: 24px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.account-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+.account-name {
+  font-size: 1.3rem;
+  color: #4a148c;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.account-balance {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #4a148c;
+}
+
+.account-details {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 15px;
+}
+
+.account-detail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.detail-label {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 5px;
+}
+
+.detail-value {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #4a148c;
+}
+
+.account-progress {
+  margin-top: 20px;
+}
+
+.add-account-container {
+  background-color: #e8eaf6;
+  border-radius: 15px;
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  cursor: pointer;
+  border: 2px dashed #c5cae9;
+  transition: all 0.3s;
+}
+
+.add-account-container:hover {
+  background-color: #d1c4e9;
+}
+
+.linked-accounts-section {
+  margin-top: 30px;
+}
+
+.linked-accounts-title {
+  font-size: 1.3rem;
+  color: #4a148c;
+  margin-bottom: 15px;
+  font-weight: 500;
+}
+
+.linked-account-item {
+  background-color: #e8eaf6;
+  border-radius: 10px;
+  padding: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.linked-account-name {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.bank-icon {
+  width: 30px;
+  height: 30px;
+  background-color: #4a148c;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: white;
+}
+
+.linked-account-status {
+  color: #4caf50;
+  font-weight: 500;
+} 
