@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Button, Avatar } from '@mui/material';
+import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
@@ -8,12 +8,13 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
+import Sidebar from '../components/Sidebar';
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
-    name: 'Imię Nazwisko',
+    name: 'John Doe',
     mainAccount: 200,
     incomes: 400,
     expenses: 200
@@ -88,18 +89,12 @@ const Dashboard = () => {
   };
 
   return (
-    <Box className="dashboard-container">
+    <Box className="page-container">
       {/* Sidebar */}
-      <Box className="sidebar">
-        <HomeIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} />
-        <ShowChartIcon className="sidebar-icon" onClick={navigateToStatistics} />
-        <AccountBalanceWalletIcon className="sidebar-icon" onClick={navigateToAccounts} />
-        <PeopleIcon className="sidebar-icon" onClick={navigateToSocial} />
-        <SettingsIcon className="sidebar-icon" onClick={navigateToSettings} />
-      </Box>
+      <Sidebar />
 
       {/* Main Content */}
-      <Box className="main-content">
+      <Box className="page-content">
         {/* Header */}
         <Box className="header">
           <Typography variant="h4" component="h1" className="welcome-title">
@@ -117,10 +112,10 @@ const Dashboard = () => {
         <Box className="cards-container">
           <Box className="finance-card">
             <Typography className="card-title">
-              Główne konto
+              Main Account
             </Typography>
             <Typography className="card-amount">
-              {userData.mainAccount}<span className="currency">zł</span>
+              {userData.mainAccount}<span className="currency">$</span>
             </Typography>
           </Box>
           
@@ -129,7 +124,7 @@ const Dashboard = () => {
               Incomes
             </Typography>
             <Typography className="card-amount">
-              {userData.incomes}<span className="currency">zł</span>
+              {userData.incomes}<span className="currency">$</span>
             </Typography>
           </Box>
           
@@ -138,7 +133,7 @@ const Dashboard = () => {
               Expenses
             </Typography>
             <Typography className="card-amount">
-              {userData.expenses}<span className="currency">zł</span>
+              {userData.expenses}<span className="currency">$</span>
             </Typography>
           </Box>
         </Box>
@@ -200,7 +195,7 @@ const Dashboard = () => {
                       color: transaction.type === 'income' ? 'green' : 'red'
                     }}
                   >
-                    {transaction.type === 'income' ? '+' : '-'}{transaction.amount} zł
+                    {transaction.type === 'income' ? '+' : '-'}{transaction.amount} $
                   </Typography>
                 </Box>
               ))

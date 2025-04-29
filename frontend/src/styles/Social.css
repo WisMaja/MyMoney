@@ -1,16 +1,3 @@
-.social-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-.social-main-content {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
 .social-header {
   display: flex;
   justify-content: space-between;
@@ -28,158 +15,165 @@
   gap: 15px;
 }
 
-.social-grid {
-  display: grid;
-  grid-template-columns: 1fr 2fr;
-  gap: 20px;
-}
-
-.friends-list-container {
-  background-color: #c5cae9;
+/* Kontener dla przyjaciół */
+.friends-container {
+  background-color: white;
   border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-  height: fit-content;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
 }
 
-.friends-list-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.friends-list-title {
+.friends-section-title {
   font-size: 1.3rem;
   color: #4a148c;
   font-weight: 500;
+  margin-bottom: 16px;
 }
 
 .friends-search {
   margin-bottom: 20px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
 }
 
 .friends-list {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
   max-height: 500px;
   overflow-y: auto;
+  padding-right: 8px;
+}
+
+.friends-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.friends-list::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 10px;
+}
+
+.friends-list::-webkit-scrollbar-thumb {
+  background: #d1c4e9;
+  border-radius: 10px;
+}
+
+.friends-list::-webkit-scrollbar-thumb:hover {
+  background: #4a148c;
 }
 
 .friend-item {
   display: flex;
   align-items: center;
-  padding: 10px;
+  padding: 16px;
   border-radius: 10px;
-  background-color: #e8eaf6;
-  cursor: pointer;
+  background-color: #f5f7fa;
   transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
 }
 
 .friend-item:hover {
-  background-color: #d1c4e9;
+  background-color: #e8eaf6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.friend-request-item {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  border-radius: 10px;
+  background-color: #f5f7fa;
+  transition: all 0.2s;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.03);
+  border-left: 4px solid #4a148c;
+}
+
+.friend-request-item:hover {
+  background-color: #e8eaf6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.friend-info {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .friend-avatar {
   margin-right: 15px;
+  background-color: #d1c4e9;
+  flex-shrink: 0;
 }
 
 .friend-name {
   font-weight: 500;
   color: #4a148c;
+  margin-bottom: 4px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .friend-status {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background-color: #4caf50;
-  margin-right: 10px;
+  font-size: 0.8rem;
+  color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.invite-button {
-  margin-top: 20px;
+.friend-item .MuiBox-root, 
+.friend-request-item .MuiBox-root {
+  flex-shrink: 0;
 }
 
-.activity-feed-container {
-  background-color: #c5cae9;
-  border-radius: 15px;
-  padding: 20px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+.friend-requests-section {
+  padding: 10px;
 }
 
-.activity-feed-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+.find-friends-section {
+  padding: 10px;
+}
+
+.facebook-connect-card {
+  background-color: #e8f0fe;
+  border-radius: 10px;
+  padding: 24px;
   margin-bottom: 20px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 
-.activity-feed-title {
-  font-size: 1.3rem;
-  color: #4a148c;
-  font-weight: 500;
+.facebook-connect-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
 
-.activity-feed {
+/* Zakomentowana funkcjonalność suggestii znajomych
+.suggested-friends-list {
   display: flex;
   flex-direction: column;
   gap: 15px;
+  margin-top: 15px;
 }
+*/
 
-.activity-item {
-  background-color: #e8eaf6;
-  border-radius: 10px;
-  padding: 15px;
-}
-
-.activity-header {
+/* Empty state styling */
+.empty-state {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  margin-bottom: 10px;
-}
-
-.activity-user {
-  font-weight: 500;
-  color: #4a148c;
-  margin-right: 10px;
-}
-
-.activity-action {
+  justify-content: center;
+  padding: 40px 20px;
+  text-align: center;
   color: #666;
 }
 
-.activity-time {
-  color: #999;
-  font-size: 0.8rem;
-  margin-left: auto;
-}
-
-.activity-content {
-  margin-bottom: 10px;
-}
-
-.activity-reactions {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 10px;
-}
-
-.reaction-buttons {
-  display: flex;
-  gap: 15px;
-}
-
-.reaction-button {
-  display: flex;
-  align-items: center;
-  gap: 5px;
-  color: #4a148c;
-  cursor: pointer;
-}
-
-.reaction-count {
-  color: #666;
+.empty-state-icon {
+  font-size: 60px;
+  color: #d1c4e9;
+  margin-bottom: 16px;
 } 

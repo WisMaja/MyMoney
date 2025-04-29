@@ -32,6 +32,7 @@ import LanguageIcon from '@mui/icons-material/Language';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import DeleteIcon from '@mui/icons-material/Delete';
+import Sidebar from '../components/Sidebar';
 import '../styles/Settings.css';
 
 const Settings = () => {
@@ -39,9 +40,9 @@ const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const [userSettings, setUserSettings] = useState({
     profile: {
-      name: 'Imię Nazwisko',
+      name: 'John Doe',
       email: 'email@example.com',
-      phone: '+48 123 456 789'
+      phone: '+1 123 456 789'
     },
     notifications: {
       emailNotifications: true,
@@ -56,10 +57,10 @@ const Settings = () => {
       autoLogout: '30'
     },
     preferences: {
-      language: 'pl',
-      currency: 'zł',
+      language: 'en',
+      currency: '$',
       theme: 'light',
-      dateFormat: 'DD-MM-YYYY'
+      dateFormat: 'MM/DD/YYYY'
     }
   });
   const [isDeleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
@@ -302,8 +303,8 @@ const Settings = () => {
                   native: true,
                 }}
               >
-                <option value="pl">Polski</option>
                 <option value="en">English</option>
+                <option value="pl">Polski</option>
                 <option value="de">Deutsch</option>
               </TextField>
             </Box>
@@ -320,9 +321,9 @@ const Settings = () => {
                   native: true,
                 }}
               >
+                <option value="$">US Dollar ($)</option>
                 <option value="zł">Polish Złoty (zł)</option>
                 <option value="€">Euro (€)</option>
-                <option value="$">US Dollar ($)</option>
                 <option value="£">British Pound (£)</option>
               </TextField>
             </Box>
@@ -356,8 +357,8 @@ const Settings = () => {
                   native: true,
                 }}
               >
+                <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                 <option value="DD-MM-YYYY">DD-MM-YYYY</option>
-                <option value="MM-DD-YYYY">MM-DD-YYYY</option>
                 <option value="YYYY-MM-DD">YYYY-MM-DD</option>
               </TextField>
             </Box>
@@ -370,26 +371,18 @@ const Settings = () => {
   };
 
   return (
-    <Box className="settings-container">
+    <Box className="page-container">
       {/* Sidebar */}
-      <Box className="sidebar">
-        <HomeIcon className="sidebar-icon" onClick={navigateToDashboard} />
-        <ShowChartIcon className="sidebar-icon" onClick={navigateToStatistics} />
-        <AccountBalanceWalletIcon className="sidebar-icon" onClick={navigateToAccounts} />
-        <PeopleIcon className="sidebar-icon" onClick={navigateToSocial} />
-        <SettingsIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} />
-      </Box>
+      <Sidebar />
 
       {/* Main Content */}
-      <Box className="settings-main-content">
-        {/* Header */}
+      <Box className="page-content">
         <Box className="settings-header">
           <Typography variant="h4" component="h1" className="settings-title">
             Settings
           </Typography>
         </Box>
 
-        {/* Settings Layout */}
         <Box className="settings-layout">
           {/* Settings Navigation */}
           <Paper className="settings-nav">
@@ -457,28 +450,28 @@ const Settings = () => {
             </Box>
           </Paper>
         </Box>
-      </Box>
 
-      {/* Delete Account Dialog */}
-      <Dialog
-        open={isDeleteAccountDialogOpen}
-        onClose={handleCloseDeleteDialog}
-      >
-        <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            This action cannot be undone. All your data, including transaction history, accounts, and settings will be permanently deleted.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDeleteDialog} color="primary">
-            Cancel
-          </Button>
-          <Button onClick={handleDeleteAccount} color="error" variant="contained">
-            Delete Account
-          </Button>
-        </DialogActions>
-      </Dialog>
+        {/* Delete Account Dialog */}
+        <Dialog
+          open={isDeleteAccountDialogOpen}
+          onClose={handleCloseDeleteDialog}
+        >
+          <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              This action cannot be undone. All your data, including transaction history, accounts, and settings will be permanently deleted.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseDeleteDialog} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={handleDeleteAccount} color="error" variant="contained">
+              Delete Account
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
     </Box>
   );
 };

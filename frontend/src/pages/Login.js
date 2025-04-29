@@ -1,18 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Divider, Paper } from '@mui/material';
+import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import AppleIcon from '@mui/icons-material/Apple';
 import '../styles/Login.css';
 
 const Login = () => {
   const navigate = useNavigate();
+  const [isRegistering, setIsRegistering] = useState(false);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
 
   const handleSocialLogin = (provider) => {
     console.log(`Logging in with ${provider}`);
     // In a real app, you would implement the actual authentication logic here
     navigate('/dashboard');
+  };
+
+  const handleManualLogin = (e) => {
+    e.preventDefault();
+    console.log('Manual login with:', email, password);
+    // In a real app, you would implement the actual authentication logic here
+    navigate('/dashboard');
+  };
+
+  const toggleRegister = () => {
+    setIsRegistering(!isRegistering);
   };
 
   return (
@@ -37,25 +50,66 @@ const Login = () => {
               variant="outlined" 
               className="social-button google-button"
               onClick={() => handleSocialLogin('Google')}
-              startIcon={<GoogleIcon />}
               aria-label="Login with Google"
-            />
+            >
+              <GoogleIcon className="social-icon" />
+            </Button>
             
             <Button 
               variant="outlined" 
               className="social-button facebook-button"
               onClick={() => handleSocialLogin('Facebook')}
-              startIcon={<FacebookIcon />}
               aria-label="Login with Facebook"
+            >
+              <FacebookIcon className="social-icon" />
+            </Button>
+          </Box>
+          
+          <Divider className="divider" />
+          
+          <Box className="manual-login-form" component="form" onSubmit={handleManualLogin}>
+            <Typography variant="h6" className="manual-login-title">
+              {isRegistering ? 'Create Account' : 'Login to Your Account'}
+            </Typography>
+            
+            <TextField
+              label="Email"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+            
+            <TextField
+              label="Password"
+              type="password"
+              variant="outlined"
+              fullWidth
+              margin="normal"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
             />
             
             <Button 
-              variant="outlined" 
-              className="social-button apple-button"
-              onClick={() => handleSocialLogin('Apple')}
-              startIcon={<AppleIcon />}
-              aria-label="Login with Apple"
-            />
+              variant="contained" 
+              color="primary" 
+              fullWidth 
+              className="manual-login-button"
+              type="submit"
+            >
+              {isRegistering ? 'Register' : 'Login'}
+            </Button>
+            
+            <Button 
+              variant="text" 
+              className="toggle-login-mode" 
+              onClick={toggleRegister}
+            >
+              {isRegistering ? 'Back to Login' : 'Need an account? Register'}
+            </Button>
           </Box>
         </Box>
       </Paper>

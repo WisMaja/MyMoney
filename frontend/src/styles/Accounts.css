@@ -1,16 +1,3 @@
-.accounts-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-.accounts-main-content {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
 .accounts-header {
   display: flex;
   justify-content: space-between;
