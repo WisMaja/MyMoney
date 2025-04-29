@@ -40,7 +40,7 @@ npm start
 
 ## Funkcjonalności
 
-- Logowanie społecznościowe przez Google i Facebook
+- Logowanie przez Google i Facebook
 - Śledzenie przychodów i wydatków
 - Przeglądanie raportów finansowych i analityki
 
