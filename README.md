@@ -1,48 +1,48 @@
-# Money Tracker Application
+# Aplikacja do Śledzenia Finansów
 
-A personal finance application to track income and expenses.
+Osobista aplikacja finansowa do śledzenia przychodów i wydatków.
 
-## Project Structure
+## Struktura Projektu
 
-- `frontend/`: React application
-- `backend/`: Backend API (to be implemented)
+- `frontend/`: Aplikacja React
+- `backend/`: API backendowe (do zaimplementowania)
 
-## Getting Started
+## Rozpoczęcie Pracy
 
-### Running with Docker
+### Uruchamianie z Dockerem
 
-To run the application using Docker:
+Aby uruchomić aplikację przy użyciu Dockera:
 
 ```bash
 docker-compose up
 ```
 
-### Running Frontend Locally
+### Lokalne Uruchamianie Frontendu
 
-To run just the frontend application:
+Aby uruchomić tylko aplikację frontendową:
 
-1. Navigate to the frontend directory:
+1. Przejdź do katalogu frontend:
 ```bash
 cd frontend
 ```
 
-2. Install dependencies:
+2. Zainstaluj zależności:
 ```bash
 npm install
 ```
 
-3. Start the development server:
+3. Uruchom serwer deweloperski:
 ```bash
 npm start
 ```
 
-4. Open your browser and go to http://localhost:3000
+4. Otwórz przeglądarkę i przejdź do http://localhost:3000
 
-## Features
+## Funkcjonalności
 
-- Social login with Google, Facebook, and Apple
-- Track income and expenses (to be implemented)
-- View financial reports and analytics (to be implemented)
+- Logowanie społecznościowe przez Google i Facebook
+- Śledzenie przychodów i wydatków
+- Przeglądanie raportów finansowych i analityki
 
 ## Diagramy
 
@@ -137,20 +137,20 @@ sequenceDiagram
 
 ```mermaid
 erDiagram
-    UŻYTKOWNIK ||--o{ KONTO : posiada
-    UŻYTKOWNIK ||--o{ TRANSAKCJA : tworzy
-    UŻYTKOWNIK ||--o{ BUDŻET : ustawia
-    UŻYTKOWNIK }|--|{ UŻYTKOWNIK : znajomy
+    UZYTKOWNIK ||--o{ KONTO : posiada
+    UZYTKOWNIK ||--o{ TRANSAKCJA : tworzy
+    UZYTKOWNIK ||--o{ BUDZET : ustawia
+    UZYTKOWNIK }|--|{ UZYTKOWNIK : znajomy
     KONTO ||--o{ TRANSAKCJA : zawiera
     KATEGORIA ||--o{ TRANSAKCJA : klasyfikuje
     TRANSAKCJA }o--|| TYP_TRANSAKCJI : jest
-    BUDŻET }o--|| KATEGORIA : dotyczy
+    BUDZET }o--|| KATEGORIA : dotyczy
 
-    UŻYTKOWNIK {
-        string id_użytkownika PK
+    UZYTKOWNIK {
+        string id_uzytkownika PK
         string email
-        string hasło
-        string imię
+        string haslo
+        string imie
         string nazwisko
         date data_rejestracji
         string ustawienia
@@ -158,7 +158,7 @@ erDiagram
     
     KONTO {
         string id_konta PK
-        string id_użytkownika FK
+        string id_uzytkownika FK
         string nazwa
         float saldo
         string waluta
@@ -167,7 +167,7 @@ erDiagram
 
     TRANSAKCJA {
         string id_transakcji PK
-        string id_użytkownika FK
+        string id_uzytkownika FK
         string id_konta FK
         string id_kategorii FK
         string typ_transakcji FK
@@ -188,9 +188,9 @@ erDiagram
         string nazwa
     }
 
-    BUDŻET {
-        string id_budżetu PK
-        string id_użytkownika FK
+    BUDZET {
+        string id_budzetu PK
+        string id_uzytkownika FK
         string id_kategorii FK
         float kwota_planowana
         date data_od
@@ -205,25 +205,25 @@ stateDiagram-v2
     [*] --> EkranLogowania
     EkranLogowania --> WyborMetodyLogowania
     
-    WyborMetodyLogowania --> LogowanieRęczne
+    WyborMetodyLogowania --> LogowanieReczne
     WyborMetodyLogowania --> LogowanieGoogle
     WyborMetodyLogowania --> LogowanieFacebook
     
-    LogowanieRęczne --> ŻądanieUwierzytelnienia
+    LogowanieReczne --> ZadanieUwierzytelnienia
     LogowanieGoogle --> PrzekazanieDanychGoogle
     LogowanieFacebook --> PrzekazanieDanychFacebook
     
-    PrzekazanieDanychGoogle --> ŻądanieUwierzytelnienia
-    PrzekazanieDanychFacebook --> ŻądanieUwierzytelnienia
+    PrzekazanieDanychGoogle --> ZadanieUwierzytelnienia
+    PrzekazanieDanychFacebook --> ZadanieUwierzytelnienia
     
-    ŻądanieUwierzytelnienia --> WeryfikacjaDanych
+    ZadanieUwierzytelnienia --> WeryfikacjaDanych
     
-    WeryfikacjaDanych --> BłądLogowania: Dane niepoprawne
-    WeryfikacjaDanych --> SesjaUżytkownika: Dane poprawne
+    WeryfikacjaDanych --> BladLogowania: Dane niepoprawne
+    WeryfikacjaDanych --> SesjaUzytkownika: Dane poprawne
     
-    BłądLogowania --> EkranLogowania
+    BladLogowania --> EkranLogowania
     
-    SesjaUżytkownika --> [*]
+    SesjaUzytkownika --> [*]
 ```
 
 ### Diagram Architektury Systemu
