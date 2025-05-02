@@ -1,274 +1,298 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
-  Button,
-  Paper,
+  Tabs,
+  Tab,
   TextField,
-  Avatar,
+  Button,
   IconButton,
+  Avatar,
+  Card,
+  CardContent,
+  Divider,
   InputAdornment,
-  Divider
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction,
 } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
-import SearchIcon from '@mui/icons-material/Search';
-import PersonAddIcon from '@mui/icons-material/PersonAdd';
-import ThumbUpIcon from '@mui/icons-material/ThumbUp';
-import ChatIcon from '@mui/icons-material/Chat';
-import ShareIcon from '@mui/icons-material/Share';
-import MoreVertIcon from '@mui/icons-material/MoreVert';
+import {
+  Search as SearchIcon,
+  PersonAdd as PersonAddIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
+  Facebook as FacebookIcon,
+  Email as EmailIcon,
+  Person as PersonIcon,
+  PersonOff as PersonOffIcon,
+} from '@mui/icons-material';
+import Sidebar from '../components/Sidebar';
 import '../styles/Social.css';
 
-const Social = () => {
+function Social() {
   const navigate = useNavigate();
+  const [selectedTab, setSelectedTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [friends] = useState([
-    { id: 1, name: 'Jan Kowalski', status: 'online', avatar: null },
-    { id: 2, name: 'Anna Nowak', status: 'offline', avatar: null },
-    { id: 3, name: 'Tomasz Wiśniewski', status: 'online', avatar: null },
-    { id: 4, name: 'Małgorzata Dąbrowska', status: 'offline', avatar: null },
-    { id: 5, name: 'Piotr Lewandowski', status: 'online', avatar: null },
+  const [facebookConnected, setFacebookConnected] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+
+  // Example friend data
+  const [friends, setFriends] = useState([
+    { id: 1, name: 'Anna Smith', status: 'Online', avatar: null },
+    { id: 2, name: 'John Davis', status: 'Last active 2 hours ago', avatar: null },
+    { id: 3, name: 'Martha Wilson', status: 'Offline', avatar: null },
   ]);
 
-  const [activities] = useState([
-    {
-      id: 1,
-      user: 'Jan Kowalski',
-      action: 'reached a savings goal',
-      content: 'I finally saved 10,000 zł for my emergency fund! So happy to achieve this milestone.',
-      time: '2 hours ago',
-      likes: 12,
-      comments: 3
-    },
-    {
-      id: 2,
-      user: 'Anna Nowak',
-      action: 'reduced expenses by 15%',
-      content: 'By cutting unnecessary subscriptions and cooking more at home, I managed to reduce my monthly expenses by 15%!',
-      time: '5 hours ago',
-      likes: 8,
-      comments: 2
-    },
-    {
-      id: 3,
-      user: 'Tomasz Wiśniewski',
-      action: 'started a new investment',
-      content: 'Just started investing in index funds. If anyone has some tips for a beginner investor, I would appreciate it!',
-      time: '1 day ago',
-      likes: 15,
-      comments: 7
+  // Example friend requests
+  const [friendRequests, setFriendRequests] = useState([
+    { id: 4, name: 'Thomas Lewis', status: 'Wants to add you as a friend', avatar: null },
+    { id: 5, name: 'Agnes Brown', status: 'Wants to add you as a friend', avatar: null },
+  ]);
+
+  const handleTabChange = (event, newValue) => {
+    setSelectedTab(newValue);
+  };
+
+  const handleSearchChange = (event) => {
+    setSearchQuery(event.target.value);
+  };
+
+  const handleAcceptFriend = (id) => {
+    const acceptedFriend = friendRequests.find(request => request.id === id);
+    setFriends([...friends, acceptedFriend]);
+    setFriendRequests(friendRequests.filter(request => request.id !== id));
+  };
+
+  const handleRejectFriend = (id) => {
+    setFriendRequests(friendRequests.filter(request => request.id !== id));
+  };
+
+  const handleConnectFacebook = () => {
+    // In a real app, this would connect to the Facebook API
+    setFacebookConnected(true);
+    alert('Connected to Facebook');
+  };
+
+  const handleInviteByEmail = () => {
+    // In a real app, this would send an email to this person
+    if (inviteEmail && /\S+@\S+\.\S+/.test(inviteEmail)) {
+      alert(`Invitation has been sent to: ${inviteEmail}`);
+      setInviteEmail('');
+    } else {
+      alert('Please enter a valid email address');
     }
-  ]);
-
-  const navigateToDashboard = () => {
-    navigate('/dashboard');
   };
 
-  const navigateToStatistics = () => {
-    navigate('/statistics');
+  const handleRemoveFriend = (id) => {
+    if (window.confirm('Are you sure you want to remove this friend?')) {
+      setFriends(friends.filter(friend => friend.id !== id));
+    }
   };
 
-  const navigateToAccounts = () => {
-    navigate('/accounts');
-  };
-
-  const navigateToSettings = () => {
-    navigate('/settings');
-  };
-
-  const handleSearch = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
-  const filteredFriends = friends.filter(friend => 
+  // Filter friends based on search
+  const filteredFriends = friends.filter(friend =>
     friend.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   return (
-    <Box className="social-container">
+    <div className="page-container">
       {/* Sidebar */}
-      <Box className="sidebar">
-        <HomeIcon className="sidebar-icon" onClick={navigateToDashboard} />
-        <ShowChartIcon className="sidebar-icon" onClick={navigateToStatistics} />
-        <AccountBalanceWalletIcon className="sidebar-icon" onClick={navigateToAccounts} />
-        <PeopleIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} />
-        <SettingsIcon className="sidebar-icon" onClick={navigateToSettings} />
-      </Box>
+      <Sidebar />
 
       {/* Main Content */}
-      <Box className="social-main-content">
-        {/* Header */}
-        <Box className="social-header">
-          <Typography variant="h4" component="h1" className="social-title">
-            Financial Social Network
+      <div className="page-content">
+        <div className="social-header">
+          <Typography variant="h4" className="social-title">
+            Community
           </Typography>
-          <Box className="social-actions">
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<PersonAddIcon />}
-            >
-              Add Friends
-            </Button>
-          </Box>
-        </Box>
+        </div>
 
-        {/* Social Grid */}
-        <Box className="social-grid">
-          {/* Friends List */}
-          <Paper className="friends-list-container">
-            <Box className="friends-list-header">
-              <Typography className="friends-list-title">
-                Friends
+        <Box sx={{ width: '100%' }}>
+          <Tabs 
+            value={selectedTab} 
+            onChange={handleTabChange} 
+            indicatorColor="primary"
+            textColor="primary"
+            centered
+          >
+            <Tab label="Friends" />
+            <Tab label="Invitations" />
+            <Tab label="Find Friends" />
+          </Tabs>
+
+          {/* Tab 1: Friends */}
+          {selectedTab === 0 && (
+            <div className="friends-container">
+              <Typography variant="h6" className="friends-section-title">
+                My Friends
               </Typography>
-              <Typography variant="body2" color="textSecondary">
-                {friends.length} friends
+              <TextField
+                fullWidth
+                variant="outlined"
+                placeholder="Search friends..."
+                value={searchQuery}
+                onChange={handleSearchChange}
+                className="friends-search"
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              <div className="friends-list">
+                {filteredFriends.length > 0 ? (
+                  filteredFriends.map(friend => (
+                    <div key={friend.id} className="friend-item">
+                      <Avatar className="friend-avatar">
+                        {friend.name.charAt(0)}
+                      </Avatar>
+                      <div className="friend-info">
+                        <Typography variant="subtitle1" className="friend-name">
+                          {friend.name}
+                        </Typography>
+                        <Typography variant="body2" className="friend-status">
+                          {friend.status}
+                        </Typography>
+                      </div>
+                      <Box sx={{ marginLeft: 'auto' }}>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleRemoveFriend(friend.id)}
+                        >
+                          <PersonOffIcon />
+                        </IconButton>
+                      </Box>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-state">
+                    <PersonIcon className="empty-state-icon" />
+                    <Typography variant="body1">
+                      No friends found.
+                    </Typography>
+                    <Typography variant="body2" color="textSecondary">
+                      Change your search criteria or add new friends.
+                    </Typography>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Tab 2: Friend Requests */}
+          {selectedTab === 1 && (
+            <div className="friends-container friend-requests-section">
+              <Typography variant="h6" className="friends-section-title">
+                Friend Requests
               </Typography>
-            </Box>
-
-            <TextField
-              className="friends-search"
-              placeholder="Search friends"
-              variant="outlined"
-              size="small"
-              fullWidth
-              value={searchQuery}
-              onChange={handleSearch}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
-
-            <Box className="friends-list">
-              {filteredFriends.map(friend => (
-                <Box key={friend.id} className="friend-item">
-                  <Avatar className="friend-avatar" src={friend.avatar}>
-                    {friend.name.split(' ').map(n => n[0]).join('')}
-                  </Avatar>
-                  <Box sx={{ flexGrow: 1 }}>
-                    <Typography className="friend-name">
-                      {friend.name}
+              <div className="friends-list">
+                {friendRequests.length > 0 ? (
+                  friendRequests.map(request => (
+                    <div key={request.id} className="friend-request-item">
+                      <Avatar className="friend-avatar">
+                        {request.name.charAt(0)}
+                      </Avatar>
+                      <div className="friend-info">
+                        <Typography variant="subtitle1" className="friend-name">
+                          {request.name}
+                        </Typography>
+                        <Typography variant="body2" className="friend-status">
+                          {request.status}
+                        </Typography>
+                      </div>
+                      <Box sx={{ marginLeft: 'auto', display: 'flex' }}>
+                        <IconButton 
+                          color="primary" 
+                          onClick={() => handleAcceptFriend(request.id)}
+                        >
+                          <CheckIcon />
+                        </IconButton>
+                        <IconButton 
+                          color="error" 
+                          onClick={() => handleRejectFriend(request.id)}
+                        >
+                          <CloseIcon />
+                        </IconButton>
+                      </Box>
+                    </div>
+                  ))
+                ) : (
+                  <div className="empty-state">
+                    <PersonAddIcon className="empty-state-icon" />
+                    <Typography variant="body1">
+                      You don't have any friend requests.
                     </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    width: 8, 
-                    height: 8, 
-                    borderRadius: '50%', 
-                    bgcolor: friend.status === 'online' ? 'success.main' : 'text.disabled' 
-                  }} />
-                </Box>
-              ))}
-            </Box>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
 
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<PersonAddIcon />}
-              className="invite-button"
-              fullWidth
-            >
-              Invite Friends
-            </Button>
-          </Paper>
-
-          {/* Activity Feed */}
-          <Paper className="activity-feed-container">
-            <Box className="activity-feed-header">
-              <Typography className="activity-feed-title">
-                Financial Activity Feed
+          {/* Tab 3: Find Friends */}
+          {selectedTab === 2 && (
+            <div className="friends-container find-friends-section">
+              <Typography variant="h6" className="friends-section-title">
+                Find Friends
               </Typography>
-            </Box>
-
-            <TextField
-              placeholder="Share your financial achievement..."
-              variant="outlined"
-              multiline
-              rows={3}
-              fullWidth
-              sx={{ mb: 3 }}
-            />
-
-            <Button
-              variant="contained"
-              color="primary"
-              sx={{ mb: 3, alignSelf: 'flex-end' }}
-            >
-              Post
-            </Button>
-
-            <Divider sx={{ mb: 3 }} />
-
-            <Box className="activity-feed">
-              {activities.map(activity => (
-                <Paper key={activity.id} className="activity-item">
-                  <Box className="activity-header">
-                    <Avatar sx={{ mr: 1 }}>
-                      {activity.user.split(' ').map(n => n[0]).join('')}
-                    </Avatar>
-                    <Typography className="activity-user">
-                      {activity.user}
-                    </Typography>
-                    <Typography className="activity-action">
-                      {activity.action}
-                    </Typography>
-                    <Typography className="activity-time">
-                      {activity.time}
-                    </Typography>
-                    <IconButton size="small">
-                      <MoreVertIcon fontSize="small" />
-                    </IconButton>
-                  </Box>
-
-                  <Typography className="activity-content">
-                    {activity.content}
-                  </Typography>
-
-                  <Divider sx={{ my: 1 }} />
-
-                  <Box className="activity-reactions">
-                    <Box className="reaction-buttons">
-                      <Button
-                        className="reaction-button"
-                        startIcon={<ThumbUpIcon />}
-                        size="small"
-                      >
-                        <Typography variant="body2">Like ({activity.likes})</Typography>
-                      </Button>
-                      
-                      <Button
-                        className="reaction-button"
-                        startIcon={<ChatIcon />}
-                        size="small"
-                      >
-                        <Typography variant="body2">Comment ({activity.comments})</Typography>
-                      </Button>
-                      
-                      <Button
-                        className="reaction-button"
-                        startIcon={<ShareIcon />}
-                        size="small"
-                      >
-                        <Typography variant="body2">Share</Typography>
-                      </Button>
+              
+              <Card className="facebook-connect-card">
+                <CardContent>
+                  <Box display="flex" alignItems="center" mb={2}>
+                    <FacebookIcon fontSize="large" color="primary" />
+                    <Box ml={2}>
+                      <Typography variant="h6">Connect with Facebook</Typography>
+                      <Typography variant="body2" color="textSecondary">
+                        Find friends who also use the MyMoney app
+                      </Typography>
                     </Box>
                   </Box>
-                </Paper>
-              ))}
-            </Box>
-          </Paper>
+                  <Button 
+                    variant="contained" 
+                    color="primary" 
+                    startIcon={<FacebookIcon />}
+                    onClick={handleConnectFacebook}
+                    disabled={facebookConnected}
+                  >
+                    {facebookConnected ? 'Connected to Facebook' : 'Connect with Facebook'}
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Divider sx={{ my: 3 }} />
+
+              <Box mb={3}>
+                <Typography variant="h6" gutterBottom>
+                  Invite by email
+                </Typography>
+                <Box display="flex" gap={1}>
+                  <TextField 
+                    fullWidth 
+                    variant="outlined" 
+                    placeholder="Friend's email"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                  />
+                  <Button 
+                    variant="contained" 
+                    color="primary"
+                    onClick={handleInviteByEmail}
+                    startIcon={<EmailIcon />}
+                  >
+                    Invite
+                  </Button>
+                </Box>
+              </Box>
+            </div>
+          )}
         </Box>
-      </Box>
-    </Box>
+      </div>
+    </div>
   );
-};
+}
 
 export default Social; 

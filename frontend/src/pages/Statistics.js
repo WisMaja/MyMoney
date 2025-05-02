@@ -23,14 +23,10 @@ import {
   BarElement
 } from 'chart.js';
 import { Line, Pie, Bar } from 'react-chartjs-2';
-import HomeIcon from '@mui/icons-material/Home';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import InsightsIcon from '@mui/icons-material/Insights';
+import Sidebar from '../components/Sidebar';
 
 import '../styles/Statistics.css';
 
@@ -129,7 +125,7 @@ const Statistics = () => {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Amount (zł)'
+          text: 'Amount ($)'
         }
       }
     }
@@ -220,25 +216,19 @@ const Statistics = () => {
         beginAtZero: true,
         title: {
           display: true,
-          text: 'Amount (zł)'
+          text: 'Amount ($)'
         }
       }
     }
   };
 
   return (
-    <Box className="statistics-container">
+    <Box className="page-container">
       {/* Sidebar */}
-      <Box className="sidebar">
-        <HomeIcon className="sidebar-icon" onClick={navigateToDashboard} />
-        <ShowChartIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} /> {/* Active icon */}
-        <AccountBalanceWalletIcon className="sidebar-icon" />
-        <PeopleIcon className="sidebar-icon" />
-        <SettingsIcon className="sidebar-icon" />
-      </Box>
+      <Sidebar />
 
       {/* Main Content */}
-      <Box className="statistics-main-content">
+      <Box className="page-content">
         {/* Header */}
         <Box className="statistics-header">
           <Typography variant="h4" component="h1" className="statistics-title">
@@ -268,7 +258,7 @@ const Statistics = () => {
               Total Income
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.income} zł
+              {mockData.monthlyTotals.income} $
             </Typography>
           </Paper>
           
@@ -277,7 +267,7 @@ const Statistics = () => {
               Total Expenses
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.expense} zł
+              {mockData.monthlyTotals.expense} $
             </Typography>
           </Paper>
           
@@ -286,7 +276,7 @@ const Statistics = () => {
               Net Savings
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.income - mockData.monthlyTotals.expense} zł
+              {mockData.monthlyTotals.income - mockData.monthlyTotals.expense} $
             </Typography>
           </Paper>
           
@@ -345,42 +335,6 @@ const Statistics = () => {
           </Paper>
         </Box>
 
-        {/* Financial Insights */}
-        <Paper className="insights-section">
-          <Typography variant="h6" className="insights-title">
-            Financial Insights
-          </Typography>
-          
-          <Box className="insight-item">
-            <TrendingUpIcon className="insight-icon" />
-            <Typography className="insight-text">
-              Your highest income was {mockData.highestIncome} zł.
-            </Typography>
-          </Box>
-          
-          <Box className="insight-item">
-            <TrendingDownIcon className="insight-icon" />
-            <Typography className="insight-text">
-              Your largest expense category is {mockData.topExpenseCategory}.
-            </Typography>
-          </Box>
-          
-          <Box className="insight-item">
-            <InsightsIcon className="insight-icon" />
-            <Typography className="insight-text">
-              Your savings rate is {mockData.savingsRate}%, {parseFloat(mockData.savingsRate) > 20 ? 'which is good! Try to maintain above 20%.' : 'which could be improved. Aim for at least 20%.'}
-            </Typography>
-          </Box>
-          
-          <Box className="insight-item">
-            <InsightsIcon className="insight-icon" />
-            <Typography className="insight-text">
-              {mockData.monthlyTotals.income > mockData.monthlyTotals.expense * 1.5 
-                ? 'Great job! Your income is significantly higher than your expenses.'
-                : 'Consider ways to increase your income or reduce expenses to improve your financial health.'}
-            </Typography>
-          </Box>
-        </Paper>
       </Box>
     </Box>
   );

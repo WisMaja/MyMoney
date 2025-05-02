@@ -19,16 +19,18 @@ import {
   InputLabel
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
+// Nieużywane importy po zakomentowaniu funkcjonalności banków
+// import HomeIcon from '@mui/icons-material/Home';
+// import ShowChartIcon from '@mui/icons-material/ShowChart';
+// import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+// import PeopleIcon from '@mui/icons-material/People';
+// import SettingsIcon from '@mui/icons-material/Settings';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SavingsIcon from '@mui/icons-material/Savings';
+import Sidebar from '../components/Sidebar';
 
 import '../styles/Accounts.css';
 
@@ -37,10 +39,10 @@ const Accounts = () => {
   const [accounts, setAccounts] = useState([
     {
       id: 1,
-      name: 'Główne konto',
+      name: 'Main Account',
       type: 'checking',
       balance: 2500,
-      currency: 'zł',
+      currency: '$',
       income: 4500,
       expenses: 2000,
       savingsGoal: 5000,
@@ -49,10 +51,10 @@ const Accounts = () => {
     },
     {
       id: 2,
-      name: 'Karta kredytowa',
+      name: 'Credit Card',
       type: 'credit',
       balance: -750,
-      currency: 'zł',
+      currency: '$',
       limit: 5000,
       usedPercentage: 15,
       dueDate: '2023-05-15',
@@ -60,10 +62,10 @@ const Accounts = () => {
     },
     {
       id: 3,
-      name: 'Oszczędności',
+      name: 'Savings',
       type: 'savings',
       balance: 12500,
-      currency: 'zł',
+      currency: '$',
       interest: 3.5,
       lastInterestDate: '2023-04-01',
       goal: 25000,
@@ -72,19 +74,22 @@ const Accounts = () => {
     }
   ]);
 
+  /* Zakomentowana funkcjonalność podlinkowanych kont bankowych
   const [linkedBanks, setLinkedBanks] = useState([
-    { id: 1, name: 'PKO Bank Polski', status: 'Connected', lastSync: '2023-04-28' },
-    { id: 2, name: 'mBank', status: 'Connected', lastSync: '2023-04-28' }
+    { id: 1, name: 'First National Bank', status: 'Connected', lastSync: '2023-04-28' },
+    { id: 2, name: 'City Bank', status: 'Connected', lastSync: '2023-04-28' }
   ]);
+  */
 
   const [isAddAccountDialogOpen, setAddAccountDialogOpen] = useState(false);
   const [newAccount, setNewAccount] = useState({
     name: '',
     type: 'checking',
     balance: '',
-    currency: 'zł'
+    currency: '$'
   });
 
+  /* Nieużywane funkcje nawigacyjne
   const navigateToDashboard = () => {
     navigate('/dashboard');
   };
@@ -100,6 +105,7 @@ const Accounts = () => {
   const navigateToSettings = () => {
     navigate('/settings');
   };
+  */
 
   const handleOpenAddAccountDialog = () => {
     setAddAccountDialogOpen(true);
@@ -111,7 +117,7 @@ const Accounts = () => {
       name: '',
       type: 'checking',
       balance: '',
-      currency: 'zł'
+      currency: '$'
     });
   };
 
@@ -166,18 +172,12 @@ const Accounts = () => {
   };
 
   return (
-    <Box className="accounts-container">
+    <Box className="page-container">
       {/* Sidebar */}
-      <Box className="sidebar">
-        <HomeIcon className="sidebar-icon" onClick={navigateToDashboard} />
-        <ShowChartIcon className="sidebar-icon" onClick={navigateToStatistics} />
-        <AccountBalanceWalletIcon className="sidebar-icon" sx={{ backgroundColor: '#d1c4e9' }} />
-        <PeopleIcon className="sidebar-icon" onClick={navigateToSocial} />
-        <SettingsIcon className="sidebar-icon" onClick={navigateToSettings} />
-      </Box>
+      <Sidebar />
 
       {/* Main Content */}
-      <Box className="accounts-main-content">
+      <Box className="page-content">
         {/* Header */}
         <Box className="accounts-header">
           <Typography variant="h4" component="h1" className="accounts-title">
@@ -314,7 +314,7 @@ const Accounts = () => {
           </Box>
         </Box>
 
-        {/* Linked Bank Accounts */}
+        {/* Zakomentowana sekcja podlinkowanych kont bankowych
         <Box className="linked-accounts-section">
           <Typography variant="h5" className="linked-accounts-title">
             Linked Bank Accounts
@@ -342,6 +342,7 @@ const Accounts = () => {
             Link a New Bank
           </Button>
         </Box>
+        */}
       </Box>
 
       {/* Add Account Dialog */}

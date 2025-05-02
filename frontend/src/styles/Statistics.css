@@ -1,16 +1,3 @@
-.statistics-container {
-  display: flex;
-  min-height: 100vh;
-  background-color: #f5f7fa;
-}
-
-.statistics-main-content {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-}
-
 .statistics-header {
   display: flex;
   justify-content: space-between;

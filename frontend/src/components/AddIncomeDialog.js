@@ -62,7 +62,7 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
           <TextField
             autoFocus
             name="amount"
-            label="Amount (zł)"
+            label="Amount ($)"
             type="number"
             value={income.amount}
             onChange={handleChange}
