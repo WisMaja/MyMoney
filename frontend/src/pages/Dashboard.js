@@ -6,12 +6,32 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
+import { useEffect } from 'react';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import Sidebar from '../components/Sidebar';
+import { supabase } from '../supabaseClient'; 
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+  
+      if (user) {
+        const { name, surname } = user.user_metadata || {};
+  
+        setUserData((prev) => ({
+          ...prev,
+          name: name && surname ? `${name} ${surname}` : user.email, 
+        }));
+      }
+    };
+  
+    fetchUserData();
+  }, []);
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
     name: 'John Doe',
