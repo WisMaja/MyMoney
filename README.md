@@ -62,7 +62,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     A[Strona główna/Dashboard] --> B[Przejście do sekcji Konta]
-    B --> C[Wybór opcji "Dodaj Wydatek"]
+    B --> C[Wybór opcji Dodaj Wydatek]
     C --> D[Wypełnienie formularza wydatku]
     D --> E{Zatwierdzenie?}
     E -->|Tak| F[Zapisanie wydatku]
@@ -76,7 +76,7 @@ flowchart LR
 ```mermaid
 flowchart LR
     A[Strona główna/Dashboard] --> B[Przejście do sekcji Konta]
-    B --> C[Wybór opcji "Dodaj Przychód"]
+    B --> C[Wybór opcji Dodaj Przychód]
     C --> D[Wypełnienie formularza przychodu]
     D --> E{Zatwierdzenie?}
     E -->|Tak| F[Zapisanie przychodu]
@@ -89,7 +89,7 @@ flowchart LR
 
 ```mermaid
 flowchart LR
-    A[Strona logowania] --> B[Wybór opcji "Zarejestruj się"]
+    A[Strona logowania] --> B[Wybór opcji Zarejestruj się]
     B --> C[Wypełnienie formularza rejestracji]
     C --> D{Walidacja danych}
     D -->|Niepoprawne| C
@@ -235,7 +235,7 @@ graph TB
 
 ```mermaid
 sequenceDiagram
-    Użytkownik->>+Frontend: Wybiera "Dodaj Wydatek"
+    Użytkownik->>+Frontend: Wybiera Dodaj Wydatek
     Frontend->>Frontend: Wyświetla formularz
     Użytkownik->>Frontend: Wprowadza dane transakcji
     Frontend->>+Backend: Wysyła dane transakcji
