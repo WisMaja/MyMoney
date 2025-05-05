@@ -44,6 +44,120 @@ npm start
 - Śledzenie przychodów i wydatków
 - Przeglądanie raportów finansowych i analityki
 
+## Diagramy Przepływów Procesów
+
+### Proces: Tworzenie Budżetów
+
+```mermaid
+flowchart LR
+    A[Strona główna/widok wszystkich budżetów] --> B[Tworzenie budżetu]
+    B --> C[Podawanie danych do budżetu]
+    C --> D{Akceptacja?}
+    D -->|Tak| E[Strona nowo utworzonego budżetu]
+    D -->|Nie| A
+```
+
+### Proces: Dodawanie Wydatków
+
+```mermaid
+flowchart LR
+    A[Strona główna/Dashboard] --> B[Przejście do sekcji Konta]
+    B --> C[Wybór opcji "Dodaj Wydatek"]
+    C --> D[Wypełnienie formularza wydatku]
+    D --> E{Zatwierdzenie?}
+    E -->|Tak| F[Zapisanie wydatku]
+    F --> G[Aktualizacja salda konta]
+    G --> H[Powrót do listy transakcji]
+    E -->|Nie| B
+```
+
+### Proces: Dodawanie Przychodów
+
+```mermaid
+flowchart LR
+    A[Strona główna/Dashboard] --> B[Przejście do sekcji Konta]
+    B --> C[Wybór opcji "Dodaj Przychód"]
+    C --> D[Wypełnienie formularza przychodu]
+    D --> E{Zatwierdzenie?}
+    E -->|Tak| F[Zapisanie przychodu]
+    F --> G[Aktualizacja salda konta]
+    G --> H[Powrót do listy transakcji]
+    E -->|Nie| B
+```
+
+### Proces: Rejestracja Użytkownika
+
+```mermaid
+flowchart LR
+    A[Strona logowania] --> B[Wybór opcji "Zarejestruj się"]
+    B --> C[Wypełnienie formularza rejestracji]
+    C --> D{Walidacja danych}
+    D -->|Niepoprawne| C
+    D -->|Poprawne| E[Utworzenie konta]
+    E --> F[Wysłanie emaila z potwierdzeniem]
+    F --> G[Strona logowania z komunikatem sukcesu]
+```
+
+### Proces: Zarządzanie Profilem Użytkownika
+
+```mermaid
+flowchart LR
+    A[Dashboard] --> B[Przejście do sekcji Ustawienia]
+    B --> C[Wybór zakładki Profil]
+    C --> D[Edycja danych profilu]
+    D --> E{Zapisać zmiany?}
+    E -->|Tak| F[Zapisanie zmian w profilu]
+    F --> G[Wyświetlenie komunikatu sukcesu]
+    E -->|Nie| C
+```
+
+### Proces: Przeglądanie Statystyk
+
+```mermaid
+flowchart LR
+    A[Dashboard] --> B[Przejście do sekcji Statystyki]
+    B --> C[Wybór zakresu dat]
+    C --> D[Generowanie wykresów]
+    D --> E[Wyświetlenie wykresów i danych]
+    E --> F{Zmiana parametrów?}
+    F -->|Tak| C
+    F -->|Nie| G[Powrót do Dashboard]
+```
+
+### Proces: Zarządzanie Kontami
+
+```mermaid
+flowchart LR
+    A[Dashboard] --> B[Przejście do sekcji Konta]
+    B --> C{Wybór akcji}
+    C -->|Dodaj konto| D[Formularz nowego konta]
+    C -->|Edytuj konto| E[Formularz edycji konta]
+    C -->|Usuń konto| F[Potwierdzenie usunięcia]
+    D --> G[Zapisanie nowego konta]
+    E --> H[Zapisanie zmian w koncie]
+    F -->|Potwierdzenie| I[Usunięcie konta]
+    G --> J[Powrót do listy kont]
+    H --> J
+    I --> J
+```
+
+### Proces: Zarządzanie Znajomymi
+
+```mermaid
+flowchart LR
+    A[Dashboard] --> B[Przejście do sekcji Znajomi]
+    B --> C{Wybór akcji}
+    C -->|Dodaj znajomego| D[Wyszukiwanie użytkownika]
+    C -->|Akceptuj zaproszenie| E[Lista zaproszeń]
+    C -->|Zarządzaj znajomymi| F[Lista znajomych]
+    D --> G[Wysłanie zaproszenia]
+    E --> H[Akceptacja/Odrzucenie zaproszenia]
+    F --> I[Usunięcie znajomego]
+    G --> J[Powrót do listy znajomych]
+    H --> J
+    I --> J
+```
+
 ## Diagramy
 
 ### Diagram Przypadków Użycia
