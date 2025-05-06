@@ -17,7 +17,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Snackbar,
+  Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -32,12 +34,38 @@ import LanguageIcon from '@mui/icons-material/Language';
 import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import DeleteIcon from '@mui/icons-material/Delete';
+import SaveIcon from '@mui/icons-material/Save';
 import Sidebar from '../components/Sidebar';
 import '../styles/Settings.css';
 
 const Settings = () => {
   const navigate = useNavigate();
   const [activeSection, setActiveSection] = useState('profile');
+  const [originalUserSettings, setOriginalUserSettings] = useState({
+    profile: {
+      name: 'John Doe',
+      email: 'email@example.com',
+      phone: '+1 123 456 789'
+    },
+    notifications: {
+      emailNotifications: true,
+      pushNotifications: true,
+      transactionAlerts: true,
+      weeklyReports: false,
+      savingsGoalAlerts: true
+    },
+    security: {
+      twoFactorAuth: false,
+      rememberDevices: true,
+      autoLogout: '30'
+    },
+    preferences: {
+      language: 'en',
+      currency: '$',
+      theme: 'light',
+      dateFormat: 'MM/DD/YYYY'
+    }
+  });
   const [userSettings, setUserSettings] = useState({
     profile: {
       name: 'John Doe',
@@ -63,7 +91,13 @@ const Settings = () => {
       dateFormat: 'MM/DD/YYYY'
     }
   });
+
   const [isDeleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
+  const [snackbarOpen, setSnackbarOpen] = useState(false);
+  const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [snackbarSeverity, setSnackbarSeverity] = useState('success');
+  const [isUploading, setIsUploading] = useState(false);
+  const [profileImage, setProfileImage] = useState(null);
 
   const navigateToDashboard = () => {
     navigate('/dashboard');
@@ -117,28 +151,92 @@ const Settings = () => {
     navigate('/');
   };
 
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === 'clickaway') {
+      return;
+    }
+    setSnackbarOpen(false);
+  };
+
+  const handleSaveProfileChanges = () => {
+    // Tutaj byłoby połączenie z API do aktualizacji danych profilu
+    setOriginalUserSettings({
+      ...originalUserSettings,
+      profile: { ...userSettings.profile }
+    });
+    
+    setSnackbarMessage('Profil został zaktualizowany pomyślnie!');
+    setSnackbarSeverity('success');
+    setSnackbarOpen(true);
+  };
+
+  const handleSelectProfileImage = (event) => {
+    if (event.target.files && event.target.files[0]) {
+      const file = event.target.files[0];
+      setProfileImage(URL.createObjectURL(file));
+      
+      // Tutaj byłoby połączenie z API do przesłania obrazu
+      setIsUploading(true);
+      
+      // Symulacja przesyłania
+      setTimeout(() => {
+        setIsUploading(false);
+        setSnackbarMessage('Zdjęcie profilowe zostało zaktualizowane!');
+        setSnackbarSeverity('success');
+        setSnackbarOpen(true);
+      }, 2000);
+    }
+  };
+
+  const hasProfileChanges = () => {
+    const originalProfile = originalUserSettings.profile;
+    const currentProfile = userSettings.profile;
+    
+    return (
+      originalProfile.name !== currentProfile.name ||
+      originalProfile.email !== currentProfile.email ||
+      originalProfile.phone !== currentProfile.phone
+    );
+  };
+
   const renderSettingsContent = () => {
     switch(activeSection) {
       case 'profile':
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title">
-              Profile Settings
+              Ustawienia Profilu
             </Typography>
             
             <Box sx={{ display: 'flex', mb: 4, alignItems: 'center' }}>
               <Avatar
+                src={profileImage}
                 sx={{ width: 100, height: 100, mr: 3 }}
               >
                 {userSettings.profile.name.split(' ').map(n => n[0]).join('')}
               </Avatar>
-              <Button variant="outlined">
-                Change Photo
-              </Button>
+              <Box>
+                <input
+                  accept="image/*"
+                  style={{ display: 'none' }}
+                  id="profile-photo-upload"
+                  type="file"
+                  onChange={handleSelectProfileImage}
+                />
+                <label htmlFor="profile-photo-upload">
+                  <Button 
+                    variant="outlined" 
+                    component="span"
+                    disabled={isUploading}
+                  >
+                    {isUploading ? 'Przesyłanie...' : 'Zmień zdjęcie'}
+                  </Button>
+                </label>
+              </Box>
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Name</Typography>
+              <Typography className="settings-form-label">Imię i Nazwisko</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.name}
@@ -159,13 +257,25 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Phone Number</Typography>
+              <Typography className="settings-form-label">Numer Telefonu</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.phone}
                 onChange={handleInputChange('profile', 'phone')}
                 fullWidth
               />
+            </Box>
+
+            <Box className="settings-button-group">
+              <Button
+                variant="contained"
+                className="settings-save-button"
+                startIcon={<SaveIcon />}
+                onClick={handleSaveProfileChanges}
+                disabled={!hasProfileChanges()}
+              >
+                Zapisz Zmiany
+              </Button>
             </Box>
           </Box>
         );
@@ -378,8 +488,8 @@ const Settings = () => {
       {/* Main Content */}
       <Box className="page-content">
         <Box className="settings-header">
-          <Typography variant="h4" component="h1" className="settings-title">
-            Settings
+          <Typography variant="h4" className="settings-title">
+            Ustawienia
           </Typography>
         </Box>
 
@@ -387,51 +497,47 @@ const Settings = () => {
           {/* Settings Navigation */}
           <Paper className="settings-nav">
             <Typography className="settings-nav-title">
-              Settings
+              Ustawienia
             </Typography>
             <List className="settings-nav-list">
-              <ListItem 
-                button 
+              <ListItem
                 className={`settings-nav-item ${activeSection === 'profile' ? 'active' : ''}`}
                 onClick={() => handleSectionChange('profile')}
               >
-                <ListItemIcon>
-                  <PersonIcon className="settings-nav-icon" />
+                <ListItemIcon className="settings-nav-icon">
+                  <PersonIcon />
                 </ListItemIcon>
-                <ListItemText primary="Profile" />
+                <ListItemText primary="Profil" />
               </ListItem>
-              
-              <ListItem 
-                button 
+
+              <ListItem
                 className={`settings-nav-item ${activeSection === 'notifications' ? 'active' : ''}`}
                 onClick={() => handleSectionChange('notifications')}
               >
-                <ListItemIcon>
-                  <NotificationsIcon className="settings-nav-icon" />
+                <ListItemIcon className="settings-nav-icon">
+                  <NotificationsIcon />
                 </ListItemIcon>
-                <ListItemText primary="Notifications" />
+                <ListItemText primary="Powiadomienia" />
               </ListItem>
-              
-              <ListItem 
-                button 
+
+              <ListItem
                 className={`settings-nav-item ${activeSection === 'security' ? 'active' : ''}`}
                 onClick={() => handleSectionChange('security')}
               >
-                <ListItemIcon>
-                  <SecurityIcon className="settings-nav-icon" />
+                <ListItemIcon className="settings-nav-icon">
+                  <SecurityIcon />
                 </ListItemIcon>
-                <ListItemText primary="Security" />
+                <ListItemText primary="Bezpieczeństwo" />
               </ListItem>
-              
-              <ListItem 
-                button 
+
+              <ListItem
                 className={`settings-nav-item ${activeSection === 'preferences' ? 'active' : ''}`}
                 onClick={() => handleSectionChange('preferences')}
               >
-                <ListItemIcon>
-                  <ColorLensIcon className="settings-nav-icon" />
+                <ListItemIcon className="settings-nav-icon">
+                  <ColorLensIcon />
                 </ListItemIcon>
-                <ListItemText primary="Preferences" />
+                <ListItemText primary="Preferencje" />
               </ListItem>
             </List>
           </Paper>
@@ -456,21 +562,35 @@ const Settings = () => {
           open={isDeleteAccountDialogOpen}
           onClose={handleCloseDeleteDialog}
         >
-          <DialogTitle>Are you sure you want to delete your account?</DialogTitle>
+          <DialogTitle>
+            {"Czy na pewno chcesz usunąć swoje konto?"}
+          </DialogTitle>
           <DialogContent>
             <DialogContentText>
-              This action cannot be undone. All your data, including transaction history, accounts, and settings will be permanently deleted.
+              Ta akcja nie może być cofnięta. Wszystkie Twoje dane zostaną trwale usunięte.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDeleteDialog} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={handleDeleteAccount} color="error" variant="contained">
-              Delete Account
+            <Button onClick={handleCloseDeleteDialog}>Anuluj</Button>
+            <Button 
+              onClick={handleDeleteAccount}
+              color="error"
+            >
+              Usuń Konto
             </Button>
           </DialogActions>
         </Dialog>
+
+        {/* Snackbar */}
+        <Snackbar
+          open={snackbarOpen}
+          autoHideDuration={6000}
+          onClose={handleCloseSnackbar}
+        >
+          <Alert onClose={handleCloseSnackbar} severity={snackbarSeverity}>
+            {snackbarMessage}
+          </Alert>
+        </Snackbar>
       </Box>
     </Box>
   );
