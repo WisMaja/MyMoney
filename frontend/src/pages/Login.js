@@ -3,8 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
 import FacebookIcon from '@mui/icons-material/Facebook';
-import { supabase } from '../supabaseClient';
 import '../styles/Login.css';
+
+const API_URL = 'http://localhost:8000/users';
 
 const Login = () => {
   const navigate = useNavigate();
@@ -17,67 +18,44 @@ const Login = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSocialLogin = async (provider) => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider,
-      options: {
-        redirectTo: window.location.origin + '/dashboard',
-      },
-    });
-    if (error) {
-      setError(error.message);
-    }
-  };
-
   const handleManualLogin = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
 
     try {
-      if (isRegistering) {
-        if (password !== repeatPassword) {
-          setError('Passwords do not match');
-          setLoading(false);
-          return;
-        }
+      let endpoint = isRegistering ? '/register' : '/login';
+      let payload = isRegistering
+        ? { email, password, name, surname }
+        : { email, password };
 
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              name,
-              surname,
-            },
-          },
-        });
-
-        if (error) {
-          setError(error.message);
-          setLoading(false);
-          return;
-        }
-
-        alert('Account created! Please check your email to confirm your registration.');
-        setIsRegistering(false);
+      if (isRegistering && password !== repeatPassword) {
+        setError('Passwords do not match');
         setLoading(false);
         return;
+      }
+
+      const res = await fetch(`${API_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+        credentials: 'include', // dla ciasteczek HttpOnly
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok) {
+        setError(data.detail || 'Authentication failed');
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-          setError(error.message);
-          setLoading(false);
-          return;
+        if (isRegistering) {
+          alert('Account created! Please check your email.');
+          setIsRegistering(false);
+        } else {
+          navigate('/dashboard');
         }
-
-        navigate('/dashboard');
       }
     } catch (err) {
+      console.error(err);
       setError('Unexpected error occurred.');
     }
 
@@ -99,10 +77,10 @@ const Login = () => {
           <Typography variant="h6" component="h3" className="login-with-text">Login with:</Typography>
 
           <Box className="social-buttons">
-            <Button variant="outlined" className="social-button google-button" onClick={() => handleSocialLogin('google')}>
+            <Button variant="outlined" className="social-button google-button" disabled>
               <GoogleIcon className="social-icon" />
             </Button>
-            <Button variant="outlined" className="social-button facebook-button" onClick={() => handleSocialLogin('facebook')}>
+            <Button variant="outlined" className="social-button facebook-button" disabled>
               <FacebookIcon className="social-icon" />
             </Button>
           </Box>
