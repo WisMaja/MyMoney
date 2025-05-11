@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "iGECnlL/NNs=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\wisni\\Desktop\\UNI\\Bezpieczeństwo chmurowe\\MyMoney\\api\\api.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\wisni\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.4\\microsoft.aspnetcore.openapi.9.0.4.nupkg.sha512",
+    "C:\\Users\\wisni\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
