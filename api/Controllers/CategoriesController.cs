@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.DTO;
 
 namespace api.Controllers
 {
@@ -23,21 +24,26 @@ namespace api.Controllers
                 ? Ok(cat) : NotFound();
 
         [HttpPost]
-        public async Task<IActionResult> Create(Category cat)
+        public async Task<IActionResult> Create(CreateCategoryDto dto)
         {
-            cat.CategoryId = Guid.NewGuid();
-            cat.CreatedAt = DateTime.UtcNow;
+            var cat = new Category
+            {
+                CategoryId = Guid.NewGuid(),
+                Name = dto.Name,
+                CreatedAt = DateTime.UtcNow
+            };
             _db.Categories.Add(cat);
             await _db.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = cat.CategoryId }, cat);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Category input)
+        public async Task<IActionResult> Update(Guid id, UpdateCategoryDto dto)
         {
             var cat = await _db.Categories.FindAsync(id);
             if (cat is null) return NotFound();
-            cat.Name = input.Name;
+
+            cat.Name = dto.Name;
             await _db.SaveChangesAsync();
             return NoContent();
         }

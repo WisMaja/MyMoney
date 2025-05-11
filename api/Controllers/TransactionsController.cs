@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Models;
 using api.Data;
+using api.DTO;
 
 
 namespace api.Controllers
@@ -49,11 +50,21 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Transaction transaction)
+        public async Task<IActionResult> Create(CreateTransactionDto dto)
         {
-            transaction.TransactionId = Guid.NewGuid();
-            transaction.CreatedAt = DateTime.UtcNow;
-            transaction.UpdatedAt = DateTime.UtcNow;
+            var transaction = new Transaction
+            {
+                TransactionId = Guid.NewGuid(),
+                BudgetId = dto.BudgetId,
+                CategoryId = dto.CategoryId,
+                UserId = dto.UserId,
+                Amount = dto.Amount,
+                Type = dto.Type,
+                Description = dto.Description,
+                TransactionDate = dto.TransactionDate,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
             _db.Transactions.Add(transaction);
             await _db.SaveChangesAsync();
@@ -62,19 +73,19 @@ namespace api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Transaction input)
+        public async Task<IActionResult> Update(Guid id, UpdateTransactionDto dto)
         {
             var transaction = await _db.Transactions.FindAsync(id);
             if (transaction == null)
                 return NotFound();
 
-            transaction.Amount = input.Amount;
-            transaction.Description = input.Description;
-            transaction.Type = input.Type;
-            transaction.CategoryId = input.CategoryId;
-            transaction.BudgetId = input.BudgetId;
-            transaction.UserId = input.UserId;
-            transaction.TransactionDate = input.TransactionDate;
+            transaction.BudgetId = dto.BudgetId;
+            transaction.CategoryId = dto.CategoryId;
+            transaction.UserId = dto.UserId;
+            transaction.Amount = dto.Amount;
+            transaction.Type = dto.Type;
+            transaction.Description = dto.Description;
+            transaction.TransactionDate = dto.TransactionDate;
             transaction.UpdatedAt = DateTime.UtcNow;
 
             await _db.SaveChangesAsync();

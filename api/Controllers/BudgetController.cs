@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.DTO;
 
 namespace api.Controllers
 {
@@ -11,10 +12,7 @@ namespace api.Controllers
     {
         private readonly AppDbContext _db;
 
-        public BudgetsController(AppDbContext db)
-        {
-            _db = db;
-        }
+        public BudgetsController(AppDbContext db) => _db = db;
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
@@ -37,17 +35,20 @@ namespace api.Controllers
                 .Include(b => b.Invitations)
                 .FirstOrDefaultAsync(b => b.BudgetId == id);
 
-            if (budget == null) return NotFound();
-
-            return Ok(budget);
+            return budget is not null ? Ok(budget) : NotFound();
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(Budget budget)
+        public async Task<IActionResult> Create(CreateBudgetDto dto)
         {
-            budget.BudgetId = Guid.NewGuid();
-            budget.CreatedAt = DateTime.UtcNow;
-            budget.UpdatedAt = DateTime.UtcNow;
+            var budget = new Budget
+            {
+                BudgetId = Guid.NewGuid(),
+                Name = dto.Name,
+                CreatorId = dto.CreatorId,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
             _db.Budgets.Add(budget);
             await _db.SaveChangesAsync();
@@ -56,15 +57,15 @@ namespace api.Controllers
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Budget input)
+        public async Task<IActionResult> Update(Guid id, UpdateBudgetDto dto)
         {
             var budget = await _db.Budgets.FindAsync(id);
-            if (budget == null) return NotFound();
+            if (budget is null) return NotFound();
 
-            budget.Name = input.Name;
+            budget.Name = dto.Name;
             budget.UpdatedAt = DateTime.UtcNow;
-            await _db.SaveChangesAsync();
 
+            await _db.SaveChangesAsync();
             return NoContent();
         }
 
@@ -72,11 +73,10 @@ namespace api.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             var budget = await _db.Budgets.FindAsync(id);
-            if (budget == null) return NotFound();
+            if (budget is null) return NotFound();
 
             _db.Budgets.Remove(budget);
             await _db.SaveChangesAsync();
-
             return NoContent();
         }
     }

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.DTO;
 
 namespace api.Controllers
 {
@@ -23,22 +24,30 @@ namespace api.Controllers
                 ? Ok(user) : NotFound();
 
         [HttpPost]
-        public async Task<IActionResult> Create(Profile profile)
+        public async Task<IActionResult> Create(CreateProfileDto dto)
         {
-            profile.UserId = Guid.NewGuid();
-            profile.CreatedAt = DateTime.UtcNow;
+            var profile = new Profile
+            {
+                UserId = Guid.NewGuid(),
+                FullName = dto.FullName,
+                AvatarUrl = dto.AvatarUrl,
+                CreatedAt = DateTime.UtcNow
+            };
+
             _db.Profiles.Add(profile);
             await _db.SaveChangesAsync();
             return CreatedAtAction(nameof(Get), new { id = profile.UserId }, profile);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Profile input)
+        public async Task<IActionResult> Update(Guid id, UpdateProfileDto dto)
         {
             var profile = await _db.Profiles.FindAsync(id);
             if (profile is null) return NotFound();
-            profile.FullName = input.FullName;
-            profile.AvatarUrl = input.AvatarUrl;
+
+            profile.FullName = dto.FullName;
+            profile.AvatarUrl = dto.AvatarUrl;
+
             await _db.SaveChangesAsync();
             return NoContent();
         }
@@ -48,9 +57,11 @@ namespace api.Controllers
         {
             var profile = await _db.Profiles.FindAsync(id);
             if (profile is null) return NotFound();
+
             _db.Profiles.Remove(profile);
             await _db.SaveChangesAsync();
             return NoContent();
         }
     }
+
 }

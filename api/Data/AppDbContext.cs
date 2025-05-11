@@ -12,5 +12,13 @@ namespace api.Data
         public DbSet<Profile> Profiles => Set<Profile>();
         public DbSet<Invitation> Invitations => Set<Invitation>();
         public DbSet<BudgetMember> BudgetMembers => Set<BudgetMember>();
+
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<BudgetMember>()
+                .HasKey(bm => new { bm.BudgetId, bm.UserId });
+
+            base.OnModelCreating(modelBuilder);
+        }
     }
 }

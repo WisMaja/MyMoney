@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.DTO;
 
 namespace api.Controllers
 {
@@ -30,22 +31,30 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create(BudgetMember member)
+        public async Task<IActionResult> Create(CreateBudgetMemberDto dto)
         {
+            var member = new BudgetMember
+            {
+                BudgetId = dto.BudgetId,
+                UserId = dto.UserId,
+                Role = dto.Role,
+                JoinedAt = DateTime.UtcNow
+            };
+
             _db.BudgetMembers.Add(member);
             await _db.SaveChangesAsync();
             return Created("", member);
         }
 
         [HttpPut("{budgetId}/{userId}")]
-        public async Task<IActionResult> Update(Guid budgetId, Guid userId, BudgetMember input)
+        public async Task<IActionResult> Update(Guid budgetId, Guid userId, UpdateBudgetMemberDto dto)
         {
             var member = await _db.BudgetMembers
                 .FirstOrDefaultAsync(m => m.BudgetId == budgetId && m.UserId == userId);
 
             if (member is null) return NotFound();
 
-            member.Role = input.Role;
+            member.Role = dto.Role;
             await _db.SaveChangesAsync();
             return NoContent();
         }
@@ -63,4 +72,5 @@ namespace api.Controllers
             return NoContent();
         }
     }
+
 }

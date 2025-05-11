@@ -2,9 +2,11 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using api.Data;
 using api.Models;
+using api.DTO;
 
 namespace api.Controllers
 {
+
     [ApiController]
     [Route("api/[controller]")]
     public class InvitationsController : ControllerBase
@@ -26,22 +28,33 @@ namespace api.Controllers
                 ? Ok(invite) : NotFound();
 
         [HttpPost]
-        public async Task<IActionResult> Create(Invitation invitation)
+        public async Task<IActionResult> Create(CreateInvitationDto dto)
         {
-            invitation.InvitationId = Guid.NewGuid();
-            invitation.CreatedAt = DateTime.UtcNow;
-            _db.Invitations.Add(invitation);
+            var invite = new Invitation
+            {
+                InvitationId = Guid.NewGuid(),
+                BudgetId = dto.BudgetId,
+                InvitedEmail = dto.InvitedEmail,
+                InviterId = dto.InviterId,
+                Status = dto.Status,
+                ExpiresAt = dto.ExpiresAt,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.Invitations.Add(invite);
             await _db.SaveChangesAsync();
-            return CreatedAtAction(nameof(Get), new { id = invitation.InvitationId }, invitation);
+            return CreatedAtAction(nameof(Get), new { id = invite.InvitationId }, invite);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, Invitation input)
+        public async Task<IActionResult> Update(Guid id, UpdateInvitationDto dto)
         {
             var invite = await _db.Invitations.FindAsync(id);
             if (invite is null) return NotFound();
-            invite.Status = input.Status;
-            invite.ExpiresAt = input.ExpiresAt;
+
+            invite.Status = dto.Status;
+            invite.ExpiresAt = dto.ExpiresAt;
+
             await _db.SaveChangesAsync();
             return NoContent();
         }
@@ -51,9 +64,11 @@ namespace api.Controllers
         {
             var invite = await _db.Invitations.FindAsync(id);
             if (invite is null) return NotFound();
+
             _db.Invitations.Remove(invite);
             await _db.SaveChangesAsync();
             return NoContent();
         }
     }
+
 }
