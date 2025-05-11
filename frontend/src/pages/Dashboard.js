@@ -21,11 +21,11 @@ const Dashboard = () => {
       } = await supabase.auth.getUser();
   
       if (user) {
-        const { name, surname } = user.user_metadata || {};
+        const { full_name } = user.user_metadata || {};
   
         setUserData((prev) => ({
           ...prev,
-          name: name && surname ? `${name} ${surname}` : user.email, 
+          name: full_name ? `${full_name}` : user.email, 
         }));
       }
     };

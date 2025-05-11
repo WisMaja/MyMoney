@@ -37,9 +37,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import Sidebar from '../components/Sidebar';
 import '../styles/Settings.css';
+import { useAuth } from '../hooks/useAuth';
+
 
 const Settings = () => {
   const navigate = useNavigate();
+  const { logout } = useAuth();
+
   const [activeSection, setActiveSection] = useState('profile');
   const [originalUserSettings, setOriginalUserSettings] = useState({
     profile: {
@@ -148,6 +152,11 @@ const Settings = () => {
   const handleDeleteAccount = () => {
     alert('Account deletion functionality would go here in a real app');
     setDeleteAccountDialogOpen(false);
+    navigate('/');
+  };
+  
+  const handleLogout = async () => {
+    await logout();
     navigate('/');
   };
 
@@ -389,6 +398,14 @@ const Settings = () => {
                 onClick={handleOpenDeleteDialog}
               >
                 Delete Account
+              </Button>
+              <Button 
+                variant="outlined" 
+                color="primary" 
+                sx={{ mt: 2, mb: 2 }}
+                onClick={handleLogout}
+              >
+                Wyloguj się
               </Button>
             </Box>
           </Box>

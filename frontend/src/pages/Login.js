@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
@@ -16,6 +16,17 @@ const Login = () => {
   const [surname, setSurname] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+
+ 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      const token = data?.session?.access_token;
+      if (token) {
+        localStorage.setItem('access_token', token);
+        navigate('/dashboard');
+      }
+    });
+  }, [navigate]);
 
   const handleSocialLogin = async (provider) => {
     const { error } = await supabase.auth.signInWithOAuth({
@@ -63,7 +74,7 @@ const Login = () => {
         setLoading(false);
         return;
       } else {
-        const { error } = await supabase.auth.signInWithPassword({
+        const { data, error } = await supabase.auth.signInWithPassword({
           email,
           password,
         });
@@ -72,6 +83,11 @@ const Login = () => {
           setError(error.message);
           setLoading(false);
           return;
+        }
+
+        
+        if (data?.session?.access_token) {
+          localStorage.setItem('access_token', data.session.access_token);
         }
 
         navigate('/dashboard');
