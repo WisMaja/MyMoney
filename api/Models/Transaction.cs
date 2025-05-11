@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace api.Models
 {
     [Table("transactions")]
-    public class Transactions
+    public class Transaction
     {
             [Key]
     [Column("transaction_id")]
@@ -39,4 +39,14 @@ namespace api.Models
     [Column("updated_at")]
     public DateTime UpdatedAt { get; set; }
     }
+
+    //RELACJE
+    [ForeignKey("BudgetId")]
+    public Budget Budget { get; set; } = null!;
+
+    [ForeignKey("CategoryId")]
+    public Category Category { get; set; } = null!;
+
+    [ForeignKey("UserId")]
+    public Profile User { get; set; } = null!;
 }
