@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/material';
 import GoogleIcon from '@mui/icons-material/Google';
-import FacebookIcon from '@mui/icons-material/Facebook';
 import { supabase } from '../supabaseClient';
 import '../styles/Login.css';
 
@@ -116,9 +115,6 @@ const Login = () => {
           <Box className="social-buttons">
             <Button variant="outlined" className="social-button google-button" onClick={() => handleSocialLogin('google')}>
               <GoogleIcon className="social-icon" />
-            </Button>
-            <Button variant="outlined" className="social-button facebook-button" onClick={() => handleSocialLogin('facebook')}>
-              <FacebookIcon className="social-icon" />
             </Button>
           </Box>
 
