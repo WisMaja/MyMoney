@@ -1,15 +1,15 @@
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile_dev.dockerfile
-    volumes:
-      - ./:/app
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_server_MyMoney
     environment:
-      - SUPABASE_URL=${SUPABASE_URL}
-      - SUPABASE_KEY=${SUPABASE_KEY}
-      - FRONTEND_URL=${FRONTEND_URL}
-      - ENVIRONMENT=development
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
     ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
-    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "${BACKEND_PORT}", "--reload"]
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
+    restart: unless-stopped
+
+volumes:
+  mssql_data:
