@@ -5,7 +5,7 @@ function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5032/api/users")
+    axios.get("http://localhost:5032/api/user")
       .then(response => setUsers(response.data))
       .catch(error => console.error("Błąd pobierania użytkowników:", error));
   }, []);

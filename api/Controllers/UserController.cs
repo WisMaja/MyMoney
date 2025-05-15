@@ -5,21 +5,31 @@ using api.Models;
 namespace api.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
-    public class UsersController : ControllerBase
+    [Route("api/[controller]")] // ścieżka: /api/user
+    public class UserController : ControllerBase
     {
         private readonly AppDbContext _context;
 
-        public UsersController(AppDbContext context)
+        public UserController(AppDbContext context)
         {
             _context = context;
         }
 
+        // GET: /api/user
         [HttpGet]
-        public IActionResult GetUsers()
+        public IActionResult GetAll()
         {
-            var users = _context.Users.ToList();
-            return Ok("users");
+            var users = _context.User.ToList();
+            return Ok(users);
+        }
+
+        // POST: /api/user
+        [HttpPost]
+        public IActionResult Create(User user)
+        {
+            _context.User.Add(user);
+            _context.SaveChanges();
+            return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
         }
     }
 }
