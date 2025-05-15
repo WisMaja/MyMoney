@@ -1,0 +1,89 @@
+.budget-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.budget-grid {
+  margin-top: 20px;
+}
+
+.budget-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  transition: all 0.3s ease;
+}
+
+.budget-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+.budget-name {
+  font-weight: 600;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 70%;
+}
+
+.category-chip {
+  font-size: 0.7rem;
+  height: 24px;
+}
+
+.category-chip.general {
+  background-color: #e0e0e0;
+  color: #424242;
+}
+
+.category-chip.housing {
+  background-color: #bbdefb;
+  color: #1565c0;
+}
+
+.category-chip.food {
+  background-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.category-chip.transportation {
+  background-color: #d1c4e9;
+  color: #4527a0;
+}
+
+.category-chip.entertainment {
+  background-color: #ffccbc;
+  color: #d84315;
+}
+
+.category-chip.healthcare {
+  background-color: #f8bbd0;
+  color: #ad1457;
+}
+
+.category-chip.education {
+  background-color: #b3e5fc;
+  color: #0277bd;
+}
+
+.category-chip.travel {
+  background-color: #ffe0b2;
+  color: #ef6c00;
+}
+
+.category-chip.other {
+  background-color: #e0e0e0;
+  color: #424242;
+}
+
+.no-budgets {
+  padding: 50px;
+  text-align: center;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  margin-top: 20px;
+} 

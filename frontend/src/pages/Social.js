@@ -9,8 +9,6 @@ import {
   Button,
   IconButton,
   Avatar,
-  Card,
-  CardContent,
   Divider,
   InputAdornment,
   List,
@@ -24,7 +22,6 @@ import {
   PersonAdd as PersonAddIcon,
   Check as CheckIcon,
   Close as CloseIcon,
-  Facebook as FacebookIcon,
   Email as EmailIcon,
   Person as PersonIcon,
   PersonOff as PersonOffIcon,
@@ -36,7 +33,6 @@ function Social() {
   const navigate = useNavigate();
   const [selectedTab, setSelectedTab] = useState(0);
   const [searchQuery, setSearchQuery] = useState('');
-  const [facebookConnected, setFacebookConnected] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
 
   // Example friend data
@@ -68,12 +64,6 @@ function Social() {
 
   const handleRejectFriend = (id) => {
     setFriendRequests(friendRequests.filter(request => request.id !== id));
-  };
-
-  const handleConnectFacebook = () => {
-    // In a real app, this would connect to the Facebook API
-    setFacebookConnected(true);
-    alert('Connected to Facebook');
   };
 
   const handleInviteByEmail = () => {
@@ -120,7 +110,6 @@ function Social() {
           >
             <Tab label="Friends" />
             <Tab label="Invitations" />
-            <Tab label="Find Friends" />
           </Tabs>
 
           {/* Tab 1: Friends */}
@@ -184,7 +173,7 @@ function Social() {
             </div>
           )}
 
-          {/* Tab 2: Friend Requests */}
+          {/* Tab 2: Friend Requests & Invite */}
           {selectedTab === 1 && (
             <div className="friends-container friend-requests-section">
               <Typography variant="h6" className="friends-section-title">
@@ -230,44 +219,13 @@ function Social() {
                   </div>
                 )}
               </div>
-            </div>
-          )}
-
-          {/* Tab 3: Find Friends */}
-          {selectedTab === 2 && (
-            <div className="friends-container find-friends-section">
-              <Typography variant="h6" className="friends-section-title">
-                Find Friends
-              </Typography>
-              
-              <Card className="facebook-connect-card">
-                <CardContent>
-                  <Box display="flex" alignItems="center" mb={2}>
-                    <FacebookIcon fontSize="large" color="primary" />
-                    <Box ml={2}>
-                      <Typography variant="h6">Connect with Facebook</Typography>
-                      <Typography variant="body2" color="textSecondary">
-                        Find friends who also use the MyMoney app
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Button 
-                    variant="contained" 
-                    color="primary" 
-                    startIcon={<FacebookIcon />}
-                    onClick={handleConnectFacebook}
-                    disabled={facebookConnected}
-                  >
-                    {facebookConnected ? 'Connected to Facebook' : 'Connect with Facebook'}
-                  </Button>
-                </CardContent>
-              </Card>
 
               <Divider sx={{ my: 3 }} />
 
+              {/* Invite by Email Section */}
               <Box mb={3}>
                 <Typography variant="h6" gutterBottom>
-                  Invite by email
+                  Invite a Friend by Email
                 </Typography>
                 <Box display="flex" gap={1}>
                   <TextField 
@@ -286,6 +244,9 @@ function Social() {
                     Invite
                   </Button>
                 </Box>
+                <Typography variant="body2" color="textSecondary" sx={{ mt: 1 }}>
+                  Send an invitation to your friend to join your financial community.
+                </Typography>
               </Box>
             </div>
           )}
