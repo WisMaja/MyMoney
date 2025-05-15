@@ -5,29 +5,27 @@ using Microsoft.OpenApi.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 🔌 Connection string
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-
-// 🔗 DbContext z PostgreSQL
-builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
-// 📦 Dodaj kontrolery i Swagger
-builder.Services.AddControllers();
+// 1. Swagger (OpenAPI)
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// 🌍 Konfiguracja CORS – POZWALAJ NA DOSTĘP Z FRONTU
+// 2. CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontend", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        policy
-            .WithOrigins("http://localhost:3000") // lub inny frontend URL
-            .AllowAnyHeader()
-            .AllowAnyMethod();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
+
+// 3. DbContext (Entity Framework)
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// 4. Dodanie kontrolerów (jeśli używasz [ApiController])
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
@@ -38,10 +36,13 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-// 🛡️ Włącz CORS przed routingiem
-app.UseCors("AllowFrontend");
+// 6. Middleware
+app.UseHttpsRedirection();
 
-// 🌐 Routing kontrolerów
+app.UseCors("AllowAll");
+
+app.UseAuthorization();
+
 app.MapControllers();
 
 app.Run();
