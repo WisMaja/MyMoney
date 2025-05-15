@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import apiClient from "./apiClient";
 
 function App() {
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
-    axios.get("http://localhost:5032/api/user")
+    apiClient.get("api/user")
       .then(response => setUsers(response.data))
       .catch(error => console.error("Błąd pobierania użytkowników:", error));
   }, []);
