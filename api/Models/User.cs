@@ -8,8 +8,8 @@ namespace api.Models
         public string? FullName { get; set; }
         public string? Email { get; set; }
         public string? HashedPassword { get; set; }
-        //public string? RefreshToken { get; set; }
-        //public DateTime? RefreshTokenExpiration { get; set; }
+        public string? RefreshToken { get; set; }
+        public DateTime? RefreshTokenExpiration { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

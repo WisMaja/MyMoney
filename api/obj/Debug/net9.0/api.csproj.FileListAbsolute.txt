@@ -167,3 +167,4 @@ C:\Users\wisni\Desktop\UNI\Bezpieczeństwo chmurowe\MyMoney\api\obj\Debug\net9.0
 C:\Users\wisni\Desktop\UNI\Bezpieczeństwo chmurowe\MyMoney\api\obj\Debug\net9.0\api.pdb
 C:\Users\wisni\Desktop\UNI\Bezpieczeństwo chmurowe\MyMoney\api\obj\Debug\net9.0\api.genruntimeconfig.cache
 C:\Users\wisni\Desktop\UNI\Bezpieczeństwo chmurowe\MyMoney\api\obj\Debug\net9.0\ref\api.dll
+C:\Users\wisni\Desktop\UNI\Bezpieczeństwo chmurowe\MyMoney\api\bin\Debug\net9.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
