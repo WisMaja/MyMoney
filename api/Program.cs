@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.OpenApi.Models;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using api.Services;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -59,6 +60,9 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 // 4. Dodanie kontrolerów (jeśli używasz [ApiController])
 builder.Services.AddControllers();
 
+//5. Dodanie TokenService do buildera
+builder.Services.AddScoped<ITokenService, TokenService>();
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
@@ -91,7 +95,7 @@ app.UseAuthentication();
 
 app.UseAuthorization();
 // Add middleware to handle exceptions
-app.UseMiddleware<ExceptionHandlingMiddleware>();
+//app.UseMiddleware<ExceptionHandlingMiddleware>();
 
 app.MapControllers();
 
