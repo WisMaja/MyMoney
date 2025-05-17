@@ -28,7 +28,7 @@ const Login = () => {
           return;
         }
 
-        await apiClient.post('/user/register', {
+        await apiClient.post('/auth/register', {
           email,
           password,
         });
@@ -36,7 +36,7 @@ const Login = () => {
         alert('Account created! You can now log in.');
         setIsRegistering(false);
       } else {
-        const response = await apiClient.post('/user/login', {
+        const response = await apiClient.post('/auth/login', {
           email,
           password,
         });

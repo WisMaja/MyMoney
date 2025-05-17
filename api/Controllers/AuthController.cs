@@ -10,12 +10,12 @@ namespace api.Controllers
 {
     [ApiController]
     [Route("api/[controller]")] // ścieżka: /api/user
-    public class UserController : ControllerBase
+    public class AuthController : ControllerBase
     {
         private ITokenService _tokenService;
         private readonly AppDbContext _context;
 
-        public UserController(ITokenService tokenService, AppDbContext context)
+        public AuthController(ITokenService tokenService, AppDbContext context)
         {
             _tokenService = tokenService;
             _context = context;
