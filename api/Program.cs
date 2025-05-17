@@ -87,7 +87,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // 6. Middleware
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors("AllowAll");
 

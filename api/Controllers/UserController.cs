@@ -29,7 +29,7 @@ namespace api.Controllers
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto dto)
         {
-            var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email, StringComparison.CurrentCultureIgnoreCase));
+            var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email));
             if (isEmailTaken) return Conflict("Użytkownik o tym emailu już istnieje");
             var user = new User
             {
@@ -41,14 +41,13 @@ namespace api.Controllers
             };
             user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
             _context.Users.Add(user);
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
             return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
         }
 
 
         #endregion
-
-
+        
         #region Logowanie
 
         [HttpPost("login")]
@@ -57,7 +56,7 @@ namespace api.Controllers
 
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto dto)
         {
-            var user = _context.Users.FirstOrDefault(u => u.Email!.Equals(dto.Email, StringComparison.CurrentCultureIgnoreCase));
+            var user = _context.Users.FirstOrDefault(u => u.Email!.Equals(dto.Email));
             if (user == null) return Unauthorized();
 
             var passwordHasher = new PasswordHasher<User>();
