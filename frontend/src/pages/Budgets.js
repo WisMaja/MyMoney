@@ -31,7 +31,6 @@ import {
   People as PeopleIcon,
   Share as ShareIcon
 } from '@mui/icons-material';
-import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import '../styles/Budgets.css';
 

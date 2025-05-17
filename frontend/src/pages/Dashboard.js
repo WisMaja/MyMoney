@@ -10,28 +10,10 @@ import { useEffect } from 'react';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import Sidebar from '../components/Sidebar';
-import { supabase } from '../supabaseClient'; 
 import '../styles/Dashboard.css';
 
 const Dashboard = () => {
-  useEffect(() => {
-    const fetchUserData = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
-  
-      if (user) {
-        const { full_name } = user.user_metadata || {};
-  
-        setUserData((prev) => ({
-          ...prev,
-          name: full_name ? `${full_name}` : user.email, 
-        }));
-      }
-    };
-  
-    fetchUserData();
-  }, []);
+
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
     name: 'John Doe',

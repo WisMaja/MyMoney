@@ -45,7 +45,6 @@ import {
   ColorLens as ColorIcon,
   MoreVert as MoreIcon
 } from '@mui/icons-material';
-import { supabase } from '../supabaseClient';
 import Sidebar from '../components/Sidebar';
 import '../styles/Categories.css';
 
