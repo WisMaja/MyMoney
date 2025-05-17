@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -13,11 +14,12 @@ namespace api.Controllers
         public IActionResult GetProfile()
         {
             // Zwraca informacje z tokena (np. sub = user id w Supabase)
-            var userId = User.FindFirst("sub")?.Value;
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            
             return Ok(new
             {
                 Message = "Token działa ✅",
-                SupabaseUserId = userId
+                UserId = userId
             });
         }
 

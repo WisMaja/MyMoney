@@ -77,8 +77,7 @@ namespace api.Controllers
 
         }
         #endregion
-
-
+        
         #region RefreshToken
         [HttpPost("refresh")]
         [ProducesResponseType(StatusCodes.Status200OK)]
