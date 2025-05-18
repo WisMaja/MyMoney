@@ -5,6 +5,8 @@ using api.Services;
 using api.Dtos.User;
 using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace api.Controllers
 {
@@ -42,7 +44,7 @@ namespace api.Controllers
             user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
-            return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
+            return NoContent();
         }
 
 
@@ -108,35 +110,38 @@ namespace api.Controllers
             return Ok(response);
         }
         #endregion
-
-        // GET: /api/user
-        [HttpGet]
-        public IActionResult GetAll()
+        
+        
+        #region Zmiana hasła
+        [Authorize]
+        [HttpPut("change-password")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto dto)
         {
-            var users = _context.Users.ToList();
-            return Ok(users);
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim) || !Guid.TryParse(userIdClaim, out var userId))
+                return Unauthorized();
+
+            var user = await _context.Users.FindAsync(userId);
+            if (user == null) return Unauthorized();
+
+            var hasher = new PasswordHasher<User>();
+            var result = hasher.VerifyHashedPassword(user, user.HashedPassword!, dto.CurrentPassword);
+            if (result == PasswordVerificationResult.Failed)
+                return BadRequest("Nieprawidłowe aktualne hasło.");
+
+            user.HashedPassword = hasher.HashPassword(user, dto.NewPassword);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
 
-        // POST: /api/user
-        [HttpPost]
-        public IActionResult Create(User user)
-        {
-            _context.Users.Add(user);
-            _context.SaveChanges();
-            return CreatedAtAction(nameof(GetAll), new { id = user.Id }, user);
-        }
+        
 
-        // public async Task SetMainWallet(Guid userId, Guid walletId)
-        // {
-        //     var user = await _context.Users.FindAsync(userId);
-        //     var wallet = await _context.Wallets.FindAsync(walletId);
+        #endregion
 
-        //     if (user == null || wallet == null || wallet.CreatedByUserId != userId)
-        //         throw new UnauthorizedAccessException("Nie masz dostępu do tego portfela.");
-
-        //     user.MainWalletId = walletId;
-        //     await _context.SaveChangesAsync();
-        // }
 
     }
 }

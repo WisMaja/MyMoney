@@ -12,15 +12,15 @@ namespace api.Models
         public Guid Id { get; set; }
 
         public Guid WalletId { get; set; }
-        public required Wallet Wallet { get; set; }
+        public Wallet? Wallet { get; set; }
 
         public Guid UserId { get; set; }  // who created the transaction
-        public required User User { get; set; }
+        public User? User { get; set; }
 
         [Required]
         public decimal Amount { get; set; } // Positive = income, Negative = expense
 
-        public Guid CategoryId { get; set; }
+        public Guid? CategoryId { get; set; }
         public Category? Category { get; set; }
 
         [MaxLength(255)]

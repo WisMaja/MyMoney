@@ -20,6 +20,11 @@ namespace api.Models
         public required string Name { get; set; }
 
         public WalletType Type { get; set; }
+        
+        public decimal InitialBalance { get; set; } = 0; 
+        
+        public decimal? ManualBalance { get; set; }
+        public DateTime? BalanceResetAt { get; set; }
 
         [MaxLength(10)]
         public string Currency { get; set; } = "PLN";
