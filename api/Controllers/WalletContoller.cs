@@ -196,5 +196,67 @@ namespace api.Controllers
 
             return CreatedAtAction(nameof(GetWallet), new { id = wallet.Id }, result);
         }
+        
+        [HttpPost("{id}/members")]
+        public async Task<IActionResult> AddMember(Guid id, [FromBody] AddWalletMemberDto dto)
+        {
+            var userId = GetUserIdFromToken();
+
+            // Sprawdź, czy obecny użytkownik to właściciel
+            var wallet = await _context.Wallets
+                .FirstOrDefaultAsync(w => w.Id == id && w.CreatedByUserId == userId);
+
+            if (wallet == null)
+                return Forbid("Tylko właściciel może dodawać członków.");
+
+            // Sprawdź, czy użytkownik istnieje
+            var newUser = await _context.Users.FindAsync(dto.UserId);
+            if (newUser == null)
+                return NotFound("Użytkownik nie istnieje.");
+
+            // Sprawdź, czy już jest członkiem
+            bool alreadyMember = await _context.WalletMembers
+                .AnyAsync(m => m.WalletId == id && m.UserId == dto.UserId);
+            if (alreadyMember)
+                return Conflict("Użytkownik już jest członkiem tego portfela.");
+
+            var member = new WalletMember
+            {
+                WalletId = id,
+                UserId = dto.UserId
+                // Role = dto.Role
+            };
+
+            _context.WalletMembers.Add(member);
+            await _context.SaveChangesAsync();
+
+            return Ok("Dodano użytkownika do portfela.");
+        }
+        
+        
+        [HttpGet("{id}/members")]
+        public async Task<IActionResult> GetWalletMembers(Guid id)
+        {
+            var userId = GetUserIdFromToken();
+
+            var wallet = await _context.Wallets
+                .Include(w => w.Members).ThenInclude(m => m.User)
+                .FirstOrDefaultAsync(w => w.Id == id &&
+                                          (w.CreatedByUserId == userId || w.Members.Any(m => m.UserId == userId)));
+
+            if (wallet == null)
+                return NotFound();
+
+            var members = wallet.Members.Select(m => new
+            {
+                m.UserId,
+                m.User!.Email,
+                m.User.FullName
+                // m.Role
+            });
+
+            return Ok(members);
+        }
+
     }
 }
