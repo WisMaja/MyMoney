@@ -6,11 +6,6 @@
 *.env.test.local
 *.env.production.local
 
-# Python
-*.pyc
-*/__pycache__
-/app/*/__pycache__
-
 # IDE
 .DS_Store
 /.idea
@@ -32,6 +27,7 @@ obj/
 !package-lock.json
 !appsettings.json
 !appsettings.Development.json
+Migrations/
 
 # Node dependencies
 node_modules/
