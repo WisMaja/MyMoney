@@ -7,7 +7,9 @@ import {
   MenuItem,
   InputLabel,
   Paper,
-  Grid
+  Grid,
+  CircularProgress,
+  Alert
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -27,6 +29,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import InsightsIcon from '@mui/icons-material/Insights';
 import Sidebar from '../components/Sidebar';
+import apiClient from '../apiClient';
 
 import '../styles/Statistics.css';
 
@@ -46,59 +49,86 @@ ChartJS.register(
 const Statistics = () => {
   const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('month');
-  const [mockData, setMockData] = useState({
-    incomeVsExpense: [],
-    categoryBreakdown: {},
-    monthlyTotals: [],
-    savingsRate: 0,
-    topExpenseCategory: '',
-    highestIncome: 0
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [statsData, setStatsData] = useState({
+    incomeVsExpense: {
+      labels: [],
+      incomeData: [],
+      expenseData: []
+    },
+    categoryBreakdown: {
+      expenses: [],
+      income: []
+    },
+    summary: {
+      totalIncome: 0,
+      totalExpenses: 0,
+      netSavings: 0,
+      savingsRate: 0,
+      topExpenseCategory: null,
+      topIncomeCategory: null
+    }
   });
 
-  // Generate mock data based on time range
+  // Fetch statistics data based on time range
   useEffect(() => {
-    generateMockData(timeRange);
-  }, [timeRange]);
-
-  const generateMockData = (range) => {
-    // Generate months or days based on selected time range
-    const labels = range === 'year' 
-      ? ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      : ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
-    
-    // Generate random data for income vs expense
-    const incomeData = labels.map(() => Math.floor(Math.random() * 1000) + 500);
-    const expenseData = labels.map(() => Math.floor(Math.random() * 800) + 200);
-    
-    // Generate category breakdown
-    const categories = {
-      'Food & Groceries': Math.floor(Math.random() * 300) + 100,
-      'Housing & Utilities': Math.floor(Math.random() * 500) + 200,
-      'Transportation': Math.floor(Math.random() * 200) + 50,
-      'Entertainment': Math.floor(Math.random() * 150) + 50,
-      'Healthcare': Math.floor(Math.random() * 100) + 30,
-      'Education': Math.floor(Math.random() * 150) + 20
+    const fetchStatistics = async () => {
+      setLoading(true);
+      setError(null);
+      
+      try {
+        // Calculate date range based on selected time range
+        const today = new Date();
+        let fromDate;
+        
+        if (timeRange === 'month') {
+          fromDate = new Date(today.getFullYear(), today.getMonth(), 1);
+        } else if (timeRange === 'year') {
+          fromDate = new Date(today.getFullYear(), 0, 1);
+        } else if (timeRange === 'week') {
+          const day = today.getDay();
+          const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+          fromDate = new Date(today.setDate(diff));
+        }
+        
+        // Format dates for API
+        const from = fromDate.toISOString().split('T')[0];
+        const to = today.toISOString().split('T')[0];
+        
+        // Make parallel API requests
+        const [incomeExpenseRes, categoryBreakdownRes, summaryRes] = await Promise.all([
+          apiClient.get(`/transactions/statistics/income-expense?from=${from}&to=${to}`),
+          apiClient.get(`/transactions/statistics/category-breakdown?from=${from}&to=${to}`),
+          apiClient.get(`/transactions/statistics/summary?from=${from}&to=${to}`)
+        ]);
+        
+        // Process income vs expense data
+        const incomeExpenseData = incomeExpenseRes.data;
+        const labels = incomeExpenseData.map(item => item.label);
+        const incomeData = incomeExpenseData.map(item => item.income);
+        const expenseData = incomeExpenseData.map(item => item.expense);
+        
+        // Set the state with fetched data
+        setStatsData({
+          incomeVsExpense: {
+            labels,
+            incomeData,
+            expenseData
+          },
+          categoryBreakdown: categoryBreakdownRes.data,
+          summary: summaryRes.data
+        });
+      } catch (err) {
+        console.error("Error fetching statistics:", err);
+        setError("Failed to load statistics. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
     };
     
-    // Calculate monthly totals
-    const incomeTotals = incomeData.reduce((acc, val) => acc + val, 0);
-    const expenseTotals = expenseData.reduce((acc, val) => acc + val, 0);
-    
-    // Determine top expense category
-    const topCategory = Object.entries(categories).sort((a, b) => b[1] - a[1])[0][0];
-    
-    // Calculate savings rate
-    const savingsRate = ((incomeTotals - expenseTotals) / incomeTotals) * 100;
-    
-    setMockData({
-      incomeVsExpense: { labels, incomeData, expenseData },
-      categoryBreakdown: categories,
-      monthlyTotals: { income: incomeTotals, expense: expenseTotals },
-      savingsRate: savingsRate.toFixed(1),
-      topExpenseCategory: topCategory,
-      highestIncome: Math.max(...incomeData)
-    });
-  };
+    fetchStatistics();
+  }, [timeRange]);
 
   const handleTimeRangeChange = (event) => {
     setTimeRange(event.target.value);
@@ -132,18 +162,18 @@ const Statistics = () => {
   };
 
   const incomeVsExpenseData = {
-    labels: mockData.incomeVsExpense.labels,
+    labels: statsData.incomeVsExpense.labels,
     datasets: [
       {
         label: 'Income',
-        data: mockData.incomeVsExpense.incomeData,
+        data: statsData.incomeVsExpense.incomeData,
         borderColor: 'rgb(75, 192, 192)',
         backgroundColor: 'rgba(75, 192, 192, 0.5)',
         tension: 0.3
       },
       {
         label: 'Expenses',
-        data: mockData.incomeVsExpense.expenseData,
+        data: statsData.incomeVsExpense.expenseData,
         borderColor: 'rgb(255, 99, 132)',
         backgroundColor: 'rgba(255, 99, 132, 0.5)',
         tension: 0.3
@@ -151,11 +181,11 @@ const Statistics = () => {
     ],
   };
 
-  const categoryBreakdownData = {
-    labels: Object.keys(mockData.categoryBreakdown),
+  const expenseCategoryData = {
+    labels: statsData.categoryBreakdown.expenses?.map(c => c.category) || [],
     datasets: [
       {
-        data: Object.values(mockData.categoryBreakdown),
+        data: statsData.categoryBreakdown.expenses?.map(c => c.amount) || [],
         backgroundColor: [
           'rgba(255, 99, 132, 0.7)',
           'rgba(54, 162, 235, 0.7)',
@@ -174,8 +204,8 @@ const Statistics = () => {
     datasets: [
       {
         data: [
-          mockData.monthlyTotals.income - mockData.monthlyTotals.expense, 
-          mockData.monthlyTotals.expense
+          statsData.summary.netSavings > 0 ? statsData.summary.netSavings : 0, 
+          statsData.summary.totalExpenses
         ],
         backgroundColor: [
           'rgba(75, 192, 192, 0.7)',
@@ -191,7 +221,7 @@ const Statistics = () => {
     datasets: [
       {
         label: timeRange === 'year' ? 'Yearly Total' : 'Monthly Total',
-        data: [mockData.monthlyTotals.income, mockData.monthlyTotals.expense],
+        data: [statsData.summary.totalIncome, statsData.summary.totalExpenses],
         backgroundColor: [
           'rgba(75, 192, 192, 0.7)',
           'rgba(255, 99, 132, 0.7)'
@@ -222,6 +252,28 @@ const Statistics = () => {
     }
   };
 
+  if (loading) {
+    return (
+      <Box className="page-container">
+        <Sidebar />
+        <Box className="page-content" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box className="page-container">
+        <Sidebar />
+        <Box className="page-content">
+          <Alert severity="error">{error}</Alert>
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box className="page-container">
       {/* Sidebar */}
@@ -244,6 +296,7 @@ const Statistics = () => {
                 label="Time Range"
                 onChange={handleTimeRangeChange}
               >
+                <MenuItem value="week">This Week</MenuItem>
                 <MenuItem value="month">This Month</MenuItem>
                 <MenuItem value="year">This Year</MenuItem>
               </Select>
@@ -258,7 +311,7 @@ const Statistics = () => {
               Total Income
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.income} $
+              {statsData.summary.totalIncome.toFixed(2)} $
             </Typography>
           </Paper>
           
@@ -267,7 +320,7 @@ const Statistics = () => {
               Total Expenses
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.expense} $
+              {statsData.summary.totalExpenses.toFixed(2)} $
             </Typography>
           </Paper>
           
@@ -276,7 +329,7 @@ const Statistics = () => {
               Net Savings
             </Typography>
             <Typography className="summary-value">
-              {mockData.monthlyTotals.income - mockData.monthlyTotals.expense} $
+              {statsData.summary.netSavings.toFixed(2)} $
             </Typography>
           </Paper>
           
@@ -285,7 +338,7 @@ const Statistics = () => {
               Savings Rate
             </Typography>
             <Typography className="summary-value">
-              {mockData.savingsRate}%
+              {statsData.summary.savingsRate.toFixed(1)}%
             </Typography>
           </Paper>
         </Box>
@@ -309,7 +362,7 @@ const Statistics = () => {
               Expense Breakdown by Category
             </Typography>
             <Box className="chart-container">
-              <Pie data={categoryBreakdownData} />
+              <Pie data={expenseCategoryData} />
             </Box>
           </Paper>
           
