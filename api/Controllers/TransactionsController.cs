@@ -200,6 +200,138 @@ namespace api.Controllers
             return NoContent();
         }
 
+        // -------------------- STATISTICS --------------------
+
+        [HttpGet("statistics/income-expense")]
+        public async Task<IActionResult> GetIncomeVsExpenseStats([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        {
+            var userId = GetUserIdFromToken();
+            
+            // Set default date range to current month if not specified
+            var startDate = from ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var endDate = to ?? DateTime.UtcNow.AddDays(1);
+            
+            var transactions = await _context.Transactions
+                .Where(t => t.UserId == userId && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+                .ToListAsync();
+            
+            // Group by day or month based on date range
+            var groupByMonth = (endDate - startDate).TotalDays > 31;
+            
+            var stats = groupByMonth 
+                ? transactions.GroupBy(t => new { t.CreatedAt.Year, t.CreatedAt.Month })
+                    .OrderBy(g => g.Key.Year).ThenBy(g => g.Key.Month)
+                    .Select(g => new {
+                        Date = $"{g.Key.Year}-{g.Key.Month}",
+                        Label = $"{g.Key.Year}-{g.Key.Month}",
+                        Income = g.Where(t => t.Amount > 0).Sum(t => t.Amount),
+                        Expense = Math.Abs(g.Where(t => t.Amount < 0).Sum(t => t.Amount))
+                    })
+                : transactions.GroupBy(t => t.CreatedAt.Date)
+                    .OrderBy(g => g.Key)
+                    .Select(g => new {
+                        Date = g.Key.ToString("yyyy-MM-dd"),
+                        Label = g.Key.ToString("MM-dd"),
+                        Income = g.Where(t => t.Amount > 0).Sum(t => t.Amount),
+                        Expense = Math.Abs(g.Where(t => t.Amount < 0).Sum(t => t.Amount))
+                    });
+            
+            return Ok(stats);
+        }
+        
+        [HttpGet("statistics/category-breakdown")]
+        public async Task<IActionResult> GetCategoryBreakdown([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        {
+            var userId = GetUserIdFromToken();
+            
+            // Set default date range to current month if not specified
+            var startDate = from ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var endDate = to ?? DateTime.UtcNow.AddDays(1);
+            
+            var transactions = await _context.Transactions
+                .Include(t => t.Category)
+                .Where(t => t.UserId == userId && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+                .ToListAsync();
+            
+            // Category breakdown for expenses only
+            var expenseCategories = transactions
+                .Where(t => t.Amount < 0)
+                .GroupBy(t => t.Category != null ? t.Category.Name : "Uncategorized")
+                .Select(g => new {
+                    Category = g.Key,
+                    Amount = Math.Abs(g.Sum(t => t.Amount))
+                })
+                .OrderByDescending(x => x.Amount);
+            
+            // Category breakdown for income only
+            var incomeCategories = transactions
+                .Where(t => t.Amount > 0)
+                .GroupBy(t => t.Category != null ? t.Category.Name : "Uncategorized")
+                .Select(g => new {
+                    Category = g.Key,
+                    Amount = g.Sum(t => t.Amount)
+                })
+                .OrderByDescending(x => x.Amount);
+            
+            return Ok(new { 
+                expenses = expenseCategories, 
+                income = incomeCategories 
+            });
+        }
+        
+        [HttpGet("statistics/summary")]
+        public async Task<IActionResult> GetStatisticsSummary([FromQuery] DateTime? from, [FromQuery] DateTime? to)
+        {
+            var userId = GetUserIdFromToken();
+            
+            // Set default date range to current month if not specified
+            var startDate = from ?? new DateTime(DateTime.UtcNow.Year, DateTime.UtcNow.Month, 1);
+            var endDate = to ?? DateTime.UtcNow.AddDays(1);
+            
+            var transactions = await _context.Transactions
+                .Include(t => t.Category)
+                .Where(t => t.UserId == userId && t.CreatedAt >= startDate && t.CreatedAt <= endDate)
+                .ToListAsync();
+            
+            var totalIncome = transactions.Where(t => t.Amount > 0).Sum(t => t.Amount);
+            var totalExpenses = Math.Abs(transactions.Where(t => t.Amount < 0).Sum(t => t.Amount));
+            var netSavings = totalIncome - totalExpenses;
+            var savingsRate = totalIncome > 0 ? (netSavings / totalIncome) * 100 : 0;
+            
+            // Top expense category
+            var topExpenseCategory = transactions
+                .Where(t => t.Amount < 0)
+                .GroupBy(t => t.Category != null ? t.Category.Name : "Uncategorized")
+                .OrderByDescending(g => Math.Abs(g.Sum(t => t.Amount)))
+                .Select(g => new { 
+                    Category = g.Key, 
+                    Amount = Math.Abs(g.Sum(t => t.Amount)) 
+                })
+                .FirstOrDefault();
+                
+            // Top income category
+            var topIncomeCategory = transactions
+                .Where(t => t.Amount > 0)
+                .GroupBy(t => t.Category != null ? t.Category.Name : "Uncategorized")
+                .OrderByDescending(g => g.Sum(t => t.Amount))
+                .Select(g => new { 
+                    Category = g.Key, 
+                    Amount = g.Sum(t => t.Amount) 
+                })
+                .FirstOrDefault();
+            
+            return Ok(new {
+                totalIncome,
+                totalExpenses,
+                netSavings,
+                savingsRate,
+                topExpenseCategory,
+                topIncomeCategory,
+                transactionCount = transactions.Count(),
+                dateRange = new { startDate, endDate }
+            });
+        }
+
         // -------------------- Helper --------------------
 
         private async Task<bool> UserHasAccessToWallet(Guid walletId, Guid userId)
