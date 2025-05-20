@@ -5,6 +5,7 @@ using System.Security.Claims;
 using api.Models;
 using api.Database;
 using api.Dtos.Wallet;
+using api.Services;
 
 namespace api.Controllers
 {
@@ -123,6 +124,30 @@ namespace api.Controllers
                 CurrentBalance = currentBalance
             });
         }
+        
+        [HttpGet("{id}/members")]
+        public async Task<IActionResult> GetWalletMembers(Guid id)
+        {
+            var userId = GetUserIdFromToken();
+
+            var wallet = await _context.Wallets
+                .Include(w => w.Members).ThenInclude(m => m.User)
+                .FirstOrDefaultAsync(w => w.Id == id &&
+                                          (w.CreatedByUserId == userId || w.Members.Any(m => m.UserId == userId)));
+
+            if (wallet == null)
+                return NotFound();
+
+            var members = wallet.Members.Select(m => new
+            {
+                m.UserId,
+                m.User!.Email,
+                m.User.FullName
+                // m.Role
+            });
+
+            return Ok(members);
+        }
 
         // PUT: api/wallets/{id}/set-balance
         [HttpPut("{id}/set-balance")]
@@ -147,6 +172,45 @@ namespace api.Controllers
 
             return NoContent();
         }
+        
+        // PUT: api/wallets/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateWallet(Guid id, [FromBody] UpdateWalletDto dto)
+        {
+            var userId = GetUserIdFromToken();
+
+            // Sprawdź, czy portfel istnieje i czy użytkownik jest uprawniony do jego edycji
+            var wallet = await _context.Wallets
+                .FirstOrDefaultAsync(w => w.Id == id && w.CreatedByUserId == userId);
+
+            if (wallet == null)
+                return NotFound("Portfel nie istnieje lub nie masz uprawnień do jego edycji.");
+
+            // Zaktualizuj dane portfela
+            wallet.Name = dto.Name;
+            wallet.Type = dto.Type;
+            wallet.Currency = dto.Currency;
+
+            // Jeśli `Currency` zostanie zmienione, dodatkowe działania mogą być potrzebne
+            if (wallet.InitialBalance != dto.InitialBalance)
+            {
+                wallet.InitialBalance = dto.InitialBalance;
+                wallet.ManualBalance = null;  // Wyzerowanie ręcznego bilansu
+                wallet.BalanceResetAt = null;
+            }
+
+            wallet.UpdatedAt = DateTime.UtcNow;
+
+            // Zapisz zmiany w bazie danych
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Message = "Portfel został zaktualizowany pomyślnie."
+            });
+        }
+        
+        
 
         // POST: api/wallets
         [HttpPost]
@@ -234,29 +298,65 @@ namespace api.Controllers
         }
         
         
-        [HttpGet("{id}/members")]
-        public async Task<IActionResult> GetWalletMembers(Guid id)
+
+        
+        // DELETE: api/wallet/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteWallet(Guid id)
         {
             var userId = GetUserIdFromToken();
 
             var wallet = await _context.Wallets
-                .Include(w => w.Members).ThenInclude(m => m.User)
-                .FirstOrDefaultAsync(w => w.Id == id &&
-                                          (w.CreatedByUserId == userId || w.Members.Any(m => m.UserId == userId)));
+                .Include(w => w.Members)
+                .FirstOrDefaultAsync(w => w.Id == id && w.CreatedByUserId == userId);
 
             if (wallet == null)
-                return NotFound();
+                return NotFound("Portfel nie istnieje lub nie masz uprawnień do jego usunięcia.");
 
-            var members = wallet.Members.Select(m => new
-            {
-                m.UserId,
-                m.User!.Email,
-                m.User.FullName
-                // m.Role
-            });
+            // Sprawdź, czy to nie jest główny portfel przypisany do użytkownika
+            var isMainWalletAssigned = await _context.Users
+                .AnyAsync(u => u.MainWalletId == id);
 
-            return Ok(members);
+            if (isMainWalletAssigned)
+                return BadRequest("Nie można usunąć portfela, który jest przypisany jako główny portfel użytkownika.");
+
+            _context.Wallets.Remove(wallet);
+            await _context.SaveChangesAsync();
+
+            return NoContent();
         }
+
+        // PUT: api/wallets/{id}/set-main
+        [HttpPut("{id}/set-main")]
+        public async Task<IActionResult> SetMainWallet(Guid id)
+        {
+            var userId = GetUserIdFromToken();
+
+            // Pobierz użytkownika oraz portfel
+            var user = await _context.Users
+                .Include(u => u.Wallets)
+                .FirstOrDefaultAsync(u => u.Id == userId);
+
+            if (user == null)
+                return Unauthorized("Nie znaleziono użytkownika.");
+
+            var wallet = await _context.Wallets
+                .FirstOrDefaultAsync(w => w.Id == id && (w.CreatedByUserId == userId || 
+                                                 w.Members.Any(m => m.UserId == userId)));
+
+            if (wallet == null)
+                return NotFound("Nie znaleziono portfela lub brak uprawnień.");
+
+            // Ustaw jako główny portfel
+            user.MainWalletId = wallet.Id;
+            await _context.SaveChangesAsync();
+
+            return Ok(new
+            {
+                Message = "Portfel został ustawiony jako główny."
+            });
+        }
+
 
     }
 }

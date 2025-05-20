@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;  // Dodaj ten import
 using System.Linq;
 using System.Threading.Tasks;
+
 
 namespace api.Models
 {
@@ -21,8 +23,9 @@ namespace api.Models
 
         public WalletType Type { get; set; }
         
+        [Column(TypeName = "decimal(18,2)")]
         public decimal InitialBalance { get; set; } = 0; 
-        
+        [Column(TypeName = "decimal(18,2)")]
         public decimal? ManualBalance { get; set; }
         public DateTime? BalanceResetAt { get; set; }
 
