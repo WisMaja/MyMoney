@@ -159,19 +159,35 @@ export const addExpense = async (expenseData) => {
 // Update income
 export const updateIncome = async (id, incomeData) => {
   try {
+    console.log("Starting updateIncome with data:", incomeData);
+    
     // Get or create category ID based on the category name
     const categoryId = await getCategoryIdByName(incomeData.category);
+    
+    // Parse date if available
+    let createdAt = null;
+    if (incomeData.date) {
+      createdAt = new Date(incomeData.date);
+      console.log("Using custom date for income update:", createdAt);
+    }
     
     const apiData = {
       amount: parseFloat(incomeData.amount),
       categoryId: categoryId,
-      description: incomeData.description || incomeData.category
+      description: incomeData.description || incomeData.category,
+      createdAt: createdAt
     };
     
+    console.log("Sending update data:", apiData);
     const response = await apiClient.put(`/transactions/income/${id}`, apiData);
+    console.log("Update response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error updating income:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     throw error;
   }
 };
@@ -179,19 +195,35 @@ export const updateIncome = async (id, incomeData) => {
 // Update expense
 export const updateExpense = async (id, expenseData) => {
   try {
+    console.log("Starting updateExpense with data:", expenseData);
+    
     // Get or create category ID based on the category name
     const categoryId = await getCategoryIdByName(expenseData.category);
+    
+    // Parse date if available
+    let createdAt = null;
+    if (expenseData.date) {
+      createdAt = new Date(expenseData.date);
+      console.log("Using custom date for expense update:", createdAt);
+    }
     
     const apiData = {
       amount: parseFloat(expenseData.amount),
       categoryId: categoryId,
-      description: expenseData.description || expenseData.category
+      description: expenseData.description || expenseData.category,
+      createdAt: createdAt
     };
     
+    console.log("Sending update data:", apiData);
     const response = await apiClient.put(`/transactions/expenses/${id}`, apiData);
+    console.log("Update response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error updating expense:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     throw error;
   }
 };
@@ -199,10 +231,16 @@ export const updateExpense = async (id, expenseData) => {
 // Delete transaction
 export const deleteTransaction = async (id) => {
   try {
+    console.log("Deleting transaction:", id);
     const response = await apiClient.delete(`/transactions/${id}`);
+    console.log("Delete response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error deleting transaction:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     throw error;
   }
 }; 

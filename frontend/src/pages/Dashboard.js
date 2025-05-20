@@ -1,16 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
+import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl, IconButton, Tooltip, CircularProgress } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
+import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
 import '../styles/Dashboard.css';
-import { getAllTransactions, getIncomeTransactions, getExpenseTransactions } from '../services/transactionService';
+import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction } from '../services/transactionService';
 
 const Dashboard = () => {
 
@@ -24,9 +27,14 @@ const Dashboard = () => {
   
   const [isIncomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setExpenseDialogOpen] = useState(false);
+  const [isEditDialogOpen, setEditDialogOpen] = useState(false);
+  const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [transactions, setTransactions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
+  const [transactionToDelete, setTransactionToDelete] = useState(null);
 
   // Fetch transactions on component mount
   useEffect(() => {
@@ -48,8 +56,15 @@ const Dashboard = () => {
         amount: Math.abs(transaction.amount),
         description: transaction.description || 'No description',
         category: transaction.category?.name || 'Uncategorized',
-        date: new Date(transaction.createdAt)
+        categoryId: transaction.categoryId,
+        date: new Date(transaction.createdAt),
+        walletId: transaction.walletId,
+        // Zachowujemy surowe dane, które będą potrzebne dla dialogu edycji
+        originalData: transaction
       }));
+      
+      // Sort transactions chronologically - newest first
+      formattedTransactions.sort((a, b) => b.date - a.date);
       
       // Calculate totals
       let totalIncome = 0;
@@ -88,6 +103,33 @@ const Dashboard = () => {
     setExpenseDialogOpen(true);
   };
 
+  const handleEditTransaction = (transaction) => {
+    setSelectedTransaction(transaction);
+    setEditDialogOpen(true);
+  };
+
+  const handleDeleteClick = (transaction) => {
+    setTransactionToDelete(transaction);
+    setConfirmDeleteDialog(true);
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!transactionToDelete) return;
+    
+    try {
+      setDeleteLoading(true);
+      await deleteTransaction(transactionToDelete.id);
+      await fetchTransactions(); // Refresh data
+      setConfirmDeleteDialog(false);
+    } catch (err) {
+      console.error('Error deleting transaction:', err);
+      // Możemy dodać obsługę błędów tutaj, np. pokazanie komunikatu
+    } finally {
+      setDeleteLoading(false);
+      setTransactionToDelete(null);
+    }
+  };
+
   const handleSaveIncome = async (incomeData) => {
     // The API call is now handled in the AddIncomeDialog component
     // Here we just refresh the transaction list
@@ -98,6 +140,13 @@ const Dashboard = () => {
     // The API call is now handled in the AddExpenseDialog component
     // Here we just refresh the transaction list
     await fetchTransactions();
+  };
+
+  const handleSaveEdit = async () => {
+    // Refresh transactions after edit is saved
+    await fetchTransactions();
+    setEditDialogOpen(false);
+    setSelectedTransaction(null);
   };
 
   const navigateToStatistics = () => {
@@ -231,18 +280,39 @@ const Dashboard = () => {
                       {transaction.description || transaction.category}
                     </Typography>
                     <Typography variant="body2" sx={{ color: '#666' }}>
-                      {transaction.date.toLocaleDateString()}
+                      {transaction.date.toLocaleDateString()} - {transaction.category}
                     </Typography>
                   </Box>
-                  <Typography 
-                    variant="subtitle1" 
-                    sx={{ 
-                      fontWeight: 'bold',
-                      color: transaction.type === 'income' ? 'green' : 'red'
-                    }}
-                  >
-                    {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} $
-                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Typography 
+                      variant="subtitle1" 
+                      sx={{ 
+                        fontWeight: 'bold',
+                        color: transaction.type === 'income' ? 'green' : 'red',
+                        mr: 2
+                      }}
+                    >
+                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} $
+                    </Typography>
+                    <Tooltip title="Edit">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleEditTransaction(transaction)}
+                        sx={{ mr: 1 }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                    <Tooltip title="Delete">
+                      <IconButton 
+                        size="small" 
+                        onClick={() => handleDeleteClick(transaction)}
+                        color="error"
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
                 </Box>
               ))
             )}
@@ -262,6 +332,51 @@ const Dashboard = () => {
         onClose={() => setExpenseDialogOpen(false)} 
         onSave={handleSaveExpense} 
       />
+      
+      {selectedTransaction && (
+        <EditTransactionDialog
+          open={isEditDialogOpen}
+          onClose={() => setEditDialogOpen(false)}
+          onSave={handleSaveEdit}
+          transaction={selectedTransaction}
+        />
+      )}
+      
+      {/* Confirm Delete Dialog */}
+      <Dialog
+        open={confirmDeleteDialog}
+        onClose={() => setConfirmDeleteDialog(false)}
+      >
+        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogContent>
+          <Typography>
+            Are you sure you want to delete this {transactionToDelete?.type}?
+          </Typography>
+          {transactionToDelete && (
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
+                {transactionToDelete.description}
+              </Typography>
+              <Typography variant="body2">
+                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} $
+              </Typography>
+              <Typography variant="body2">
+                Date: {transactionToDelete.date.toLocaleDateString()}
+              </Typography>
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setConfirmDeleteDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={handleDeleteConfirm} 
+            color="error" 
+            disabled={deleteLoading}
+          >
+            {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
