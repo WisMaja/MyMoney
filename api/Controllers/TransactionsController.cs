@@ -269,41 +269,85 @@ namespace api.Controllers
         [HttpPut("income/{id}")]
         public async Task<IActionResult> UpdateIncome(Guid id, [FromBody] UpdateTransactionDto dto)
         {
-            var userId = GetUserIdFromToken();
+            try
+            {
+                Console.WriteLine($"Starting UpdateIncome for ID: {id}");
+                var userId = GetUserIdFromToken();
+                Console.WriteLine($"User ID: {userId}");
 
-            var transaction = await _context.Transactions
-                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId && t.Amount > 0);
+                var transaction = await _context.Transactions
+                    .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId && t.Amount > 0);
 
-            if (transaction == null)
-                return NotFound();
+                if (transaction == null)
+                {
+                    Console.WriteLine($"Income transaction with ID {id} not found or doesn't belong to user");
+                    return NotFound();
+                }
 
-            transaction.Amount = Math.Abs(dto.Amount);
-            transaction.Description = dto.Description;
-            transaction.CategoryId = dto.CategoryId;
-            transaction.UpdatedAt = DateTime.UtcNow;
+                transaction.Amount = Math.Abs(dto.Amount);
+                transaction.Description = dto.Description;
+                transaction.CategoryId = dto.CategoryId;
+                transaction.UpdatedAt = DateTime.UtcNow;
+                
+                // Update CreatedAt if provided
+                if (dto.CreatedAt.HasValue)
+                {
+                    Console.WriteLine($"Updating transaction date from {transaction.CreatedAt} to {dto.CreatedAt.Value}");
+                    transaction.CreatedAt = dto.CreatedAt.Value;
+                }
 
-            await _context.SaveChangesAsync();
-            return NoContent();
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Income transaction updated successfully: {transaction.Id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UpdateIncome: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, new { message = "Error updating income", error = ex.Message });
+            }
         }
 
         [HttpPut("expenses/{id}")]
         public async Task<IActionResult> UpdateExpense(Guid id, [FromBody] UpdateTransactionDto dto)
         {
-            var userId = GetUserIdFromToken();
+            try
+            {
+                Console.WriteLine($"Starting UpdateExpense for ID: {id}");
+                var userId = GetUserIdFromToken();
+                Console.WriteLine($"User ID: {userId}");
 
-            var transaction = await _context.Transactions
-                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId && t.Amount < 0);
+                var transaction = await _context.Transactions
+                    .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId && t.Amount < 0);
 
-            if (transaction == null)
-                return NotFound();
+                if (transaction == null)
+                {
+                    Console.WriteLine($"Expense transaction with ID {id} not found or doesn't belong to user");
+                    return NotFound();
+                }
 
-            transaction.Amount = -Math.Abs(dto.Amount);
-            transaction.Description = dto.Description;
-            transaction.CategoryId = dto.CategoryId;
-            transaction.UpdatedAt = DateTime.UtcNow;
+                transaction.Amount = -Math.Abs(dto.Amount);
+                transaction.Description = dto.Description;
+                transaction.CategoryId = dto.CategoryId;
+                transaction.UpdatedAt = DateTime.UtcNow;
+                
+                // Update CreatedAt if provided
+                if (dto.CreatedAt.HasValue)
+                {
+                    Console.WriteLine($"Updating transaction date from {transaction.CreatedAt} to {dto.CreatedAt.Value}");
+                    transaction.CreatedAt = dto.CreatedAt.Value;
+                }
 
-            await _context.SaveChangesAsync();
-            return NoContent();
+                await _context.SaveChangesAsync();
+                Console.WriteLine($"Expense transaction updated successfully: {transaction.Id}");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in UpdateExpense: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, new { message = "Error updating expense", error = ex.Message });
+            }
         }
 
         // -------------------- DELETE --------------------
@@ -311,18 +355,34 @@ namespace api.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var userId = GetUserIdFromToken();
+            try
+            {
+                Console.WriteLine($"Starting Delete for transaction ID: {id}");
+                var userId = GetUserIdFromToken();
+                Console.WriteLine($"User ID: {userId}");
 
-            var transaction = await _context.Transactions
-                .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
+                var transaction = await _context.Transactions
+                    .FirstOrDefaultAsync(t => t.Id == id && t.UserId == userId);
 
-            if (transaction == null)
-                return NotFound();
+                if (transaction == null)
+                {
+                    Console.WriteLine($"Transaction with ID {id} not found or doesn't belong to user");
+                    return NotFound();
+                }
 
-            _context.Transactions.Remove(transaction);
-            await _context.SaveChangesAsync();
+                Console.WriteLine($"Deleting transaction: {transaction.Id}, Amount: {transaction.Amount}, Description: {transaction.Description}");
+                _context.Transactions.Remove(transaction);
+                await _context.SaveChangesAsync();
+                Console.WriteLine("Transaction deleted successfully");
 
-            return NoContent();
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in Delete: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, new { message = "Error deleting transaction", error = ex.Message });
+            }
         }
 
         // -------------------- STATISTICS --------------------
