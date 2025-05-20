@@ -28,24 +28,29 @@ namespace api.Controllers
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             return Guid.TryParse(userIdClaim, out var userId) ? userId : throw new UnauthorizedAccessException("Invalid user ID in token.");
         }
-
+        
         // GET: api/Users/me
         [HttpGet("me")]
-        public async Task<ActionResult<User>> GetCurrentUser()
+        public async Task<ActionResult<UserDto>> GetCurrentUser()
         {
             var userId = GetUserIdFromToken();
 
             var user = await _context.Users
-                .Include(u => u.Wallets)
-                .Include(u => u.Transactions)
-                .Include(u => u.WalletMemberships)
-                .Include(u => u.CustomCategories)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Id == userId);
 
             if (user == null)
                 return NotFound();
 
-            return user;
+            // Mapowanie na DTO
+            var userDto = new UserDto
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                MainWalletId = user.MainWalletId
+            };
+
+            return Ok(userDto);
         }
 
         // PUT: api/Users/me

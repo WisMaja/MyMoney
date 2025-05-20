@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using api.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+
 
 namespace api.Database
 {

@@ -100,5 +100,71 @@ namespace api.Controllers
 
             return Ok(result);
         }
+
+        // DELETE: api/categories/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteCategory(Guid id)
+        {
+            var userId = GetUserIdFromToken();
+
+            // Znalezienie kategorii do usunięcia
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+                return NotFound("Category not found.");
+
+            // Sprawdzenie, czy kategoria jest globalna
+            if (category.UserId == null)
+                return Forbid("Global categories cannot be deleted.");
+
+            // Sprawdzenie, czy kategoria należy do aktualnego użytkownika
+            if (category.UserId != userId)
+                return Forbid("You are not allowed to delete this category.");
+
+            // Usunięcie kategorii
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
+
+            return NoContent(); // Kod 204 - brak zawartości
+        }
+        
+        // PUT: api/categories/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateCategory(Guid id, [FromBody] UpdateCategoryDto dto)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userId = GetUserIdFromToken();
+
+            // Znajdź kategorię
+            var category = await _context.Categories
+                .FirstOrDefaultAsync(c => c.Id == id);
+
+            if (category == null)
+                return NotFound("Category not found.");
+
+            // Sprawdź, czy kategoria jest globalna
+            if (category.UserId == null)
+                return Forbid("Global categories cannot be updated.");
+
+            // Sprawdź, czy kategoria należy do użytkownika
+            if (category.UserId != userId)
+                return Forbid("You are not allowed to edit this category.");
+
+            // Zaktualizuj kategorię
+            category.Name = dto.Name;
+
+            _context.Categories.Update(category);
+            await _context.SaveChangesAsync();
+
+            return Ok(new CategoryDto
+            {
+                Id = category.Id,
+                Name = category.Name,
+                IsGlobal = false
+            });
+        }
     }
 }

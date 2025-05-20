@@ -22,10 +22,35 @@ namespace api.Controllers
             _tokenService = tokenService;
             _context = context;
         }
-
-        #region Rejestracja
-
-
+        //
+        // #region Rejestracja
+        //
+        //
+        // [HttpPost("register")]
+        // [ProducesResponseType(StatusCodes.Status204NoContent)]
+        // [ProducesResponseType(StatusCodes.Status409Conflict)]
+        // public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto dto)
+        // {
+        //     var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email));
+        //     if (isEmailTaken) return Conflict("Użytkownik o tym emailu już istnieje");
+        //     var user = new User
+        //     {
+        //         Email = dto.Email,
+        //         Wallets = new List<Wallet>(),
+        //         Transactions = new List<Transaction>(),
+        //         WalletMemberships = new List<WalletMember>(),
+        //         CustomCategories = new List<Category>()
+        //     };
+        //     user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
+        //     _context.Users.Add(user);
+        //     await _context.SaveChangesAsync();
+        //     return NoContent();
+        // }
+        //
+        //
+        // #endregion
+        //
+        #region Rejestracja z Tworzeniem Main wallet
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -33,20 +58,52 @@ namespace api.Controllers
         {
             var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email));
             if (isEmailTaken) return Conflict("Użytkownik o tym emailu już istnieje");
-            var user = new User
-            {
-                Email = dto.Email,
-                Wallets = new List<Wallet>(),
-                Transactions = new List<Transaction>(),
-                WalletMemberships = new List<WalletMember>(),
-                CustomCategories = new List<Category>()
-            };
-            user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
-            _context.Users.Add(user);
-            await _context.SaveChangesAsync();
-            return NoContent();
-        }
 
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var user = new User
+                {
+                    Email = dto.Email,
+                    Wallets = new List<Wallet>(),
+                    Transactions = new List<Transaction>(),
+                    WalletMemberships = new List<WalletMember>(),
+                    CustomCategories = new List<Category>()
+                };
+                user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
+
+                _context.Users.Add(user);
+                await _context.SaveChangesAsync();
+
+                var mainWallet = new Wallet
+                {
+                    Name = "Mój portfel",
+                    Type = WalletType.Personal,
+                    InitialBalance = 0,
+                    Currency = "PLN",
+                    CreatedByUserId = user.Id,
+                    CreatedByUser = user,
+                    Transactions = new List<Transaction>(),
+                    Members = new List<WalletMember>()
+                };
+
+                _context.Wallets.Add(mainWallet);
+                await _context.SaveChangesAsync();
+
+                user.MainWalletId = mainWallet.Id;
+                await _context.SaveChangesAsync();
+
+                await transaction.CommitAsync();
+
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                // Loguj ex, np. logger.LogError(ex, "Błąd rejestracji");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Błąd serwera");
+            }
+        }
 
         #endregion
         
