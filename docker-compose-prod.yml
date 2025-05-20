@@ -1,7 +1,7 @@
 services:
   mssql:
     image: mcr.microsoft.com/mssql/server:2022-latest
-    container_name: local_mssql_server_MyMoney
+    container_name: mssql_server_MyMoney
     environment:
       SA_PASSWORD: "YourStrong!Passw0rd"
       ACCEPT_EULA: "Y"
@@ -14,15 +14,16 @@ services:
   api:
     build:
       context: ./api
-    container_name: local_api_MyMoney
+      dockerfile: Dockerfile-prod.dockerfile
+    container_name: api_MyMoney
     ports:
       - "80:80"
       - "5032:5032"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_ENVIRONMENT=Production
     volumes:
       - ./api:/app
-      - ./api/appsettings.Development.json:/app/appsettings.Development.json
+      - ./api/appsettings.json:/app/appsettings.json
     working_dir: /app
     restart: unless-stopped
     depends_on:
@@ -31,7 +32,8 @@ services:
   frontend:
     build:
       context: ./frontend
-    container_name: local_frontend_MyMoney
+      dockerfile: Dockerfile-prod.dockerfile
+    container_name: frontend_MyMoney
     ports:
       - "3000:3000"
     volumes:

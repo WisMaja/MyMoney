@@ -44,7 +44,7 @@ const Login = () => {
         const { accessToken, refreshToken } = response.data;
         login(accessToken, refreshToken);
 
-        navigate('/dashboard');
+        navigate('/');
       }
     } catch (err) {
       if (err.response?.data) {
