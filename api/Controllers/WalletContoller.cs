@@ -162,7 +162,7 @@ namespace api.Controllers
                     (w.CreatedByUserId == userId || w.Members.Any(m => m.UserId == userId)));
 
             if (wallet == null)
-                return Forbid("Brak dostępu do portfela.");
+                return StatusCode(403, new { message = "No access to the wallet" });
 
             wallet.ManualBalance = dto.Balance;
             wallet.BalanceResetAt = DateTime.UtcNow;
@@ -216,49 +216,122 @@ namespace api.Controllers
         [HttpPost]
         public async Task<ActionResult<WalletDto>> CreateWallet([FromBody] CreateWalletDto dto)
         {
-            var userId = GetUserIdFromToken();
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return Unauthorized();
-
-            var wallet = new Wallet
+            try
             {
-                Id = Guid.NewGuid(),
-                Name = dto.Name,
-                Type = dto.Type,
-                Currency = dto.Currency,
-                InitialBalance = dto.InitialBalance,
-                CreatedByUserId = userId,
-                CreatedByUser = user,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Members = new List<WalletMember>
+                var userId = GetUserIdFromToken();
+                Console.WriteLine($"Creating wallet for user: {userId}");
+                
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
                 {
-                    new WalletMember { WalletId = Guid.Empty, UserId = userId }
-                },
-                Transactions = new List<Transaction>()
-            };
+                    Console.WriteLine("User not found");
+                    return Unauthorized();
+                }
 
-            wallet.Members.First().WalletId = wallet.Id;
+                var walletId = Guid.NewGuid();
+                
+                // Handle default wallet scenario
+                if (dto.Name == "Default Wallet" && dto.Type == WalletType.Personal)
+                {
+                    // Check if this is the default mock ID
+                    if (string.IsNullOrEmpty(dto.Id) || dto.Id == "00000000-0000-0000-0000-000000000000")
+                    {
+                        walletId = Guid.Parse("00000000-0000-0000-0000-000000000000");
+                        Console.WriteLine("Creating default wallet with special ID");
+                    }
+                }
 
-            _context.Wallets.Add(wallet);
-            await _context.SaveChangesAsync();
+                var wallet = new Wallet
+                {
+                    Id = walletId,
+                    Name = dto.Name,
+                    Type = dto.Type,
+                    Currency = dto.Currency,
+                    InitialBalance = dto.InitialBalance,
+                    CreatedByUserId = userId,
+                    CreatedByUser = user,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow,
+                    Members = new List<WalletMember>
+                    {
+                        new WalletMember { WalletId = Guid.Empty, UserId = userId }
+                    },
+                    Transactions = new List<Transaction>()
+                };
 
-            var result = new WalletDto
+                wallet.Members.First().WalletId = wallet.Id;
+
+                // Check if wallet with this ID already exists
+                var existingWallet = await _context.Wallets.FindAsync(wallet.Id);
+                if (existingWallet != null)
+                {
+                    Console.WriteLine($"Wallet with ID {wallet.Id} already exists");
+                    
+                    // If this is the default wallet ID, try to add the current user as a member
+                    if (wallet.Id == Guid.Parse("00000000-0000-0000-0000-000000000000"))
+                    {
+                        // Check if user is already a member
+                        var isMember = await _context.WalletMembers
+                            .AnyAsync(wm => wm.WalletId == wallet.Id && wm.UserId == userId);
+                            
+                        if (!isMember)
+                        {
+                            Console.WriteLine("Adding user as member to existing default wallet");
+                            _context.WalletMembers.Add(new WalletMember 
+                            { 
+                                WalletId = wallet.Id, 
+                                UserId = userId 
+                            });
+                            await _context.SaveChangesAsync();
+                        }
+                        
+                        // Return the existing wallet data
+                        var result = new WalletDto
+                        {
+                            Id = existingWallet.Id,
+                            Name = existingWallet.Name,
+                            Type = existingWallet.Type,
+                            Currency = existingWallet.Currency,
+                            InitialBalance = existingWallet.InitialBalance,
+                            ManualBalance = existingWallet.ManualBalance,
+                            BalanceResetAt = existingWallet.BalanceResetAt,
+                            CurrentBalance = existingWallet.InitialBalance, // Simplified
+                            CreatedAt = existingWallet.CreatedAt,
+                            UpdatedAt = existingWallet.UpdatedAt
+                        };
+                        
+                        return Ok(result);
+                    }
+                    
+                    // For non-default wallets, generate a new ID
+                    wallet.Id = Guid.NewGuid();
+                    wallet.Members.First().WalletId = wallet.Id;
+                }
+
+                _context.Wallets.Add(wallet);
+                await _context.SaveChangesAsync();
+
+                var walletDto = new WalletDto
+                {
+                    Id = wallet.Id,
+                    Name = wallet.Name,
+                    Type = wallet.Type,
+                    Currency = wallet.Currency,
+                    InitialBalance = wallet.InitialBalance,
+                    CurrentBalance = wallet.InitialBalance,
+                    CreatedAt = wallet.CreatedAt,
+                    UpdatedAt = wallet.UpdatedAt
+                };
+                
+                Console.WriteLine($"Successfully created wallet: {wallet.Id}");
+                return CreatedAtAction(nameof(GetWallet), new { id = wallet.Id }, walletDto);
+            }
+            catch (Exception ex)
             {
-                Id = wallet.Id,
-                Name = wallet.Name,
-                Type = wallet.Type,
-                Currency = wallet.Currency,
-                InitialBalance = wallet.InitialBalance,
-                ManualBalance = null,
-                BalanceResetAt = null,
-                CurrentBalance = wallet.InitialBalance,
-                CreatedAt = wallet.CreatedAt,
-                UpdatedAt = wallet.UpdatedAt
-            };
-
-            return CreatedAtAction(nameof(GetWallet), new { id = wallet.Id }, result);
+                Console.WriteLine($"Error creating wallet: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, new { message = "Error creating wallet", error = ex.Message });
+            }
         }
         
         [HttpPost("{id}/members")]

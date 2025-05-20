@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Dialog, 
   DialogTitle, 
@@ -10,8 +10,13 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Box
+  Box,
+  CircularProgress,
+  Snackbar,
+  Alert
 } from '@mui/material';
+import { addIncome } from '../services/transactionService';
+import { ensureDefaultWallet } from '../services/walletService';
 
 const AddIncomeDialog = ({ open, onClose, onSave }) => {
   const [income, setIncome] = useState({
@@ -20,6 +25,35 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [wallets, setWallets] = useState([]);
+  const [selectedWalletId, setSelectedWalletId] = useState(
+    localStorage.getItem('defaultWalletId') || ''
+  );
+
+  // Fetch wallets on component mount
+  useEffect(() => {
+    const fetchWallets = async () => {
+      try {
+        // Ensure user has a default wallet
+        await ensureDefaultWallet();
+        setSelectedWalletId(localStorage.getItem('defaultWalletId'));
+      } catch (err) {
+        console.error('Error fetching wallets:', err);
+        
+        // Use a mock wallet as fallback
+        const mockWalletId = '00000000-0000-0000-0000-000000000000';
+        localStorage.setItem('defaultWalletId', mockWalletId);
+        setSelectedWalletId(mockWalletId);
+        
+        // Don't show error message when using fallback
+        // setError('Unable to load wallet. Please try again or contact support.');
+      }
+    };
+
+    fetchWallets();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -29,95 +63,154 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
     }));
   };
 
-  const handleSubmit = () => {
+  const handleWalletChange = (e) => {
+    setSelectedWalletId(e.target.value);
+  };
+
+  const handleSubmit = async () => {
     // Validate input
     if (!income.amount || income.amount <= 0) {
       alert('Please enter a valid amount');
       return;
     }
 
-    // Submit form
-    onSave({
-      ...income,
-      amount: Number(income.amount),
-      date: new Date(income.date).toISOString()
-    });
-    
-    // Reset form
-    setIncome({
-      amount: '',
-      category: 'salary',
-      description: '',
-      date: new Date().toISOString().split('T')[0]
-    });
-    
-    onClose();
+    // Ensure valid wallet ID
+    if (!selectedWalletId) {
+      try {
+        const wallet = await ensureDefaultWallet();
+        setSelectedWalletId(wallet.id);
+      } catch (err) {
+        setError('Could not set up a wallet. Please try again.');
+        return;
+      }
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      // Prepare data for the API
+      const incomeData = {
+        walletId: selectedWalletId,
+        amount: Number(income.amount),
+        description: income.description,
+        category: income.category
+      };
+
+      // Send data to the API
+      const result = await addIncome(incomeData);
+      
+      // Call the parent component's callback with the local representation of the data
+      onSave({
+        ...income,
+        amount: Number(income.amount),
+        date: new Date(income.date).toISOString()
+      });
+      
+      // Reset form
+      setIncome({
+        amount: '',
+        category: 'salary',
+        description: '',
+        date: new Date().toISOString().split('T')[0]
+      });
+      
+      onClose();
+    } catch (err) {
+      console.error('Error saving income:', err);
+      setError(err.response?.data?.message || 'Error saving income. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add New Income</DialogTitle>
-      <DialogContent>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
-          <TextField
-            autoFocus
-            name="amount"
-            label="Amount ($)"
-            type="number"
-            value={income.amount}
-            onChange={handleChange}
-            fullWidth
-            required
-          />
-          
-          <FormControl fullWidth>
-            <InputLabel id="income-category-label">Category</InputLabel>
-            <Select
-              labelId="income-category-label"
-              name="category"
-              value={income.category}
-              label="Category"
+    <>
+      <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
+        <DialogTitle>Add New Income</DialogTitle>
+        <DialogContent>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+            <TextField
+              autoFocus
+              name="amount"
+              label="Amount ($)"
+              type="number"
+              value={income.amount}
               onChange={handleChange}
-            >
-              <MenuItem value="salary">Salary</MenuItem>
-              <MenuItem value="investment">Investment</MenuItem>
-              <MenuItem value="gift">Gift</MenuItem>
-              <MenuItem value="other">Other</MenuItem>
-            </Select>
-          </FormControl>
-          
-          <TextField
-            name="description"
-            label="Description"
-            value={income.description}
-            onChange={handleChange}
-            fullWidth
-            multiline
-            rows={2}
-          />
-          
-          <TextField
-            name="date"
-            label="Date"
-            type="date"
-            value={income.date}
-            onChange={handleChange}
-            fullWidth
-            InputLabelProps={{
-              shrink: true,
-            }}
-          />
-        </Box>
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={onClose} color="primary">
-          Cancel
-        </Button>
-        <Button onClick={handleSubmit} color="primary" variant="contained">
-          Save
-        </Button>
-      </DialogActions>
-    </Dialog>
+              fullWidth
+              required
+              disabled={loading}
+            />
+            
+            <FormControl fullWidth disabled={loading}>
+              <InputLabel id="income-category-label">Category</InputLabel>
+              <Select
+                labelId="income-category-label"
+                name="category"
+                value={income.category}
+                label="Category"
+                onChange={handleChange}
+              >
+                <MenuItem value="salary">Salary</MenuItem>
+                <MenuItem value="investment">Investment</MenuItem>
+                <MenuItem value="gift">Gift</MenuItem>
+                <MenuItem value="other">Other</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <TextField
+              name="description"
+              label="Description"
+              value={income.description}
+              onChange={handleChange}
+              fullWidth
+              multiline
+              rows={2}
+              disabled={loading}
+            />
+            
+            <TextField
+              name="date"
+              label="Date"
+              type="date"
+              value={income.date}
+              onChange={handleChange}
+              fullWidth
+              InputLabelProps={{
+                shrink: true,
+              }}
+              disabled={loading}
+            />
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={onClose} color="primary" disabled={loading}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit} 
+            color="primary" 
+            variant="contained"
+            disabled={loading}
+          >
+            {loading ? <CircularProgress size={24} /> : 'Save'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {error && (
+        <Snackbar 
+          open={!!error} 
+          autoHideDuration={6000} 
+          onClose={() => setError(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        >
+          <Alert onClose={() => setError(null)} severity="error" sx={{ width: '100%' }}>
+            {error}
+          </Alert>
+        </Snackbar>
+      )}
+    </>
   );
 };
 

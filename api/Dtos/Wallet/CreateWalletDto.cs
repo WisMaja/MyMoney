@@ -5,6 +5,9 @@ namespace api.Dtos.Wallet
 {
     public class CreateWalletDto
     {
+        // Optional ID field - used when creating a wallet with a specific ID
+        public string? Id { get; set; }
+        
         [Required]
         [MaxLength(100)]
         public string Name { get; set; }

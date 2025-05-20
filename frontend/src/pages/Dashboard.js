@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -6,25 +6,79 @@ import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
-import { useEffect } from 'react';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import Sidebar from '../components/Sidebar';
 import '../styles/Dashboard.css';
+import { getAllTransactions, getIncomeTransactions, getExpenseTransactions } from '../services/transactionService';
 
 const Dashboard = () => {
 
   const navigate = useNavigate();
   const [userData, setUserData] = useState({
     name: 'John Doe',
-    mainAccount: 200,
-    incomes: 400,
-    expenses: 200
+    mainAccount: 0,
+    incomes: 0,
+    expenses: 0
   });
   
   const [isIncomeDialogOpen, setIncomeDialogOpen] = useState(false);
   const [isExpenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [transactions, setTransactions] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch transactions on component mount
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  const fetchTransactions = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      // Get all transactions
+      const allTransactions = await getAllTransactions();
+      
+      // Transform transactions to the format expected by the UI
+      const formattedTransactions = allTransactions.map(transaction => ({
+        id: transaction.id,
+        type: transaction.amount > 0 ? 'income' : 'expense',
+        amount: Math.abs(transaction.amount),
+        description: transaction.description || 'No description',
+        category: transaction.category?.name || 'Uncategorized',
+        date: new Date(transaction.createdAt)
+      }));
+      
+      // Calculate totals
+      let totalIncome = 0;
+      let totalExpense = 0;
+      
+      allTransactions.forEach(transaction => {
+        if (transaction.amount > 0) {
+          totalIncome += transaction.amount;
+        } else {
+          totalExpense += Math.abs(transaction.amount);
+        }
+      });
+      
+      // Update state
+      setTransactions(formattedTransactions);
+      setUserData(prev => ({
+        ...prev,
+        mainAccount: totalIncome - totalExpense,
+        incomes: totalIncome,
+        expenses: totalExpense
+      }));
+      
+    } catch (err) {
+      console.error('Error fetching transactions:', err);
+      setError('Failed to load transactions. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleAddIncome = () => {
     setIncomeDialogOpen(true);
@@ -34,44 +88,16 @@ const Dashboard = () => {
     setExpenseDialogOpen(true);
   };
 
-  const handleSaveIncome = (incomeData) => {
-    // Update user data
-    setUserData(prev => ({
-      ...prev,
-      mainAccount: prev.mainAccount + incomeData.amount,
-      incomes: prev.incomes + incomeData.amount
-    }));
-
-    // Add to transactions
-    setTransactions(prev => [
-      {
-        id: Date.now(),
-        type: 'income',
-        ...incomeData,
-        date: new Date(incomeData.date)
-      },
-      ...prev
-    ]);
+  const handleSaveIncome = async (incomeData) => {
+    // The API call is now handled in the AddIncomeDialog component
+    // Here we just refresh the transaction list
+    await fetchTransactions();
   };
 
-  const handleSaveExpense = (expenseData) => {
-    // Update user data
-    setUserData(prev => ({
-      ...prev,
-      mainAccount: prev.mainAccount - expenseData.amount,
-      expenses: prev.expenses + expenseData.amount
-    }));
-
-    // Add to transactions
-    setTransactions(prev => [
-      {
-        id: Date.now(),
-        type: 'expense',
-        ...expenseData,
-        date: new Date(expenseData.date)
-      },
-      ...prev
-    ]);
+  const handleSaveExpense = async (expenseData) => {
+    // The API call is now handled in the AddExpenseDialog component
+    // Here we just refresh the transaction list
+    await fetchTransactions();
   };
 
   const navigateToStatistics = () => {
@@ -117,7 +143,7 @@ const Dashboard = () => {
               Main Account
             </Typography>
             <Typography className="card-amount">
-              {userData.mainAccount}<span className="currency">$</span>
+              {userData.mainAccount.toFixed(2)}<span className="currency">$</span>
             </Typography>
           </Box>
           
@@ -126,7 +152,7 @@ const Dashboard = () => {
               Incomes
             </Typography>
             <Typography className="card-amount">
-              {userData.incomes}<span className="currency">$</span>
+              {userData.incomes.toFixed(2)}<span className="currency">$</span>
             </Typography>
           </Box>
           
@@ -135,7 +161,7 @@ const Dashboard = () => {
               Expenses
             </Typography>
             <Typography className="card-amount">
-              {userData.expenses}<span className="currency">$</span>
+              {userData.expenses.toFixed(2)}<span className="currency">$</span>
             </Typography>
           </Box>
         </Box>
@@ -165,7 +191,25 @@ const Dashboard = () => {
             Recent Transactions
           </Typography>
           <Box sx={{ height: '300px', overflowY: 'auto' }}>
-            {transactions.length === 0 ? (
+            {loading ? (
+              <Typography variant="body1" sx={{ textAlign: 'center', color: '#666', mt: 5 }}>
+                Loading transactions...
+              </Typography>
+            ) : error ? (
+              <Box sx={{ textAlign: 'center', mt: 5 }}>
+                <Typography variant="body1" sx={{ color: 'error.main', mb: 2 }}>
+                  {error}
+                </Typography>
+                <Button 
+                  variant="outlined" 
+                  color="primary" 
+                  onClick={fetchTransactions}
+                  sx={{ mt: 1 }}
+                >
+                  Try Again
+                </Button>
+              </Box>
+            ) : transactions.length === 0 ? (
               <Typography variant="body1" sx={{ textAlign: 'center', color: '#666', mt: 5 }}>
                 No transactions yet. Add your first income or expense!
               </Typography>
@@ -197,7 +241,7 @@ const Dashboard = () => {
                       color: transaction.type === 'income' ? 'green' : 'red'
                     }}
                   >
-                    {transaction.type === 'income' ? '+' : '-'}{transaction.amount} $
+                    {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} $
                   </Typography>
                 </Box>
               ))
@@ -209,14 +253,14 @@ const Dashboard = () => {
       {/* Dialogs */}
       <AddIncomeDialog 
         open={isIncomeDialogOpen} 
-        onClose={() => setIncomeDialogOpen(false)}
-        onSave={handleSaveIncome}
+        onClose={() => setIncomeDialogOpen(false)} 
+        onSave={handleSaveIncome} 
       />
       
       <AddExpenseDialog 
         open={isExpenseDialogOpen} 
-        onClose={() => setExpenseDialogOpen(false)}
-        onSave={handleSaveExpense}
+        onClose={() => setExpenseDialogOpen(false)} 
+        onSave={handleSaveExpense} 
       />
     </Box>
   );
