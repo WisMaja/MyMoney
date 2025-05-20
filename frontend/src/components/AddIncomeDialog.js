@@ -94,8 +94,11 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
         walletId: selectedWalletId,
         amount: Number(income.amount),
         description: income.description,
-        category: income.category
+        category: income.category,
+        date: income.date
       };
+
+      console.log("Sending income with date:", income.date);
 
       // Send data to the API
       const result = await addIncome(incomeData);

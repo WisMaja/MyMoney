@@ -73,12 +73,20 @@ export const addIncome = async (incomeData) => {
       console.log("No wallet ID found, using default:", walletId);
     }
     
+    // Parse date from the form if available
+    let createdAt = null;
+    if (incomeData.date) {
+      createdAt = new Date(incomeData.date);
+      console.log("Using custom date for income:", createdAt);
+    }
+    
     // We need to convert the data from the frontend format to the API format
     const apiData = {
       walletId: walletId,
       categoryId: categoryId,
       amount: parseFloat(incomeData.amount),
-      description: incomeData.description || incomeData.category
+      description: incomeData.description || incomeData.category,
+      createdAt: createdAt
     };
     
     console.log("Sending API data:", apiData);
@@ -103,6 +111,8 @@ export const addIncome = async (incomeData) => {
 // Add new expense
 export const addExpense = async (expenseData) => {
   try {
+    console.log("Starting addExpense with data:", expenseData);
+    
     // Get or create category ID based on the category name
     const categoryId = await getCategoryIdByName(expenseData.category);
     
@@ -115,18 +125,33 @@ export const addExpense = async (expenseData) => {
       localStorage.setItem('defaultWalletId', walletId);
     }
     
+    // Parse date from the form if available
+    let createdAt = null;
+    if (expenseData.date) {
+      createdAt = new Date(expenseData.date);
+      console.log("Using custom date for expense:", createdAt);
+    }
+    
     // We need to convert the data from the frontend format to the API format
     const apiData = {
       walletId: walletId,
       categoryId: categoryId,
       amount: parseFloat(expenseData.amount),
-      description: expenseData.description || expenseData.category
+      description: expenseData.description || expenseData.category,
+      createdAt: createdAt
     };
     
+    console.log("Sending API data:", apiData);
+    
     const response = await apiClient.post('/transactions/expenses', apiData);
+    console.log("API response:", response.data);
     return response.data;
   } catch (error) {
     console.error('Error adding expense:', error);
+    if (error.response) {
+      console.error('Response status:', error.response.status);
+      console.error('Response data:', error.response.data);
+    }
     throw error;
   }
 };
