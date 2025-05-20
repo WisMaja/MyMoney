@@ -64,7 +64,7 @@ function App() {
               </PrivateRoute>
             } />
             <Route path="/statistics" element={
-              <PrivateRoute>va
+              <PrivateRoute>
                 <Statistics />
               </PrivateRoute>
             } />
