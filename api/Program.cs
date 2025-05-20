@@ -57,8 +57,13 @@ builder.Services.AddCors(options =>
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// 4. Dodanie kontrolerów (jeśli używasz [ApiController])
-builder.Services.AddControllers();
+// 4. Konfiguracja JSON do obsługi cyklicznych referencji
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = System.Text.Json.Serialization.ReferenceHandler.IgnoreCycles;
+        options.JsonSerializerOptions.WriteIndented = true;
+    });
 
 //5. Dodanie TokenService do buildera
 builder.Services.AddScoped<ITokenService, TokenService>();
