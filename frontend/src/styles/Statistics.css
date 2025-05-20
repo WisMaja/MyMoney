@@ -103,4 +103,32 @@
 
 .insight-text {
   font-size: 1rem;
+}
+
+.stats-container {
+  padding: 20px;
+}
+
+.chart-container {
+  padding: 16px;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.chart-title {
+  margin-bottom: 16px !important;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.summary-container {
+  padding: 16px;
+}
+
+/* Responsive adjustments */
+@media (max-width: 960px) {
+  .stats-container {
+    padding: 10px;
+  }
 } 

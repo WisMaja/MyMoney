@@ -9,7 +9,8 @@ import {
   Paper,
   Grid,
   CircularProgress,
-  Alert
+  Alert,
+  Chip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -87,14 +88,19 @@ const Statistics = () => {
         } else if (timeRange === 'year') {
           fromDate = new Date(today.getFullYear(), 0, 1);
         } else if (timeRange === 'week') {
-          const day = today.getDay();
-          const diff = today.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
-          fromDate = new Date(today.setDate(diff));
+          // Clone the date before modifying to avoid changing the original
+          const todayCopy = new Date(today);
+          const day = todayCopy.getDay();
+          const diff = todayCopy.getDate() - day + (day === 0 ? -6 : 1); // Adjust for Sunday
+          fromDate = new Date(todayCopy.setDate(diff));
         }
         
-        // Format dates for API
+        // Format dates for API - ensure we're using the correct ISO string format
         const from = fromDate.toISOString().split('T')[0];
-        const to = today.toISOString().split('T')[0];
+        // Use a fresh instance of today since the previous one might have been modified
+        const to = new Date().toISOString().split('T')[0];
+        
+        console.log(`Fetching statistics from: ${from} to: ${to}`);
         
         // Make parallel API requests
         const [incomeExpenseRes, categoryBreakdownRes, summaryRes] = await Promise.all([
@@ -252,6 +258,15 @@ const Statistics = () => {
     }
   };
 
+  // Check if we have any data
+  const hasData = () => {
+    return (
+      statsData.incomeVsExpense.labels.length > 0 ||
+      (statsData.categoryBreakdown.expenses && statsData.categoryBreakdown.expenses.length > 0) ||
+      (statsData.categoryBreakdown.income && statsData.categoryBreakdown.income.length > 0)
+    );
+  };
+
   if (loading) {
     return (
       <Box className="page-container">
@@ -296,98 +311,173 @@ const Statistics = () => {
                 label="Time Range"
                 onChange={handleTimeRangeChange}
               >
-                <MenuItem value="week">This Week</MenuItem>
-                <MenuItem value="month">This Month</MenuItem>
-                <MenuItem value="year">This Year</MenuItem>
+                <MenuItem value="week">Last Week</MenuItem>
+                <MenuItem value="month">Last Month</MenuItem>
+                <MenuItem value="year">Last Year</MenuItem>
               </Select>
             </FormControl>
           </Box>
         </Box>
 
-        {/* Summary Cards */}
-        <Box className="summary-section">
-          <Paper className="summary-card">
-            <Typography className="summary-label">
-              Total Income
+        {error && (
+          <Alert severity="error" sx={{ mt: 2 }}>
+            {error}
+          </Alert>
+        )}
+        
+        {!loading && !error && !hasData() && (
+          <Box sx={{ my: 4, textAlign: 'center' }}>
+            <Alert severity="info" sx={{ maxWidth: 600, mx: 'auto', mb: 3 }}>
+              No transaction data available for the selected period. Add some transactions to see your statistics!
+            </Alert>
+            <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
+              Try selecting a different time range or add new transactions to view statistics.
             </Typography>
-            <Typography className="summary-value">
-              {statsData.summary.totalIncome.toFixed(2)} $
-            </Typography>
-          </Paper>
-          
-          <Paper className="summary-card">
-            <Typography className="summary-label">
-              Total Expenses
-            </Typography>
-            <Typography className="summary-value">
-              {statsData.summary.totalExpenses.toFixed(2)} $
-            </Typography>
-          </Paper>
-          
-          <Paper className="summary-card">
-            <Typography className="summary-label">
-              Net Savings
-            </Typography>
-            <Typography className="summary-value">
-              {statsData.summary.netSavings.toFixed(2)} $
-            </Typography>
-          </Paper>
-          
-          <Paper className="summary-card">
-            <Typography className="summary-label">
-              Savings Rate
-            </Typography>
-            <Typography className="summary-value">
-              {statsData.summary.savingsRate.toFixed(1)}%
-            </Typography>
-          </Paper>
-        </Box>
-
-        {/* Charts */}
-        <Box className="chart-containers">
-          <Paper className="chart-card">
-            <Typography className="chart-title">
-              Income vs Expenses
-            </Typography>
-            <Box className="chart-container">
-              <Line 
-                options={incomeVsExpenseOptions} 
-                data={incomeVsExpenseData} 
-              />
-            </Box>
-          </Paper>
-          
-          <Paper className="chart-card">
-            <Typography className="chart-title">
-              Expense Breakdown by Category
-            </Typography>
-            <Box className="chart-container">
-              <Pie data={expenseCategoryData} />
-            </Box>
-          </Paper>
-          
-          <Paper className="chart-card">
-            <Typography className="chart-title">
-              Savings vs Expenses
-            </Typography>
-            <Box className="chart-container">
-              <Pie data={savingsData} />
-            </Box>
-          </Paper>
-          
-          <Paper className="chart-card">
-            <Typography className="chart-title">
-              Income vs Expenses Comparison
-            </Typography>
-            <Box className="chart-container">
-              <Bar 
-                options={monthlyComparisonOptions} 
-                data={monthlyComparisonData} 
-              />
-            </Box>
-          </Paper>
-        </Box>
-
+          </Box>
+        )}
+        
+        {!loading && !error && hasData() && (
+          <>
+            {/* Financial Summary */}
+            <Grid container spacing={3} className="stats-container">
+              {/* Income vs Expense Over Time */}
+              <Grid item xs={12} md={8}>
+                <Paper elevation={2} className="chart-container">
+                  <Typography variant="h6" className="chart-title">
+                    <InsightsIcon /> Income vs Expense Over Time
+                  </Typography>
+                  <Box sx={{ height: 300 }}>
+                    <Line options={incomeVsExpenseOptions} data={incomeVsExpenseData} />
+                  </Box>
+                </Paper>
+              </Grid>
+              
+              {/* Expense Categories */}
+              <Grid item xs={12} md={4}>
+                <Paper elevation={2} className="chart-container">
+                  <Typography variant="h6" className="chart-title">
+                    <TrendingDownIcon /> Expense Breakdown
+                  </Typography>
+                  <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {statsData.categoryBreakdown.expenses && statsData.categoryBreakdown.expenses.length > 0 ? (
+                      <Pie data={expenseCategoryData} />
+                    ) : (
+                      <Typography color="text.secondary">No expense data available</Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+              
+              {/* Monthly Comparison */}
+              <Grid item xs={12} md={6}>
+                <Paper elevation={2} className="chart-container">
+                  <Typography variant="h6" className="chart-title">
+                    <TrendingUpIcon /> Income vs Expenses
+                  </Typography>
+                  <Box sx={{ height: 300 }}>
+                    <Bar 
+                      options={{
+                        responsive: true,
+                        maintainAspectRatio: false,
+                      }} 
+                      data={monthlyComparisonData} 
+                    />
+                  </Box>
+                </Paper>
+              </Grid>
+              
+              {/* Savings Rate */}
+              <Grid item xs={12} md={6}>
+                <Paper elevation={2} className="chart-container">
+                  <Typography variant="h6" className="chart-title">
+                    <TrendingUpIcon /> Savings Breakdown
+                  </Typography>
+                  <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    {statsData.summary.totalIncome > 0 ? (
+                      <Pie data={savingsData} />
+                    ) : (
+                      <Typography color="text.secondary">No savings data available</Typography>
+                    )}
+                  </Box>
+                </Paper>
+              </Grid>
+              
+              {/* Summary Stats */}
+              <Grid item xs={12}>
+                <Paper elevation={2} className="summary-container">
+                  <Typography variant="h6" className="chart-title">
+                    Financial Summary
+                  </Typography>
+                  <Grid container spacing={2} sx={{ mt: 1 }}>
+                    <Grid item xs={6} md={3}>
+                      <Typography variant="subtitle2" color="text.secondary">Total Income</Typography>
+                      <Typography variant="h6" color="success.main">
+                        ${statsData.summary.totalIncome.toFixed(2)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Typography variant="subtitle2" color="text.secondary">Total Expenses</Typography>
+                      <Typography variant="h6" color="error.main">
+                        ${statsData.summary.totalExpenses.toFixed(2)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Typography variant="subtitle2" color="text.secondary">Net Savings</Typography>
+                      <Typography variant="h6" color={statsData.summary.netSavings >= 0 ? "success.main" : "error.main"}>
+                        ${statsData.summary.netSavings.toFixed(2)}
+                      </Typography>
+                    </Grid>
+                    <Grid item xs={6} md={3}>
+                      <Typography variant="subtitle2" color="text.secondary">Savings Rate</Typography>
+                      <Typography variant="h6" color={statsData.summary.savingsRate >= 0 ? "success.main" : "error.main"}>
+                        {statsData.summary.savingsRate.toFixed(1)}%
+                      </Typography>
+                    </Grid>
+                    
+                    {/* Top Categories */}
+                    <Grid item xs={6} md={6} sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Top Expense Category</Typography>
+                      {statsData.summary.topExpenseCategory ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <Chip 
+                            label={statsData.summary.topExpenseCategory.category} 
+                            color="error" 
+                            size="small" 
+                            sx={{ mr: 1 }} 
+                          />
+                          <Typography variant="body2">
+                            ${statsData.summary.topExpenseCategory.amount.toFixed(2)}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No expense data</Typography>
+                      )}
+                    </Grid>
+                    
+                    <Grid item xs={6} md={6} sx={{ mt: 2 }}>
+                      <Typography variant="subtitle2" color="text.secondary">Top Income Category</Typography>
+                      {statsData.summary.topIncomeCategory ? (
+                        <Box sx={{ display: 'flex', alignItems: 'center', mt: 1 }}>
+                          <Chip 
+                            label={statsData.summary.topIncomeCategory.category} 
+                            color="success" 
+                            size="small" 
+                            sx={{ mr: 1 }} 
+                          />
+                          <Typography variant="body2">
+                            ${statsData.summary.topIncomeCategory.amount.toFixed(2)}
+                          </Typography>
+                        </Box>
+                      ) : (
+                        <Typography variant="body2" color="text.secondary">No income data</Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
+          </>
+        )}
       </Box>
     </Box>
   );

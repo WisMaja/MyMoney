@@ -94,8 +94,11 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
         walletId: selectedWalletId,
         amount: Number(expense.amount),
         description: expense.description,
-        category: expense.category
+        category: expense.category,
+        date: expense.date
       };
+
+      console.log("Sending expense with date:", expense.date);
 
       // Send data to the API
       const result = await addExpense(expenseData);
