@@ -47,9 +47,9 @@ const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const [originalUserSettings, setOriginalUserSettings] = useState({
     profile: {
-      name: 'John Doe',
-      email: 'email@example.com',
-      phone: '+1 123 456 789'
+      name: 'Jan Kowalski',
+      email: 'janek@kowalski.com',
+      phone: '+48 123 456 789'
     },
     notifications: {
       emailNotifications: true,
@@ -72,9 +72,9 @@ const Settings = () => {
   });
   const [userSettings, setUserSettings] = useState({
     profile: {
-      name: 'John Doe',
-      email: 'email@example.com',
-      phone: '+1 123 456 789'
+      name: 'Jan Kowalski',
+      email: 'janek@kowalski.com',
+      phone: '+48 123 456 789'
     },
     notifications: {
       emailNotifications: true,
@@ -103,8 +103,12 @@ const Settings = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
 
+  const navigateToLogin = () => {
+    navigate('/login');
+  };
+
   const navigateToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const navigateToStatistics = () => {
@@ -152,12 +156,12 @@ const Settings = () => {
   const handleDeleteAccount = () => {
     alert('Account deletion functionality would go here in a real app');
     setDeleteAccountDialogOpen(false);
-    navigate('/');
+    navigateToLogin();
   };
   
   const handleLogout = async () => {
     await logout();
-    navigate('/');
+    navigateToLogin();
   };
 
   const handleCloseSnackbar = (event, reason) => {

@@ -141,7 +141,7 @@ const Statistics = () => {
   };
 
   const navigateToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
   // Chart configurations

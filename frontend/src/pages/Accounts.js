@@ -91,7 +91,7 @@ const Accounts = () => {
 
   /* Nieużywane funkcje nawigacyjne
   const navigateToDashboard = () => {
-    navigate('/dashboard');
+    navigate('/');
   };
 
   const navigateToStatistics = () => {

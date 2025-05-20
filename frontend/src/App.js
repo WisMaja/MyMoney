@@ -55,10 +55,10 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Login />} />
+            <Route path="/login" element={<Login />} />
 
             {/* Protected routes */}
-            <Route path="/dashboard" element={
+            <Route path="/" element={
               <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
