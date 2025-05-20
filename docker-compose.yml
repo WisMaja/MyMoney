@@ -12,17 +12,20 @@ services:
     restart: unless-stopped
 
   api:
-    image: mcr.microsoft.com/dotnet/samples:aspnetapp
+    build:
+      context: ./api
+    # command: dotnet run
     ports:
-      - 80
-      - 443
+      - "80:80"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ASPNETCORE_URLS=https://+:443;http://+:80
-      - ASPNETCORE_Kestrel__Certificates__Default__Password=-\0pw-
-      - ASPNETCORE_Kestrel__Certificates__Default__Path=/https/aspnetapp.pfx
     volumes:
-      - ~/.aspnet/https:/https:ro
+      - ./api:/app
+      - ./api/appsettings.Development.json:/app/appsettings.Development.json
+    working_dir: /app
+    restart: unless-stopped
+    depends_on:
+      - mssql
 
 volumes:
   mssql_data:

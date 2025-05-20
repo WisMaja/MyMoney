@@ -217,7 +217,7 @@ const Settings = () => {
               Ustawienia Profilu
             </Typography>
             
-            <Box sx={{ display: 'flex', mb: 4, alignItems: 'center' }}>
+            <Box sx={{ display: 'flex', marginY: 4, alignItems: 'center' }}>
               <Avatar
                 src={profileImage}
                 sx={{ width: 100, height: 100, mr: 3 }}
