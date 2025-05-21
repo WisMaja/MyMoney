@@ -54,6 +54,18 @@ export const deleteWallet = async (id) => {
     throw error;
   }
 };
+// services/walletService.js
+
+export const getWalletBalance = async (walletId) => {
+  try {
+    const response = await apiClient.get(`/wallets/${walletId}/balance`);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching balance for wallet ID ${walletId}:`, error);
+    throw error;
+  }
+};
+
 
 // Set manual balance for a wallet
 export const setManualBalance = async (id, balance) => {
