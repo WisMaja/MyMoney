@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import {
   Box, Typography, Button, Paper, Avatar, IconButton, LinearProgress, Divider,
   Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Select,
-  FormControl, InputLabel
+  FormControl, InputLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
@@ -13,8 +13,9 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import Sidebar from '../components/Sidebar';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
-import { getAllWallets, createWallet,deleteWallet, getWalletBalance } from '../services/walletService';
+import { getAllWallets, createWallet,deleteWallet, getWalletBalance, setMainWallet, fetchUserProfile, updateWallet, setManualBalance  } from '../services/walletService';
 import '../styles/Accounts.css';
+
 
 const Accounts = () => {
   const navigate = useNavigate();
@@ -24,6 +25,9 @@ const Accounts = () => {
   const [isExpenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState(null);
   const [isAddAccountDialogOpen, setAddAccountDialogOpen] = useState(false);
+  const [mainWalletId, setMainWalletId] = useState(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [walletToEdit, setWalletToEdit] = useState(null);
   const [newAccount, setNewAccount] = useState({
     name: '',
     type: 'checking',
@@ -33,7 +37,18 @@ const Accounts = () => {
 
   useEffect(() => {
     fetchWallets();
+    fetchUserProfileData();
   }, []);
+
+  const fetchUserProfileData = async () => {
+    try {
+      const user = await fetchUserProfile();
+      setMainWalletId(user.mainWalletId);
+    } catch (error) {
+      console.error('Error fetching user profile:', error);
+    }
+  };
+
 
   const fetchWallets = async () => {
     setIsLoading(true);
@@ -87,6 +102,35 @@ const Accounts = () => {
     setExpenseDialogOpen(true);
   };
 
+  const handleOpenEditDialog = (wallet) => {
+    setWalletToEdit({ ...wallet,    manualBalance: wallet.balance});
+    setEditDialogOpen(true);
+  };
+
+  const handleWalletChange = (e) => {
+    const { name, value } = e.target;
+    setWalletToEdit(prev => ({
+      ...prev,
+      [name]: ['initialBalance', 'manualBalance'].includes(name) ? parseFloat(value) || 0 : value
+    }));
+  };
+
+  const handleSaveWallet = async () => {
+    try {
+      await updateWallet(walletToEdit.id, {
+        name: walletToEdit.name,
+        currency: walletToEdit.currency,
+        type: walletToEdit.type
+      });
+      await setManualBalance(walletToEdit.id, walletToEdit.manualBalance);
+
+      setEditDialogOpen(false);
+      fetchWallets();
+    } catch (error) {
+      console.error('Error updating wallet:', error);
+    }
+  };
+
   const handleOpenAddAccountDialog = () => {
     setAddAccountDialogOpen(true);
   };
@@ -102,6 +146,17 @@ const Accounts = () => {
       ...prev,
       [name]: name === 'balance' ? parseFloat(value) || 0 : value
     }));
+  };
+
+  const handleSetMainWallet = async (walletId) => {
+    try {
+      await setMainWallet(walletId);
+      setMainWalletId(walletId); //
+      alert('Main wallet updated');
+    } catch (error) {
+      console.error('Failed to set main wallet:', error);
+      alert('Could not update main wallet');
+    }
   };
 
   const handleAddAccount = async () => {
@@ -155,7 +210,7 @@ const Accounts = () => {
                           {account.icon}
                           {account.name}
                         </Typography>
-                        <IconButton size="small">
+                        <IconButton size="small" onClick={() => handleOpenEditDialog(account)}>
                           <EditIcon />
                         </IconButton>
                       </Box>
@@ -193,6 +248,20 @@ const Accounts = () => {
                         >
                           Delete Wallet
                         </Button>
+                        {account.id === mainWalletId ? (
+                            <Typography variant="button" sx={{ mt: 1 }}>
+                              Main Wallet
+                            </Typography>
+                        ) : (
+                            <Button
+                                variant="outlined"
+                                color="primary"
+                                onClick={() => handleSetMainWallet(account.id)}
+                            >
+                              Set as Main
+                            </Button>
+                        )}
+
                       </Box>
                     </Paper>
                 ))
@@ -213,6 +282,39 @@ const Accounts = () => {
             onSave={fetchWallets}
             walletId={selectedWalletId}
         />
+
+        <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} fullWidth maxWidth="sm">
+          <DialogTitle>Edit Wallet</DialogTitle>
+          <DialogContent>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
+              <TextField
+                  name="name"
+                  label="Wallet Name"
+                  value={walletToEdit?.name || ''}
+                  onChange={handleWalletChange}
+                  fullWidth
+                  required
+              />
+              <TextField
+                  name="manualBalance"
+                  label="Balance"
+                  type="number"
+                  value={walletToEdit?.manualBalance || 0}
+                  onChange={handleWalletChange}
+                  fullWidth
+                  required
+              />
+
+            </Box>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={handleSaveWallet} variant="contained" color="primary">
+              Save
+            </Button>
+          </DialogActions>
+        </Dialog>
+
 
         <Dialog open={isAddAccountDialogOpen} onClose={handleCloseAddAccountDialog} fullWidth maxWidth="sm">
           <DialogTitle>Add New Account</DialogTitle>

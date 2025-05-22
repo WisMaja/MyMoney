@@ -1,5 +1,7 @@
 import apiClient from '../apiClient';
 
+
+
 // Get all wallets
 export const getAllWallets = async () => {
   try {
@@ -9,6 +11,11 @@ export const getAllWallets = async () => {
     console.error('Error fetching wallets:', error);
     throw error;
   }
+};
+
+export const fetchUserProfile = async () => {
+  const response = await apiClient.get('/users/me');
+  return response.data;
 };
 
 // Get a wallet by ID
@@ -75,14 +82,9 @@ export const createWallet = async (walletData) => {
 };
 
 // Update a wallet
-export const updateWallet = async (id, walletData) => {
-  try {
-    const response = await apiClient.put(`/wallets/${id}`, walletData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating wallet with ID ${id}:`, error);
-    throw error;
-  }
+export const updateWallet = async (id, data) => {
+  const response = await apiClient.put(`/wallets/${id}`, data);
+  return response.data;
 };
 
 // Delete a wallet
@@ -106,6 +108,12 @@ export const getWalletBalance = async (walletId) => {
     throw error;
   }
 };
+
+export const setMainWallet = async (walletId) => {
+  const response = await apiClient.put(`/wallets/${walletId}/set-main`);
+  return walletId; // bo serwer już go ustawił
+};
+
 
 
 // Set manual balance for a wallet
