@@ -41,7 +41,7 @@ import Settings from './pages/Settings';
 import Budgets from './pages/Budgets';
 import Categories from './pages/Categories';
 
-import { AuthProvider, isAuthenticated } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './router/PrivateRoute';
 
@@ -55,10 +55,19 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public routes */}
-            <Route path="/" element={<Navigate replace to="/login" />} />
+            <Route
+              path="/"
+              element={
+                AuthProvider.isAuthenticated ? (
+                  <Navigate replace to="/dashboard" />
+                ) : (
+                  <Navigate replace to="/login" />
+                )
+              }
+            />
             <Route path="/login" element={<Login />} />
             {/* Protected routes */}
-            <Route path="/" element={
+            <Route path="/dashboard" element={
               <PrivateRoute>
                 <Dashboard />
               </PrivateRoute>
