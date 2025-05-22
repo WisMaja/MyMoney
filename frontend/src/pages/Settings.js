@@ -383,7 +383,7 @@ const Settings = () => {
               />
             </Box>
             
-            <Button variant="outlined" sx={{ mt: 2 }}>
+            <Button variant="outlined" sx={{ my: 2 }}>
               Change Password
             </Button>
             
@@ -396,21 +396,22 @@ const Settings = () => {
               <Typography paragraph>
                 Deleting your account is permanent and cannot be undone. All your data will be lost.
               </Typography>
-              <Button 
-                variant="contained" 
-                className="danger-button"
-                onClick={handleOpenDeleteDialog}
-              >
-                Delete Account
-              </Button>
-              <Button 
-                variant="outlined" 
-                color="primary" 
-                sx={{ mt: 2, mb: 2 }}
-                onClick={handleLogout}
-              >
-                Wyloguj się
-              </Button>
+              <Box className="settings-button-group" sx={{ flexDirection: 'row', gap: 1, justifyContent: 'center' }}>
+                <Button 
+                  variant="contained"
+                  color="error"
+                  onClick={handleOpenDeleteDialog}
+                >
+                  Delete Account
+                </Button>
+                <Button 
+                  variant="outlined"
+                  color="primary"
+                  onClick={handleLogout}
+                >
+                  Wyloguj się
+                </Button>
+              </Box>
             </Box>
           </Box>
         );
@@ -418,7 +419,7 @@ const Settings = () => {
       case 'preferences':
         return (
           <Box className="settings-section">
-            <Typography className="settings-section-title">
+            <Typography className="settings-section-title" sx={{ mb: 2 }}>
               Preferences
             </Typography>
             

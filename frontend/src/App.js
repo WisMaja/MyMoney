@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import apiClient from "./apiClient";
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -15,6 +15,8 @@ import Categories from './pages/Categories';
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './router/PrivateRoute';
+
+import { useAuth } from './hooks/useAuth';
 
 import './App.css';
 import './styles/common.css';
@@ -128,13 +130,7 @@ function App() {
             {/* Public routes */}
             <Route
               path="/"
-              element={
-                AuthProvider.isAuthenticated ? (
-                  <Navigate replace to="/dashboard" />
-                ) : (
-                  <Navigate replace to="/login" />
-                )
-              }
+              element={<Navigate replace to="/dashboard" />}
             />
             <Route path="/login" element={<Login />} />
             {/* Protected routes */}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl, IconButton, Tooltip, CircularProgress } from '@mui/material';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
 import ShowChartIcon from '@mui/icons-material/ShowChart';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
@@ -181,7 +181,9 @@ const Dashboard = () => {
             <Typography variant="body1">
               {userData.name}
             </Typography>
-            <Avatar className="user-avatar" />
+            <Link to="/settings" className="user-settings-link">
+              <Avatar className="user-avatar" />
+            </Link>
           </Box>
         </Box>
 
