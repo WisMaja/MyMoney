@@ -24,7 +24,7 @@ function Sidebar() {
     <div className="sidebar">
       <div 
         className={`sidebar-icon-wrapper ${currentPath === '/' ? 'active' : ''}`}
-        onClick={() => handleNavigation('/')}
+        onClick={() => handleNavigation('/dashboard')}
       >
         <DashboardIcon className="sidebar-icon" />
       </div>
