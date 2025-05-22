@@ -30,7 +30,7 @@ import apiClient from "./apiClient";
 
 
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
@@ -41,7 +41,7 @@ import Settings from './pages/Settings';
 import Budgets from './pages/Budgets';
 import Categories from './pages/Categories';
 
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, isAuthenticated } from './context/AuthContext';
 
 import PrivateRoute from './router/PrivateRoute';
 
@@ -55,8 +55,8 @@ function App() {
         <div className="App">
           <Routes>
             {/* Public routes */}
+            <Route path="/" element={<Navigate replace to="/login" />} />
             <Route path="/login" element={<Login />} />
-
             {/* Protected routes */}
             <Route path="/" element={
               <PrivateRoute>
