@@ -371,6 +371,37 @@ namespace api.Controllers
         }
         
         
+        [HttpPost("{id}/members/email")]
+        public async Task<IActionResult> AddMemberByEmail(Guid id, [FromBody] AddMemberByEmailDto dto)
+        {
+            var userId = GetUserIdFromToken();
+
+            var wallet = await _context.Wallets
+                .Include(w => w.Members)
+                .FirstOrDefaultAsync(w => w.Id == id && w.CreatedByUserId == userId);
+
+            if (wallet == null)
+                return Forbid("Only wallet owner can add members.");
+
+            var newUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (newUser == null)
+                return NotFound("User with this email does not exist.");
+
+            if (wallet.Members.Any(m => m.UserId == newUser.Id))
+                return Conflict("This user is already a member of the wallet.");
+
+            var member = new WalletMember
+            {
+                WalletId = id,
+                UserId = newUser.Id,
+            };
+
+            _context.WalletMembers.Add(member);
+            await _context.SaveChangesAsync();
+
+            return Ok("Member added successfully.");
+        }
 
         
         // DELETE: api/wallet/{id}

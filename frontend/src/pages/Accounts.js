@@ -13,7 +13,7 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import Sidebar from '../components/Sidebar';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
-import { getAllWallets, createWallet,deleteWallet, getWalletBalance, setMainWallet, fetchUserProfile, updateWallet, setManualBalance  } from '../services/walletService';
+import { getAllWallets, createWallet,deleteWallet, getWalletBalance, setMainWallet, fetchUserProfile, updateWallet, setManualBalance, addMemberToWallet  } from '../services/walletService';
 import '../styles/Accounts.css';
 
 
@@ -25,6 +25,7 @@ const Accounts = () => {
   const [isExpenseDialogOpen, setExpenseDialogOpen] = useState(false);
   const [selectedWalletId, setSelectedWalletId] = useState(null);
   const [isAddAccountDialogOpen, setAddAccountDialogOpen] = useState(false);
+
   const [mainWalletId, setMainWalletId] = useState(null);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [walletToEdit, setWalletToEdit] = useState(null);
@@ -34,6 +35,11 @@ const Accounts = () => {
     balance: '',
     currency: '$'
   });
+
+  // Nowy stan
+  const [isAddMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [email, setEmail] = useState('');
+  const [walletIdToAddMember, setWalletIdToAddMember] = useState(null);
 
   useEffect(() => {
     fetchWallets();
@@ -177,6 +183,29 @@ const Accounts = () => {
     }
   };
 
+  // Funkcje
+  const handleAddMember = (walletId) => {
+    setWalletIdToAddMember(walletId);
+    setAddMemberDialogOpen(true);
+  };
+
+  const handleCloseAddMemberDialog = () => {
+    setAddMemberDialogOpen(false);
+    setEmail('');
+  };
+
+  // Wywołanie API
+  const handleSaveMember = async () => {
+    try {
+      await addMemberToWallet(walletIdToAddMember, email);
+      setAddMemberDialogOpen(false);
+      alert('Member added successfully!');
+    } catch (error) {
+      console.error('Error adding member:', error);
+      alert('Failed to add member.');
+    }
+  };
+
   return (
       <Box className="page-container">
         <Sidebar />
@@ -248,6 +277,15 @@ const Accounts = () => {
                         >
                           Delete Wallet
                         </Button>
+                        <Button
+                            variant="contained"
+                            color="info"
+                            onClick={() => handleAddMember(account.id)}
+                            startIcon={<AddIcon />}
+                        >
+                          Add Member
+                        </Button>
+
                         {account.id === mainWalletId ? (
                             <Typography variant="button" sx={{ mt: 1 }}>
                               Main Wallet
@@ -379,6 +417,24 @@ const Accounts = () => {
             <Button onClick={handleAddAccount} color="primary" variant="contained">
               Add Account
             </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog open={isAddMemberDialogOpen} onClose={handleCloseAddMemberDialog} fullWidth maxWidth="sm">
+          <DialogTitle>Add Member to Wallet</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              name="email"
+              label="Email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              fullWidth
+              required
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={handleCloseAddMemberDialog} color="primary">Cancel</Button>
+            <Button onClick={handleSaveMember} variant="contained" color="primary">Add</Button>
           </DialogActions>
         </Dialog>
       </Box>
