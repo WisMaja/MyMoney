@@ -109,12 +109,6 @@ export const getWalletBalance = async (walletId) => {
   }
 };
 
-export const setMainWallet = async (walletId) => {
-  const response = await apiClient.put(`/wallets/${walletId}/set-main`);
-  return walletId; // bo serwer już go ustawił
-};
-
-
 
 
 // Set manual balance for a wallet

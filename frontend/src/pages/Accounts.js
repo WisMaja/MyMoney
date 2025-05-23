@@ -32,7 +32,7 @@ const Accounts = () => {
   const [newAccount, setNewAccount] = useState({
     name: '',
     type: 'checking',
-    balance: '',
+    balance: 0,
     currency: '$'
   });
 
@@ -166,7 +166,7 @@ const Accounts = () => {
   };
 
   const handleAddAccount = async () => {
-    if (!newAccount.name || !newAccount.balance) {
+    if (!newAccount.name) { // Usuń wymóg dla balance
       alert('Please fill all required fields');
       return;
     }
@@ -174,7 +174,7 @@ const Accounts = () => {
       await createWallet({
         name: newAccount.name,
         currency: newAccount.currency,
-        initialBalance: newAccount.balance
+        initialBalance: newAccount.balance || 0 // Domyślna wartość 0
       });
       handleCloseAddAccountDialog();
       fetchWallets();
@@ -390,8 +390,9 @@ const Accounts = () => {
                   value={newAccount.balance}
                   onChange={handleNewAccountChange}
                   fullWidth
-                  required
+                  placeholder="0" // Domyślny placeholder, żeby użytkownik wiedział, że 0 jest wartością domyślną
               />
+
 
               <FormControl fullWidth>
                 <InputLabel id="currency-label">Currency</InputLabel>
