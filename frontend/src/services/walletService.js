@@ -284,3 +284,13 @@ export const createDefaultWallet = async () => {
     throw error;
   }
 }; 
+// Dodaj członka do portfela
+export const addMemberToWallet = async (walletId, email) => {
+  try {
+    const response = await apiClient.post(`/wallets/${walletId}/members/email`, { email });
+    return response.data;
+  } catch (error) {
+    console.error(`Error adding member to wallet ID ${walletId}:`, error);
+    throw error;
+  }
+};
