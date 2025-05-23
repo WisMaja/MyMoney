@@ -16,7 +16,7 @@ import {
   Alert
 } from '@mui/material';
 import { addExpense } from '../services/transactionService';
-import { ensureDefaultWallet } from '../services/walletService';
+import { getMainWalletId, getUserWallets } from '../services/walletService';
 
 const AddExpenseDialog = ({ open, onClose, onSave }) => {
   const [expense, setExpense] = useState({
@@ -28,32 +28,35 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [wallets, setWallets] = useState([]);
-  const [selectedWalletId, setSelectedWalletId] = useState(
-    localStorage.getItem('defaultWalletId') || ''
-  );
+  const [selectedWalletId, setSelectedWalletId] = useState('');
+  const [walletsLoading, setWalletsLoading] = useState(true);
 
-  // Fetch wallets on component mount
+  // Fetch wallets and set main wallet as default on component mount
   useEffect(() => {
     const fetchWallets = async () => {
       try {
-        // Ensure user has a default wallet
-        await ensureDefaultWallet();
-        setSelectedWalletId(localStorage.getItem('defaultWalletId'));
+        setWalletsLoading(true);
+        
+        // Get main wallet ID first
+        const mainWalletId = await getMainWalletId();
+        setSelectedWalletId(mainWalletId);
+        
+        // Get all user wallets for the selector
+        const userWallets = await getUserWallets();
+        setWallets(userWallets);
+        
       } catch (err) {
         console.error('Error fetching wallets:', err);
-        
-        // Use a mock wallet as fallback
-        const mockWalletId = '00000000-0000-0000-0000-000000000000';
-        localStorage.setItem('defaultWalletId', mockWalletId);
-        setSelectedWalletId(mockWalletId);
-        
-        // Don't show error message when using fallback
-        // setError('Unable to load wallet. Please try again or contact support.');
+        setError('Unable to load wallets. Please try again.');
+      } finally {
+        setWalletsLoading(false);
       }
     };
 
-    fetchWallets();
-  }, []);
+    if (open) {
+      fetchWallets();
+    }
+  }, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,19 +73,13 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
   const handleSubmit = async () => {
     // Validate input
     if (!expense.amount || expense.amount <= 0) {
-      alert('Please enter a valid amount');
+      setError('Please enter a valid amount');
       return;
     }
 
-    // Ensure valid wallet ID
     if (!selectedWalletId) {
-      try {
-        const wallet = await ensureDefaultWallet();
-        setSelectedWalletId(wallet.id);
-      } catch (err) {
-        setError('Could not set up a wallet. Please try again.');
-        return;
-      }
+      setError('Please select an account');
+      return;
     }
 
     setLoading(true);
@@ -165,6 +162,29 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
               </Select>
             </FormControl>
             
+            <FormControl fullWidth disabled={loading || walletsLoading}>
+              <InputLabel id="wallet-select-label">Account</InputLabel>
+              <Select
+                labelId="wallet-select-label"
+                value={selectedWalletId}
+                label="Account"
+                onChange={handleWalletChange}
+              >
+                {walletsLoading ? (
+                  <MenuItem disabled>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    Loading accounts...
+                  </MenuItem>
+                ) : (
+                  wallets.map((wallet) => (
+                    <MenuItem key={wallet.id} value={wallet.id}>
+                      {wallet.name} ({wallet.currency})
+                    </MenuItem>
+                  ))
+                )}
+              </Select>
+            </FormControl>
+            
             <TextField
               name="description"
               label="Description"
@@ -198,7 +218,7 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
             onClick={handleSubmit} 
             color="primary" 
             variant="contained"
-            disabled={loading}
+            disabled={loading || walletsLoading || !selectedWalletId}
           >
             {loading ? <CircularProgress size={24} /> : 'Save'}
           </Button>

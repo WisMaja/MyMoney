@@ -16,7 +16,7 @@ import {
   Alert
 } from '@mui/material';
 import { addIncome } from '../services/transactionService';
-import { ensureDefaultWallet } from '../services/walletService';
+import { ensureDefaultWallet, getUserWallets, getMainWallet } from '../services/walletService';
 
 const AddIncomeDialog = ({ open, onClose, onSave }) => {
   const [income, setIncome] = useState({
@@ -28,32 +28,45 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [wallets, setWallets] = useState([]);
-  const [selectedWalletId, setSelectedWalletId] = useState(
-    localStorage.getItem('defaultWalletId') || ''
-  );
+  const [selectedWalletId, setSelectedWalletId] = useState('');
+  const [walletsLoading, setWalletsLoading] = useState(true);
 
   // Fetch wallets on component mount
   useEffect(() => {
     const fetchWallets = async () => {
       try {
-        // Ensure user has a default wallet
-        await ensureDefaultWallet();
-        setSelectedWalletId(localStorage.getItem('defaultWalletId'));
+        setWalletsLoading(true);
+        
+        // Get main wallet and all user wallets
+        const [mainWallet, userWallets] = await Promise.all([
+          getMainWallet(),
+          getUserWallets()
+        ]);
+        
+        setWallets(userWallets);
+        setSelectedWalletId(mainWallet?.id || '');
+        
       } catch (err) {
         console.error('Error fetching wallets:', err);
         
-        // Use a mock wallet as fallback
-        const mockWalletId = '00000000-0000-0000-0000-000000000000';
-        localStorage.setItem('defaultWalletId', mockWalletId);
-        setSelectedWalletId(mockWalletId);
-        
-        // Don't show error message when using fallback
-        // setError('Unable to load wallet. Please try again or contact support.');
+        // Fallback to ensure default wallet
+        try {
+          const defaultWallet = await ensureDefaultWallet();
+          setWallets([defaultWallet]);
+          setSelectedWalletId(defaultWallet.id);
+        } catch (fallbackErr) {
+          console.error('Error with fallback wallet:', fallbackErr);
+          setError('Unable to load wallets. Please try again.');
+        }
+      } finally {
+        setWalletsLoading(false);
       }
     };
 
-    fetchWallets();
-  }, []);
+    if (open) {
+      fetchWallets();
+    }
+  }, [open]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -158,6 +171,28 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
                 <MenuItem value="investment">Investment</MenuItem>
                 <MenuItem value="gift">Gift</MenuItem>
                 <MenuItem value="other">Other</MenuItem>
+              </Select>
+            </FormControl>
+            
+            <FormControl fullWidth disabled={loading || walletsLoading}>
+              <InputLabel id="wallet-select-label">Account</InputLabel>
+              <Select
+                labelId="wallet-select-label"
+                value={selectedWalletId}
+                label="Account"
+                onChange={handleWalletChange}
+              >
+                {walletsLoading ? (
+                  <MenuItem disabled>
+                    <CircularProgress size={20} /> Loading accounts...
+                  </MenuItem>
+                ) : (
+                  wallets.map((wallet) => (
+                    <MenuItem key={wallet.id} value={wallet.id}>
+                      {wallet.name} ({wallet.currency})
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
             

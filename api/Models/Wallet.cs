@@ -11,8 +11,8 @@ namespace api.Models
     public enum WalletType
     {
         Personal,
-        Savings,
-        Travel
+        Credit,
+        Savings
     }
     public class Wallet
     {
