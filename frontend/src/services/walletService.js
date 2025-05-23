@@ -116,6 +116,7 @@ export const setMainWallet = async (walletId) => {
 
 
 
+
 // Set manual balance for a wallet
 export const setManualBalance = async (id, balance) => {
   try {
@@ -262,27 +263,9 @@ export const ensureDefaultWallet = async () => {
 
 // Function to create a default wallet for the user
 export const createDefaultWallet = async () => {
-  console.log("Creating default wallet");
-  const defaultWallet = {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'Default Wallet',
-    type: 'Personal',
-    currency: 'USD',
-    initialBalance: 0
-  };
-  
-  try {
-    const response = await apiClient.post('/wallets', defaultWallet);
-    console.log("Default wallet created successfully:", response.data);
-    return response.data;
-  } catch (error) {
-    console.error("Error creating default wallet:", error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    }
-    throw error;
-  }
+  console.log("createDefaultWallet function called");
+  console.warn("Default wallet creation is disabled.");
+  return null;
 }; 
 // Dodaj członka do portfela
 export const addMemberToWallet = async (walletId, email) => {

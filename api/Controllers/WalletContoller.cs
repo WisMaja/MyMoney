@@ -30,10 +30,13 @@ namespace api.Controllers
         private static decimal CalculateCurrentBalance(Wallet wallet)
         {
             var baseBalance = wallet.ManualBalance ?? wallet.InitialBalance;
-            var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue;
-            var transactionSum = wallet.Transactions.Where(t => t.CreatedAt >= fromDate).Sum(t => t.Amount);
+            var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue; // Odtąd liczymy transakcje
+            var transactionSum = wallet.Transactions
+                .Where(t => t.CreatedAt >= fromDate) // Uwzględnimy transakcje od daty resetu
+                .Sum(t => t.Amount);
             return baseBalance + transactionSum;
         }
+
 
         // GET: api/wallets
         [HttpGet]
