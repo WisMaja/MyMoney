@@ -16,7 +16,7 @@ import AddExpenseDialog from '../components/AddExpenseDialog';
 import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
 import '../styles/Dashboard.css';
-import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction } from '../services/transactionService';
+import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
 import { getMainWallet } from '../services/walletService';
 
 const Dashboard = () => {
@@ -53,11 +53,8 @@ const Dashboard = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch main wallet info
+      // Fetch main wallet info and transactions
       const mainWallet = await getMainWallet();
-      
-      // Fetch transactions
-      await fetchTransactions();
       
       // Update user data with main wallet info
       setUserData(prev => ({
@@ -66,6 +63,9 @@ const Dashboard = () => {
         mainAccountCurrency: mainWallet.currency,
         mainAccountType: mainWallet.type
       }));
+      
+      // Fetch transactions (this will use the main wallet)
+      await fetchTransactions();
       
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -77,11 +77,24 @@ const Dashboard = () => {
 
   const fetchTransactions = async () => {
     try {
-      // Get all transactions
-      const allTransactions = await getAllTransactions();
+      console.log('Starting fetchTransactions...');
+      
+      // Get main wallet first
+      console.log('Fetching main wallet...');
+      const mainWallet = await getMainWallet();
+      console.log('Main wallet for transactions:', mainWallet);
+      
+      if (!mainWallet || !mainWallet.id) {
+        throw new Error('Main wallet not found or missing ID');
+      }
+      
+      // Get transactions only from the main wallet
+      console.log(`Fetching transactions for wallet ID: ${mainWallet.id}`);
+      const walletTransactions = await getTransactionsByWallet(mainWallet.id);
+      console.log('Wallet transactions received:', walletTransactions);
       
       // Transform transactions to the format expected by the UI
-      const formattedTransactions = allTransactions.map(transaction => ({
+      const formattedTransactions = walletTransactions.map(transaction => ({
         id: transaction.id,
         type: transaction.amount > 0 ? 'income' : 'expense',
         amount: Math.abs(transaction.amount),
@@ -101,13 +114,15 @@ const Dashboard = () => {
       let totalIncome = 0;
       let totalExpense = 0;
       
-      allTransactions.forEach(transaction => {
+      walletTransactions.forEach(transaction => {
         if (transaction.amount > 0) {
           totalIncome += transaction.amount;
         } else {
           totalExpense += Math.abs(transaction.amount);
         }
       });
+      
+      console.log(`Calculated totals - Income: ${totalIncome}, Expense: ${totalExpense}`);
       
       // Update state
       setTransactions(formattedTransactions);
@@ -118,8 +133,12 @@ const Dashboard = () => {
         expenses: totalExpense
       }));
       
+      console.log('fetchTransactions completed successfully');
+      
     } catch (err) {
       console.error('Error fetching transactions:', err);
+      console.error('Error details:', err.message);
+      console.error('Error stack:', err.stack);
       setError('Failed to load transactions. Please try again.');
     }
   };
