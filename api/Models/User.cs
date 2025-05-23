@@ -1,4 +1,3 @@
-
 namespace api.Models
 {
 
@@ -10,6 +9,7 @@ namespace api.Models
         public string? HashedPassword { get; set; }
         public string? RefreshToken { get; set; }
         public DateTime? RefreshTokenExpiration { get; set; }
+        public string? ProfileImageUrl { get; set; }
 
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

@@ -14,6 +14,7 @@ const Header = ({ title }) => {
   const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [profileImage, setProfileImage] = useState(null);
 
   useEffect(() => {
     fetchUserData();
@@ -23,6 +24,15 @@ const Header = ({ title }) => {
     try {
       const userData = await getCurrentUser();
       setUser(userData);
+      
+      // Set profile image if available
+      if (userData.profileImageUrl) {
+        // If it's a relative URL, prepend the server URL
+        const imageUrl = userData.profileImageUrl.startsWith('http') 
+          ? userData.profileImageUrl 
+          : `http://localhost:5032${userData.profileImageUrl}`;
+        setProfileImage(imageUrl);
+      }
     } catch (error) {
       console.error('Error fetching user data:', error);
       // Fallback to default user data
@@ -90,8 +100,11 @@ const Header = ({ title }) => {
           onClick={handleMenuOpen}
           className="user-avatar-button"
         >
-          <Avatar className="user-avatar">
-            {getUserInitials()}
+          <Avatar 
+            className="user-avatar"
+            src={profileImage}
+          >
+            {!profileImage && getUserInitials()}
           </Avatar>
         </IconButton>
         

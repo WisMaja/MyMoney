@@ -40,7 +40,7 @@ import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/Settings.css';
 import { useAuth } from '../hooks/useAuth';
-import { getCurrentUser, updateCurrentUser } from '../services/userService';
+import { getCurrentUser, updateCurrentUser, updateProfileImage } from '../services/userService';
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -117,6 +117,15 @@ const Settings = () => {
       setLoading(true);
       const userData = await getCurrentUser();
       setUser(userData);
+      
+      // Set profile image if available
+      if (userData.profileImageUrl) {
+        // If it's a relative URL, prepend the server URL
+        const imageUrl = userData.profileImageUrl.startsWith('http') 
+          ? userData.profileImageUrl 
+          : `http://localhost:5032${userData.profileImageUrl}`;
+        setProfileImage(imageUrl);
+      }
       
       // Update settings with real user data
       const updatedSettings = {
@@ -237,21 +246,30 @@ const Settings = () => {
     }
   };
 
-  const handleSelectProfileImage = (event) => {
+  const handleSelectProfileImage = async (event) => {
     if (event.target.files && event.target.files[0]) {
       const file = event.target.files[0];
       setProfileImage(URL.createObjectURL(file));
       
-      // Here would be API connection to upload image
       setIsUploading(true);
       
-      // Upload simulation
-      setTimeout(() => {
-        setIsUploading(false);
+      try {
+        const response = await updateProfileImage(file);
+        // Set the profile image URL from server response
+        if (response && response.profileImageUrl) {
+          setProfileImage(`http://localhost:5032${response.profileImageUrl}`);
+        }
         setSnackbarMessage('Profile picture updated successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
-      }, 2000);
+      } catch (error) {
+        console.error('Error updating profile picture:', error);
+        setSnackbarMessage('Failed to update profile picture. Please try again.');
+        setSnackbarSeverity('error');
+        setSnackbarOpen(true);
+      } finally {
+        setIsUploading(false);
+      }
     }
   };
 

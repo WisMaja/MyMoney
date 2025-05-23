@@ -96,6 +96,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseCors("AllowAll");
 
+// Serve static files from wwwroot
+app.UseStaticFiles();
 
 app.UseAuthentication();
 
