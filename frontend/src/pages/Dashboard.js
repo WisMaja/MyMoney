@@ -8,12 +8,16 @@ import PeopleIcon from '@mui/icons-material/People';
 import SettingsIcon from '@mui/icons-material/Settings';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
+import AccountBalance from '@mui/icons-material/AccountBalance';
+import CreditCard from '@mui/icons-material/CreditCard';
+import Savings from '@mui/icons-material/Savings';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
 import '../styles/Dashboard.css';
-import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction } from '../services/transactionService';
+import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
+import { getMainWallet } from '../services/walletService';
 
 const Dashboard = () => {
 
@@ -22,7 +26,10 @@ const Dashboard = () => {
     name: 'John Doe',
     mainAccount: 0,
     incomes: 0,
-    expenses: 0
+    expenses: 0,
+    mainAccountName: 'Main Account',
+    mainAccountCurrency: '$',
+    mainAccountType: 'Personal'
   });
   
   const [isIncomeDialogOpen, setIncomeDialogOpen] = useState(false);
@@ -36,21 +43,58 @@ const Dashboard = () => {
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
 
-  // Fetch transactions on component mount
+  // Fetch transactions and main wallet on component mount
   useEffect(() => {
-    fetchTransactions();
+    fetchData();
   }, []);
 
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true);
       setError(null);
       
-      // Get all transactions
-      const allTransactions = await getAllTransactions();
+      // Fetch main wallet info and transactions
+      const mainWallet = await getMainWallet();
+      
+      // Update user data with main wallet info
+      setUserData(prev => ({
+        ...prev,
+        mainAccountName: mainWallet.name,
+        mainAccountCurrency: mainWallet.currency,
+        mainAccountType: mainWallet.type
+      }));
+      
+      // Fetch transactions (this will use the main wallet)
+      await fetchTransactions();
+      
+    } catch (err) {
+      console.error('Error fetching dashboard data:', err);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchTransactions = async () => {
+    try {
+      console.log('Starting fetchTransactions...');
+      
+      // Get main wallet first
+      console.log('Fetching main wallet...');
+      const mainWallet = await getMainWallet();
+      console.log('Main wallet for transactions:', mainWallet);
+      
+      if (!mainWallet || !mainWallet.id) {
+        throw new Error('Main wallet not found or missing ID');
+      }
+      
+      // Get transactions only from the main wallet
+      console.log(`Fetching transactions for wallet ID: ${mainWallet.id}`);
+      const walletTransactions = await getTransactionsByWallet(mainWallet.id);
+      console.log('Wallet transactions received:', walletTransactions);
       
       // Transform transactions to the format expected by the UI
-      const formattedTransactions = allTransactions.map(transaction => ({
+      const formattedTransactions = walletTransactions.map(transaction => ({
         id: transaction.id,
         type: transaction.amount > 0 ? 'income' : 'expense',
         amount: Math.abs(transaction.amount),
@@ -70,13 +114,15 @@ const Dashboard = () => {
       let totalIncome = 0;
       let totalExpense = 0;
       
-      allTransactions.forEach(transaction => {
+      walletTransactions.forEach(transaction => {
         if (transaction.amount > 0) {
           totalIncome += transaction.amount;
         } else {
           totalExpense += Math.abs(transaction.amount);
         }
       });
+      
+      console.log(`Calculated totals - Income: ${totalIncome}, Expense: ${totalExpense}`);
       
       // Update state
       setTransactions(formattedTransactions);
@@ -87,11 +133,13 @@ const Dashboard = () => {
         expenses: totalExpense
       }));
       
+      console.log('fetchTransactions completed successfully');
+      
     } catch (err) {
       console.error('Error fetching transactions:', err);
+      console.error('Error details:', err.message);
+      console.error('Error stack:', err.stack);
       setError('Failed to load transactions. Please try again.');
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -165,6 +213,30 @@ const Dashboard = () => {
     navigate('/settings');
   };
 
+  // Helper function to render account icon
+  const renderAccountTypeIcon = () => {
+    switch (userData.mainAccountType) {
+      case 'Credit':
+        return <CreditCard sx={{ mr: 1, color: 'primary.main' }} />;
+      case 'Savings':
+        return <Savings sx={{ mr: 1, color: 'primary.main' }} />;
+      case 'Personal':
+      default:
+        return <AccountBalance sx={{ mr: 1, color: 'primary.main' }} />;
+    }
+  };
+
+  if (loading) {
+    return (
+      <Box className="page-container">
+        <Sidebar />
+        <Box className="page-content" sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <CircularProgress />
+        </Box>
+      </Box>
+    );
+  }
+
   return (
     <Box className="page-container">
       {/* Sidebar */}
@@ -191,11 +263,22 @@ const Dashboard = () => {
         <Box className="cards-container">
           <Box className="finance-card">
             <Typography className="card-title">
-              Main Account
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                {renderAccountTypeIcon()}
+                {userData.mainAccountName}
+              </Box>
             </Typography>
             <Typography className="card-amount">
-              {userData.mainAccount.toFixed(2)}<span className="currency">$</span>
+              {userData.mainAccount.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
             </Typography>
+            <Button 
+              variant="text" 
+              size="small"
+              onClick={navigateToAccounts}
+              sx={{ mt: 1, fontSize: '0.75rem' }}
+            >
+              Change Main Account
+            </Button>
           </Box>
           
           <Box className="finance-card">
@@ -203,7 +286,7 @@ const Dashboard = () => {
               Incomes
             </Typography>
             <Typography className="card-amount">
-              {userData.incomes.toFixed(2)}<span className="currency">$</span>
+              {userData.incomes.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
             </Typography>
           </Box>
           
@@ -212,7 +295,7 @@ const Dashboard = () => {
               Expenses
             </Typography>
             <Typography className="card-amount">
-              {userData.expenses.toFixed(2)}<span className="currency">$</span>
+              {userData.expenses.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
             </Typography>
           </Box>
         </Box>
@@ -294,7 +377,7 @@ const Dashboard = () => {
                         mr: 2
                       }}
                     >
-                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} $
+                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} {userData.mainAccountCurrency}
                     </Typography>
                     <Tooltip title="Edit">
                       <IconButton 
@@ -360,7 +443,7 @@ const Dashboard = () => {
                 {transactionToDelete.description}
               </Typography>
               <Typography variant="body2">
-                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} $
+                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} {userData.mainAccountCurrency}
               </Typography>
               <Typography variant="body2">
                 Date: {transactionToDelete.date.toLocaleDateString()}

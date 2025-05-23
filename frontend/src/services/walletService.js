@@ -25,10 +25,51 @@ export const getWalletById = async (id) => {
 // Create a new wallet
 export const createWallet = async (walletData) => {
   try {
-    const response = await apiClient.post('/wallets', walletData);
+    const accessToken = localStorage.getItem('access_token');
+    const refreshToken = localStorage.getItem('refresh_token');
+    
+    console.log('Access token:', accessToken);
+    console.log('Refresh token:', refreshToken);
+    
+    // Mapowanie typów na wartości enum
+    const typeMap = {
+      'Personal': 0,
+      'Credit': 1,
+      'Savings': 2
+    };
+    
+    // Konwertuj typ na liczbę
+    const mappedType = typeMap[walletData.type] !== undefined ? typeMap[walletData.type] : 0;
+    
+    // Przygotuj dane z poprawnym typem
+    const requestData = {
+      name: walletData.name,
+      type: mappedType,
+      currency: walletData.currency,
+      initialBalance: walletData.initialBalance
+    };
+    
+    console.log('Request URL:', `${apiClient.defaults.baseURL}/wallets`);
+    console.log('Request headers:', apiClient.defaults.headers);
+    console.log('Request data (stringified):', JSON.stringify(requestData));
+    
+    const response = await apiClient.post('/wallets', requestData);
+    
+    console.log('Wallet created successfully:', response.data);
     return response.data;
   } catch (error) {
-    console.error('Error creating wallet:', error);
+    console.log('Error creating wallet:', error);
+    console.log('Error response:', error.response?.data);
+    console.log('Error status:', error.response?.status);
+    console.log('Error config:', error.config);
+    
+    if (error.response?.data?.errors) {
+      console.log('Validation errors:', error.response.data.errors);
+      Object.entries(error.response.data.errors).forEach(([field, messages]) => {
+        console.log(`Field '${field}':`, messages);
+      });
+    }
+    
     throw error;
   }
 };
@@ -62,6 +103,78 @@ export const setManualBalance = async (id, balance) => {
     return response.data;
   } catch (error) {
     console.error(`Error setting manual balance for wallet ${id}:`, error);
+    throw error;
+  }
+};
+
+// Set a wallet as the main wallet
+export const setMainWallet = async (id) => {
+  try {
+    const response = await apiClient.put(`/wallets/${id}/set-main`);
+    localStorage.setItem('defaultWalletId', id); // Also update localStorage for consistency
+    return response.data;
+  } catch (error) {
+    console.error(`Error setting wallet ${id} as main wallet:`, error);
+    throw error;
+  }
+};
+
+// Get current user's main wallet
+export const getMainWallet = async () => {
+  try {
+    const response = await apiClient.get('/users/me');
+    const mainWalletId = response.data.mainWalletId;
+    
+    if (mainWalletId) {
+      // Save to localStorage for reference
+      localStorage.setItem('defaultWalletId', mainWalletId);
+      return await getWalletById(mainWalletId);
+    } else {
+      // If no main wallet is set, ensure a default one and set it as main
+      const defaultWalletId = await ensureDefaultWallet();
+      await setMainWallet(defaultWalletId);
+      return await getWalletById(defaultWalletId);
+    }
+  } catch (error) {
+    console.error('Error fetching main wallet:', error);
+    throw error;
+  }
+};
+
+// Get all user wallets for wallet selection
+export const getUserWallets = async () => {
+  try {
+    const response = await getAllWallets();
+    return response;
+  } catch (error) {
+    console.error('Error fetching user wallets:', error);
+    throw error;
+  }
+};
+
+// Get main wallet ID without full wallet data
+export const getMainWalletId = async () => {
+  try {
+    const response = await apiClient.get('/users/me');
+    const mainWalletId = response.data.mainWalletId;
+    
+    if (mainWalletId) {
+      localStorage.setItem('defaultWalletId', mainWalletId);
+      return mainWalletId;
+    } else {
+      // If no main wallet is set, ensure a default one and set it as main
+      const defaultWalletId = await ensureDefaultWallet();
+      await setMainWallet(defaultWalletId);
+      localStorage.setItem('defaultWalletId', defaultWalletId);
+      return defaultWalletId;
+    }
+  } catch (error) {
+    console.error('Error fetching main wallet ID:', error);
+    // Fallback to localStorage
+    const storedWalletId = localStorage.getItem('defaultWalletId');
+    if (storedWalletId) {
+      return storedWalletId;
+    }
     throw error;
   }
 };

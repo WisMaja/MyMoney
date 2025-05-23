@@ -147,6 +147,53 @@ namespace api.Controllers
             }
         }
 
+        [HttpGet("wallet/{walletId}")]
+        public async Task<ActionResult<IEnumerable<Transaction>>> GetTransactionsByWallet(Guid walletId)
+        {
+            try
+            {
+                Console.WriteLine($"Fetching transactions for wallet: {walletId}");
+                var userId = GetUserIdFromToken();
+                Console.WriteLine($"User ID: {userId}");
+
+                // Check if user has access to this wallet
+                if (!await UserHasAccessToWallet(walletId, userId))
+                {
+                    Console.WriteLine($"User {userId} has no access to wallet {walletId}");
+                    return StatusCode(403, new { message = "No access to the wallet" });
+                }
+
+                var transactions = await _context.Transactions
+                    .Include(t => t.Category)
+                    .Where(t => t.UserId == userId && t.WalletId == walletId)
+                    .OrderByDescending(t => t.CreatedAt)
+                    .ToListAsync();
+
+                Console.WriteLine($"Found {transactions.Count} transactions for wallet {walletId}");
+
+                // Map to DTO to avoid circular references
+                var transactionsDto = transactions.Select(t => new
+                {
+                    t.Id,
+                    t.Amount,
+                    t.Description,
+                    t.CreatedAt,
+                    t.UpdatedAt,
+                    CategoryId = t.CategoryId,
+                    Category = t.Category != null ? new { t.Category.Id, t.Category.Name } : null,
+                    WalletId = t.WalletId
+                }).ToList();
+
+                return Ok(transactionsDto);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in GetTransactionsByWallet: {ex.Message}");
+                Console.WriteLine(ex.StackTrace);
+                return StatusCode(500, new { message = "Error fetching wallet transactions", error = ex.Message });
+            }
+        }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Transaction>> GetTransaction(Guid id)
         {

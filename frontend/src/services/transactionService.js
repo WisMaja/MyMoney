@@ -52,6 +52,27 @@ export const getExpenseTransactions = async () => {
   }
 };
 
+// Get transactions by wallet ID
+export const getTransactionsByWallet = async (walletId) => {
+  try {
+    console.log(`Fetching transactions for wallet: ${walletId}`);
+    
+    if (!walletId) {
+      throw new Error('Wallet ID is required');
+    }
+    
+    const response = await apiClient.get(`/transactions/wallet/${walletId}`);
+    console.log(`Found ${response.data.length} transactions for wallet ${walletId}`);
+    console.log('Response data:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`Error fetching transactions for wallet ${walletId}:`, error);
+    console.error('Error response:', error.response?.data);
+    console.error('Error status:', error.response?.status);
+    throw error;
+  }
+};
+
 // Add new income
 export const addIncome = async (incomeData) => {
   try {

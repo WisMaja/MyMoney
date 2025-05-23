@@ -216,10 +216,19 @@ namespace api.Controllers
         [HttpPost]
         public async Task<ActionResult<WalletDto>> CreateWallet([FromBody] CreateWalletDto dto)
         {
+            Console.WriteLine("=== CreateWallet method called ===");
+            Console.WriteLine($"Request received at: {DateTime.UtcNow}");
+            Console.WriteLine($"DTO is null: {dto == null}");
+            if (dto != null)
+            {
+                Console.WriteLine($"DTO properties - Name: {dto.Name}, Type: {dto.Type}, Currency: {dto.Currency}");
+            }
+            
             try
             {
                 var userId = GetUserIdFromToken();
                 Console.WriteLine($"Creating wallet for user: {userId}");
+                Console.WriteLine($"Wallet data: Name={dto.Name}, Type={dto.Type}, Currency={dto.Currency}, InitialBalance={dto.InitialBalance}");
                 
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
@@ -230,14 +239,32 @@ namespace api.Controllers
 
                 var walletId = Guid.NewGuid();
                 
-                // Handle default wallet scenario
-                if (dto.Name == "Default Wallet" && dto.Type == WalletType.Personal)
+                // Only use special ID for the exact default wallet case
+                if (dto.Name == "Default Wallet" && dto.Type == WalletType.Personal && 
+                    !string.IsNullOrEmpty(dto.Id) && dto.Id == "00000000-0000-0000-0000-000000000000")
                 {
-                    // Check if this is the default mock ID
-                    if (string.IsNullOrEmpty(dto.Id) || dto.Id == "00000000-0000-0000-0000-000000000000")
+                    walletId = Guid.Parse("00000000-0000-0000-0000-000000000000");
+                    Console.WriteLine("Creating default wallet with special ID");
+                    
+                    // Check if this special wallet already exists
+                    var existingDefaultWallet = await _context.Wallets.FindAsync(walletId);
+                    if (existingDefaultWallet != null)
                     {
-                        walletId = Guid.Parse("00000000-0000-0000-0000-000000000000");
-                        Console.WriteLine("Creating default wallet with special ID");
+                        Console.WriteLine("Default wallet already exists, returning existing one");
+                        var existingResult = new WalletDto
+                        {
+                            Id = existingDefaultWallet.Id,
+                            Name = existingDefaultWallet.Name,
+                            Type = existingDefaultWallet.Type,
+                            Currency = existingDefaultWallet.Currency,
+                            InitialBalance = existingDefaultWallet.InitialBalance,
+                            ManualBalance = existingDefaultWallet.ManualBalance,
+                            BalanceResetAt = existingDefaultWallet.BalanceResetAt,
+                            CurrentBalance = existingDefaultWallet.InitialBalance,
+                            CreatedAt = existingDefaultWallet.CreatedAt,
+                            UpdatedAt = existingDefaultWallet.UpdatedAt
+                        };
+                        return Ok(existingResult);
                     }
                 }
 
@@ -254,60 +281,12 @@ namespace api.Controllers
                     UpdatedAt = DateTime.UtcNow,
                     Members = new List<WalletMember>
                     {
-                        new WalletMember { WalletId = Guid.Empty, UserId = userId }
+                        new WalletMember { WalletId = walletId, UserId = userId }
                     },
                     Transactions = new List<Transaction>()
                 };
 
-                wallet.Members.First().WalletId = wallet.Id;
-
-                // Check if wallet with this ID already exists
-                var existingWallet = await _context.Wallets.FindAsync(wallet.Id);
-                if (existingWallet != null)
-                {
-                    Console.WriteLine($"Wallet with ID {wallet.Id} already exists");
-                    
-                    // If this is the default wallet ID, try to add the current user as a member
-                    if (wallet.Id == Guid.Parse("00000000-0000-0000-0000-000000000000"))
-                    {
-                        // Check if user is already a member
-                        var isMember = await _context.WalletMembers
-                            .AnyAsync(wm => wm.WalletId == wallet.Id && wm.UserId == userId);
-                            
-                        if (!isMember)
-                        {
-                            Console.WriteLine("Adding user as member to existing default wallet");
-                            _context.WalletMembers.Add(new WalletMember 
-                            { 
-                                WalletId = wallet.Id, 
-                                UserId = userId 
-                            });
-                            await _context.SaveChangesAsync();
-                        }
-                        
-                        // Return the existing wallet data
-                        var result = new WalletDto
-                        {
-                            Id = existingWallet.Id,
-                            Name = existingWallet.Name,
-                            Type = existingWallet.Type,
-                            Currency = existingWallet.Currency,
-                            InitialBalance = existingWallet.InitialBalance,
-                            ManualBalance = existingWallet.ManualBalance,
-                            BalanceResetAt = existingWallet.BalanceResetAt,
-                            CurrentBalance = existingWallet.InitialBalance, // Simplified
-                            CreatedAt = existingWallet.CreatedAt,
-                            UpdatedAt = existingWallet.UpdatedAt
-                        };
-                        
-                        return Ok(result);
-                    }
-                    
-                    // For non-default wallets, generate a new ID
-                    wallet.Id = Guid.NewGuid();
-                    wallet.Members.First().WalletId = wallet.Id;
-                }
-
+                Console.WriteLine($"Adding wallet to context with ID: {wallet.Id}");
                 _context.Wallets.Add(wallet);
                 await _context.SaveChangesAsync();
 
@@ -329,7 +308,7 @@ namespace api.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating wallet: {ex.Message}");
-                Console.WriteLine(ex.StackTrace);
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { message = "Error creating wallet", error = ex.Message });
             }
         }
