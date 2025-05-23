@@ -4,6 +4,9 @@ import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/materia
 import '../styles/Login.css';
 import apiClient from '../apiClient';
 import {useAuth} from "../hooks/useAuth";
+import { AuthProvider } from '../context/AuthContext';
+import { useEffect, useRef } from 'react';
+
 
 const Login = () => {
   const navigate = useNavigate();
@@ -44,7 +47,7 @@ const Login = () => {
         const { accessToken, refreshToken } = response.data;
         login(accessToken, refreshToken);
 
-        navigate('/');
+        navigate('/dashboard');
       }
     } catch (err) {
       if (err.response?.data) {
@@ -86,7 +89,6 @@ const Login = () => {
                     required
                     sx={{ flex: '1 1 100%' }}
                 />
-
                 <TextField
                     label="Password"
                     type="password"
@@ -98,7 +100,6 @@ const Login = () => {
                     required
                     sx={{ flex: '1 1 48%' }}
                 />
-
                 {isRegistering && (
                     <TextField
                         label="Repeat Password"

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import apiClient from "./apiClient";
-import React from 'react';
+import React, { useContext } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 
 import Login from './pages/Login';
@@ -15,6 +15,8 @@ import Categories from './pages/Categories';
 import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './router/PrivateRoute';
+
+import { useAuth } from './hooks/useAuth';
 
 import './App.css';
 import './styles/common.css';
@@ -121,61 +123,56 @@ class ErrorBoundary extends React.Component {
 
 function App() {
   return (
-    <ErrorBoundary>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <Routes>
-              {/* Diagnostic route */}
-              <Route path="/diagnostic" element={<DiagnosticPage />} />
-            
-              {/* Public routes */}
-              <Route path="/login" element={<Login />} />
-
-              {/* Protected routes */}
-              <Route path="/" element={
-                <PrivateRoute>
-                  <Dashboard />
-                </PrivateRoute>
-              } />
-              <Route path="/statistics" element={
-                <PrivateRoute>
-                  <Statistics />
-                </PrivateRoute>
-              } />
-              <Route path="/accounts" element={
-                <PrivateRoute>
-                  <Accounts />
-                </PrivateRoute>
-              } />
-              <Route path="/budgets" element={
-                <PrivateRoute>
-                  <Budgets />
-                </PrivateRoute>
-              } />
-              <Route path="/categories" element={
-                <PrivateRoute>
-                  <Categories />
-                </PrivateRoute>
-              } />
-              <Route path="/social" element={
-                <PrivateRoute>
-                  <Social />
-                </PrivateRoute>
-              } />
-              <Route path="/settings" element={
-                <PrivateRoute>
-                  <Settings />
-                </PrivateRoute>
-              } />
-              
-              {/* Fallback route */}
-              <Route path="*" element={<Navigate to="/diagnostic" replace />} />
-            </Routes>
-          </div>
-        </Router>
-      </AuthProvider>
-    </ErrorBoundary>
+    <AuthProvider>
+      <Router>
+        <div className="App">
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/"
+              element={<Navigate replace to="/dashboard" />}
+            />
+            <Route path="/login" element={<Login />} />
+            {/* Protected routes */}
+            <Route path="/dashboard" element={
+              <PrivateRoute>
+                <Dashboard />
+              </PrivateRoute>
+            } />
+            <Route path="/statistics" element={
+              <PrivateRoute>
+                <Statistics />
+              </PrivateRoute>
+            } />
+            <Route path="/accounts" element={
+              <PrivateRoute>
+                <Accounts />
+              </PrivateRoute>
+            } />
+            <Route path="/budgets" element={
+              <PrivateRoute>
+                <Budgets />
+              </PrivateRoute>
+            } />
+            <Route path="/categories" element={
+              <PrivateRoute>
+                <Categories />
+              </PrivateRoute>
+            } />
+            <Route path="/social" element={
+              <PrivateRoute>
+                <Social />
+              </PrivateRoute>
+            } />
+            <Route path="/settings" element={
+              <PrivateRoute>
+                <Settings />
+              </PrivateRoute>
+            } />
+          </Routes>
+        </div>
+      </Router>
+    </AuthProvider>
   );
 }
 
