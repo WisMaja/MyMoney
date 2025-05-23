@@ -55,7 +55,7 @@ namespace api.Controllers
 
         // PUT: api/Users/me
         [HttpPut("me")]
-        public async Task<IActionResult> UpdateCurrentUser([FromBody] User updatedUser)
+        public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateUserDto updateUserDto)
         {
             var userId = GetUserIdFromToken();
 
@@ -63,9 +63,12 @@ namespace api.Controllers
             if (user == null)
                 return NotFound();
 
-            user.FullName = updatedUser.FullName;
-            user.Email = updatedUser.Email;
-            user.MainWalletId = updatedUser.MainWalletId;
+            // Update only the provided fields
+            if (!string.IsNullOrEmpty(updateUserDto.FullName))
+                user.FullName = updateUserDto.FullName;
+            
+            if (!string.IsNullOrEmpty(updateUserDto.Email))
+                user.Email = updateUserDto.Email;
 
             _context.Entry(user).State = EntityState.Modified;
             await _context.SaveChangesAsync();

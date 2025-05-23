@@ -32,6 +32,7 @@ import {
   Share as ShareIcon
 } from '@mui/icons-material';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Budgets.css';
 
 const BudgetDialog = ({ open, onClose, onSave, budget = null, title }) => {
@@ -391,10 +392,10 @@ const Budgets = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="budget-header">
-          <Typography variant="h4" component="h1">
-            Budget Management
-          </Typography>
+        <Header title="Budget Management" />
+        
+        {/* Create Budget Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
           <Button
             variant="contained"
             color="primary"

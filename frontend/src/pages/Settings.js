@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -19,7 +19,8 @@ import {
   DialogContentText,
   DialogActions,
   Snackbar,
-  Alert
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import HomeIcon from '@mui/icons-material/Home';
@@ -36,20 +37,23 @@ import ColorLensIcon from '@mui/icons-material/ColorLens';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Settings.css';
 import { useAuth } from '../hooks/useAuth';
-
+import { getCurrentUser, updateCurrentUser } from '../services/userService';
 
 const Settings = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   const [activeSection, setActiveSection] = useState('profile');
+  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
   const [originalUserSettings, setOriginalUserSettings] = useState({
     profile: {
-      name: 'Jan Kowalski',
-      email: 'janek@kowalski.com',
-      phone: '+48 123 456 789'
+      name: '',
+      email: '',
+      phone: ''
     },
     notifications: {
       emailNotifications: true,
@@ -72,9 +76,9 @@ const Settings = () => {
   });
   const [userSettings, setUserSettings] = useState({
     profile: {
-      name: 'Jan Kowalski',
-      email: 'janek@kowalski.com',
-      phone: '+48 123 456 789'
+      name: '',
+      email: '',
+      phone: ''
     },
     notifications: {
       emailNotifications: true,
@@ -102,6 +106,39 @@ const Settings = () => {
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [isUploading, setIsUploading] = useState(false);
   const [profileImage, setProfileImage] = useState(null);
+
+  // Fetch user data on component mount
+  useEffect(() => {
+    fetchUserData();
+  }, []);
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      const userData = await getCurrentUser();
+      setUser(userData);
+      
+      // Update settings with real user data
+      const updatedSettings = {
+        ...userSettings,
+        profile: {
+          name: userData.fullName || '',
+          email: userData.email || '',
+          phone: userData.phone || ''
+        }
+      };
+      
+      setUserSettings(updatedSettings);
+      setOriginalUserSettings(updatedSettings);
+    } catch (error) {
+      console.error('Error fetching user data:', error);
+      setSnackbarMessage('Failed to load user data');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const navigateToLogin = () => {
     navigate('/login');
@@ -171,16 +208,33 @@ const Settings = () => {
     setSnackbarOpen(false);
   };
 
-  const handleSaveProfileChanges = () => {
-    // Tutaj byłoby połączenie z API do aktualizacji danych profilu
-    setOriginalUserSettings({
-      ...originalUserSettings,
-      profile: { ...userSettings.profile }
-    });
-    
-    setSnackbarMessage('Profil został zaktualizowany pomyślnie!');
-    setSnackbarSeverity('success');
-    setSnackbarOpen(true);
+  const handleSaveProfileChanges = async () => {
+    try {
+      // Prepare user data for API
+      const userData = {
+        fullName: userSettings.profile.name,
+        email: userSettings.profile.email,
+        // Note: phone is not in the API model yet, but we can add it later
+      };
+      
+      // Update user via API
+      await updateCurrentUser(userData);
+      
+      // Update original settings to reflect saved state
+      setOriginalUserSettings({
+        ...originalUserSettings,
+        profile: { ...userSettings.profile }
+      });
+      
+      setSnackbarMessage('Profile updated successfully!');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      setSnackbarMessage('Failed to update profile. Please try again.');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    }
   };
 
   const handleSelectProfileImage = (event) => {
@@ -188,13 +242,13 @@ const Settings = () => {
       const file = event.target.files[0];
       setProfileImage(URL.createObjectURL(file));
       
-      // Tutaj byłoby połączenie z API do przesłania obrazu
+      // Here would be API connection to upload image
       setIsUploading(true);
       
-      // Symulacja przesyłania
+      // Upload simulation
       setTimeout(() => {
         setIsUploading(false);
-        setSnackbarMessage('Zdjęcie profilowe zostało zaktualizowane!');
+        setSnackbarMessage('Profile picture updated successfully!');
         setSnackbarSeverity('success');
         setSnackbarOpen(true);
       }, 2000);
@@ -218,7 +272,7 @@ const Settings = () => {
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title">
-              Ustawienia Profilu
+              Profile Settings
             </Typography>
             
             <Box sx={{ display: 'flex', marginY: 4, alignItems: 'center' }}>
@@ -242,14 +296,14 @@ const Settings = () => {
                     component="span"
                     disabled={isUploading}
                   >
-                    {isUploading ? 'Przesyłanie...' : 'Zmień zdjęcie'}
+                    {isUploading ? 'Uploading...' : 'Change Photo'}
                   </Button>
                 </label>
               </Box>
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Imię i Nazwisko</Typography>
+              <Typography className="settings-form-label">Full Name</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.name}
@@ -270,7 +324,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Numer Telefonu</Typography>
+              <Typography className="settings-form-label">Phone Number</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.phone}
@@ -287,7 +341,7 @@ const Settings = () => {
                 onClick={handleSaveProfileChanges}
                 disabled={!hasProfileChanges()}
               >
-                Zapisz Zmiany
+                Save Changes
               </Button>
             </Box>
           </Box>
@@ -409,7 +463,7 @@ const Settings = () => {
                   color="primary"
                   onClick={handleLogout}
                 >
-                  Wyloguj się
+                  Logout
                 </Button>
               </Box>
             </Box>
@@ -509,17 +563,13 @@ const Settings = () => {
 
       {/* Main Content */}
       <Box className="page-content">
-        <Box className="settings-header">
-          <Typography variant="h4" className="settings-title">
-            Ustawienia
-          </Typography>
-        </Box>
+        <Header title="Settings" />
 
         <Box className="settings-layout">
           {/* Settings Navigation */}
           <Paper className="settings-nav">
             <Typography className="settings-nav-title">
-              Ustawienia
+              Settings
             </Typography>
             <List className="settings-nav-list">
               <ListItem
@@ -529,7 +579,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <PersonIcon />
                 </ListItemIcon>
-                <ListItemText primary="Profil" />
+                <ListItemText primary="Profile" />
               </ListItem>
 
               <ListItem
@@ -539,7 +589,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <NotificationsIcon />
                 </ListItemIcon>
-                <ListItemText primary="Powiadomienia" />
+                <ListItemText primary="Notifications" />
               </ListItem>
 
               <ListItem
@@ -549,7 +599,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <SecurityIcon />
                 </ListItemIcon>
-                <ListItemText primary="Bezpieczeństwo" />
+                <ListItemText primary="Security" />
               </ListItem>
 
               <ListItem
@@ -559,14 +609,18 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <ColorLensIcon />
                 </ListItemIcon>
-                <ListItemText primary="Preferencje" />
+                <ListItemText primary="Preferences" />
               </ListItem>
             </List>
           </Paper>
 
           {/* Settings Content */}
           <Paper className="settings-content">
-            {renderSettingsContent()}
+            {loading ? (
+              <CircularProgress />
+            ) : (
+              renderSettingsContent()
+            )}
             
             <Box className="settings-button-group">
               <Button variant="outlined">
@@ -585,20 +639,20 @@ const Settings = () => {
           onClose={handleCloseDeleteDialog}
         >
           <DialogTitle>
-            {"Czy na pewno chcesz usunąć swoje konto?"}
+            {"Are you sure you want to delete your account?"}
           </DialogTitle>
           <DialogContent>
             <DialogContentText>
-              Ta akcja nie może być cofnięta. Wszystkie Twoje dane zostaną trwale usunięte.
+              This action cannot be undone. All your data will be permanently deleted.
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDeleteDialog}>Anuluj</Button>
+            <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
             <Button 
               onClick={handleDeleteAccount}
               color="error"
             >
-              Usuń Konto
+              Delete Account
             </Button>
           </DialogActions>
         </Dialog>

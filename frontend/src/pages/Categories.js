@@ -46,6 +46,7 @@ import {
   MoreVert as MoreIcon
 } from '@mui/icons-material';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Categories.css';
 
 // Map of category icons
@@ -456,36 +457,33 @@ const Categories = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="categories-header">
-          <Typography variant="h4" component="h1">
-            Categories
-          </Typography>
-          
-          <Box>
-            <FormControl variant="outlined" sx={{ minWidth: 150, mr: 2 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
-              <Select
-                labelId="filter-label"
-                value={filter}
-                onChange={handleFilterChange}
-                label="Filter"
-                size="small"
-              >
-                <MenuItem value="all">All Categories</MenuItem>
-                <MenuItem value="income">Income</MenuItem>
-                <MenuItem value="expense">Expense</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleCreateCategory}
+        <Header title="Categories" />
+        
+        {/* Filter and Create Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <FormControl variant="outlined" sx={{ minWidth: 150 }}>
+            <InputLabel id="filter-label">Filter</InputLabel>
+            <Select
+              labelId="filter-label"
+              value={filter}
+              onChange={handleFilterChange}
+              label="Filter"
+              size="small"
             >
-              Create Category
-            </Button>
-          </Box>
+              <MenuItem value="all">All Categories</MenuItem>
+              <MenuItem value="income">Income</MenuItem>
+              <MenuItem value="expense">Expense</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleCreateCategory}
+          >
+            Create Category
+          </Button>
         </Box>
 
         {/* Categories List */}

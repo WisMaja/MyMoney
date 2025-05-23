@@ -37,6 +37,7 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import StarIcon from '@mui/icons-material/Star';
 import StarOutlineIcon from '@mui/icons-material/StarOutline';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import { getAllWallets, createWallet, setMainWallet, getMainWallet } from '../services/walletService';
 
 import '../styles/Accounts.css';
@@ -242,20 +243,18 @@ const Accounts = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="accounts-header">
-          <Typography variant="h4" component="h1" className="accounts-title">
-            My Accounts & Wallets
-          </Typography>
-          <Box className="accounts-actions">
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleOpenAddAccountDialog}
-            >
-              Add Account
-            </Button>
-          </Box>
+        <Header title="My Accounts & Wallets" />
+        
+        {/* Add Account Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleOpenAddAccountDialog}
+          >
+            Add Account
+          </Button>
         </Box>
 
         {/* Accounts List */}

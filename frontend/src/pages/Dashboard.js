@@ -15,6 +15,7 @@ import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Dashboard.css';
 import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
 import { getMainWallet } from '../services/walletService';
@@ -245,19 +246,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="header">
-          <Typography variant="h4" component="h1" className="welcome-title">
-            Welcome In Money Tracker
-          </Typography>
-          <Box className="user-profile">
-            <Typography variant="body1">
-              {userData.name}
-            </Typography>
-            <Link to="/settings" className="user-settings-link">
-              <Avatar className="user-avatar" />
-            </Link>
-          </Box>
-        </Box>
+        <Header title="Welcome In Money Tracker" />
 
         {/* Financial Cards */}
         <Box className="cards-container">

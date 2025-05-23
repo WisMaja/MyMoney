@@ -27,6 +27,7 @@ import {
   PersonOff as PersonOffIcon,
 } from '@mui/icons-material';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Social.css';
 
 function Social() {
@@ -94,11 +95,7 @@ function Social() {
 
       {/* Main Content */}
       <div className="page-content">
-        <div className="social-header">
-          <Typography variant="h4" className="social-title">
-            Community
-          </Typography>
-        </div>
+        <Header title="Community" />
 
         <Box sx={{ width: '100%' }}>
           <Tabs 
