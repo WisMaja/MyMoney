@@ -70,6 +70,23 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
     setSelectedWalletId(e.target.value);
   };
 
+  // Get currency symbol for the selected wallet
+  const getSelectedWalletCurrency = () => {
+    const selectedWallet = wallets.find(wallet => wallet.id === selectedWalletId);
+    return selectedWallet ? selectedWallet.currency : 'USD';
+  };
+
+  // Convert currency code to symbol
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$',
+      'EUR': '€',
+      'PLN': 'zł',
+      'GBP': '£'
+    };
+    return currencySymbols[currencyCode] || currencyCode;
+  };
+
   const handleSubmit = async () => {
     // Validate input
     if (!expense.amount || expense.amount <= 0) {
@@ -133,7 +150,7 @@ const AddExpenseDialog = ({ open, onClose, onSave }) => {
             <TextField
               autoFocus
               name="amount"
-              label="Amount ($)"
+              label={`Amount (${getCurrencySymbol(getSelectedWalletCurrency())})`}
               type="number"
               value={expense.amount}
               onChange={handleChange}
