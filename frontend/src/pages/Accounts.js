@@ -67,13 +67,15 @@ const Accounts = () => {
             const balanceData = await getWalletBalance(w.id);
             return {
               ...w,
-              type: 'checking',
-              balance: balanceData.currentBalance,
+              balance: balanceData.currentBalance, // Bilans
               currency: w.currency,
+              income: balanceData.totalIncome || 0, // Suma przychodów
+              expenses: balanceData.totalExpenses || 0, // Suma wydatków
+              net: (balanceData.totalIncome || 0) - (balanceData.totalExpenses || 0), // Bilans netto
+              type: "checking",
               icon: <AccountBalanceIcon />,
-              income: w.income || 0,
-              expenses: w.expenses || 0
             };
+
           })
       );
 
@@ -257,10 +259,10 @@ const Accounts = () => {
                           <Typography className="detail-label">Expenses</Typography>
                           <Typography className="detail-value">{account.expenses} {account.currency}</Typography>
                         </Box>
-                        <Box className="account-detail">
-                          <Typography className="detail-label">Net</Typography>
-                          <Typography className="detail-value">{account.income - account.expenses} {account.currency}</Typography>
-                        </Box>
+                        {/*<Box className="account-detail">*/}
+                        {/*  <Typography className="detail-label">Net</Typography>*/}
+                        {/*  <Typography className="detail-value">{account.income - account.expenses} {account.currency}</Typography>*/}
+                        {/*</Box>*/}
                       </Box>
 
                       <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>

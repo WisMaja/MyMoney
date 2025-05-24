@@ -102,7 +102,12 @@ export const deleteWallet = async (id) => {
 export const getWalletBalance = async (walletId) => {
   try {
     const response = await apiClient.get(`/wallets/${walletId}/balance`);
-    return response.data;
+    // W odpowiedzi backendu powinny znajdować się składowe income/expenses:
+    return {
+      currentBalance: response.data.currentBalance,
+      totalIncome: response.data.totalIncome || 0,
+      totalExpenses: response.data.totalExpenses || 0,
+    };
   } catch (error) {
     console.error(`Error fetching balance for wallet ID ${walletId}:`, error);
     throw error;

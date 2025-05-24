@@ -118,14 +118,25 @@ namespace api.Controllers
 
             var currentBalance = CalculateCurrentBalance(wallet);
 
+            // Oblicz sumę przychodów i wydatków
+            var totalIncome = wallet.Transactions
+                .Where(t => t.Amount > 0).Sum(t => t.Amount);
+
+            var totalExpenses = wallet.Transactions
+                .Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+
+
             return Ok(new
             {
                 WalletId = wallet.Id,
                 InitialBalance = wallet.InitialBalance,
                 ManualBalance = wallet.ManualBalance,
                 BalanceResetAt = wallet.BalanceResetAt,
-                CurrentBalance = currentBalance
+                CurrentBalance = currentBalance,
+                TotalIncome = totalIncome,
+                TotalExpenses = totalExpenses
             });
+
         }
         
         [HttpGet("{id}/members")]
