@@ -30,6 +30,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import InsightsIcon from '@mui/icons-material/Insights';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import apiClient from '../apiClient';
 
 import '../styles/Statistics.css';
@@ -297,26 +298,24 @@ const Statistics = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="statistics-header">
-          <Typography variant="h4" component="h1" className="statistics-title">
-            Financial Statistics
-          </Typography>
-          <Box className="statistics-filter">
-            <FormControl sx={{ minWidth: 120 }}>
-              <InputLabel id="time-range-label">Time Range</InputLabel>
-              <Select
-                labelId="time-range-label"
-                id="time-range-select"
-                value={timeRange}
-                label="Time Range"
-                onChange={handleTimeRangeChange}
-              >
-                <MenuItem value="week">Last Week</MenuItem>
-                <MenuItem value="month">Last Month</MenuItem>
-                <MenuItem value="year">Last Year</MenuItem>
-              </Select>
-            </FormControl>
-          </Box>
+        <Header title="Financial Statistics" />
+        
+        {/* Time Range Filter */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
+          <FormControl sx={{ minWidth: 120 }}>
+            <InputLabel id="time-range-label">Time Range</InputLabel>
+            <Select
+              labelId="time-range-label"
+              id="time-range-select"
+              value={timeRange}
+              label="Time Range"
+              onChange={handleTimeRangeChange}
+            >
+              <MenuItem value="week">Last Week</MenuItem>
+              <MenuItem value="month">Last Month</MenuItem>
+              <MenuItem value="year">Last Year</MenuItem>
+            </Select>
+          </FormControl>
         </Box>
 
         {error && (

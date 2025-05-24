@@ -29,6 +29,9 @@ obj/
 !appsettings.Development.json
 Migrations/
 
+# Uploaded files
+api/wwwroot/uploads/
+
 # Node dependencies
 node_modules/
 /frontend/node_modules/

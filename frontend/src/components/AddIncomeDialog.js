@@ -16,12 +16,34 @@ import {
   Alert
 } from '@mui/material';
 import { addIncome } from '../services/transactionService';
-import { ensureDefaultWallet, getUserWallets, getMainWallet } from '../services/walletService';
+import { getMainWalletId, getUserWallets } from '../services/walletService';
+import { getAllCategories } from '../services/categoryService';
+
+// Category colors
+const categoryColors = [
+  '#1976d2', // Blue
+  '#2e7d32', // Green
+  '#c62828', // Red
+  '#f57c00', // Orange
+  '#6a1b9a', // Purple
+  '#00838f', // Teal
+  '#558b2f', // Light Green
+  '#d81b60', // Pink
+  '#5d4037', // Brown
+  '#546e7a', // Blue Grey
+];
+
+// Helper function to get default color for a category
+const getDefaultCategoryColor = (categoryName) => {
+  // Assign color based on hash of name for consistency
+  const colorIndex = Math.abs(categoryName.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % categoryColors.length;
+  return categoryColors[colorIndex];
+};
 
 const AddIncomeDialog = ({ open, onClose, onSave }) => {
   const [income, setIncome] = useState({
     amount: '',
-    category: 'salary',
+    category: '',
     description: '',
     date: new Date().toISOString().split('T')[0]
   });
@@ -30,41 +52,58 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
   const [wallets, setWallets] = useState([]);
   const [selectedWalletId, setSelectedWalletId] = useState('');
   const [walletsLoading, setWalletsLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [categoriesLoading, setCategoriesLoading] = useState(true);
 
-  // Fetch wallets on component mount
+  // Fetch wallets and categories on component mount
   useEffect(() => {
-    const fetchWallets = async () => {
+    const fetchData = async () => {
       try {
         setWalletsLoading(true);
+        setCategoriesLoading(true);
         
-        // Get main wallet and all user wallets
-        const [mainWallet, userWallets] = await Promise.all([
-          getMainWallet(),
-          getUserWallets()
-        ]);
+        // Get main wallet ID first
+        const mainWalletId = await getMainWalletId();
+        setSelectedWalletId(mainWalletId);
         
+        // Get all user wallets for the selector
+        const userWallets = await getUserWallets();
         setWallets(userWallets);
-        setSelectedWalletId(mainWallet?.id || '');
+        
+        // Get all categories
+        const allCategories = await getAllCategories();
+        // Filter for income categories (type 'income' or no type specified)
+        const incomeCategories = allCategories.filter(cat => 
+          cat.type === 'income' || cat.type === 'both' || !cat.type
+        );
+        
+        // Add colors to categories that don't have them
+        const categoriesWithColors = incomeCategories.map(cat => ({
+          ...cat,
+          color: cat.color || getDefaultCategoryColor(cat.name)
+        }));
+        
+        setCategories(categoriesWithColors);
+        
+        // Set default category if available
+        if (categoriesWithColors.length > 0 && !income.category) {
+          setIncome(prev => ({
+            ...prev,
+            category: categoriesWithColors[0].id
+          }));
+        }
         
       } catch (err) {
-        console.error('Error fetching wallets:', err);
-        
-        // Fallback to ensure default wallet
-        try {
-          const defaultWallet = await ensureDefaultWallet();
-          setWallets([defaultWallet]);
-          setSelectedWalletId(defaultWallet.id);
-        } catch (fallbackErr) {
-          console.error('Error with fallback wallet:', fallbackErr);
-          setError('Unable to load wallets. Please try again.');
-        }
+        console.error('Error fetching data:', err);
+        setError('Unable to load data. Please try again.');
       } finally {
         setWalletsLoading(false);
+        setCategoriesLoading(false);
       }
     };
 
     if (open) {
-      fetchWallets();
+      fetchData();
     }
   }, [open]);
 
@@ -80,22 +119,38 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
     setSelectedWalletId(e.target.value);
   };
 
+  // Get currency symbol for the selected wallet
+  const getSelectedWalletCurrency = () => {
+    const selectedWallet = wallets.find(wallet => wallet.id === selectedWalletId);
+    return selectedWallet ? selectedWallet.currency : 'USD';
+  };
+
+  // Convert currency code to symbol
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$',
+      'EUR': '€',
+      'PLN': 'zł',
+      'GBP': '£'
+    };
+    return currencySymbols[currencyCode] || currencyCode;
+  };
+
   const handleSubmit = async () => {
     // Validate input
     if (!income.amount || income.amount <= 0) {
-      alert('Please enter a valid amount');
+      setError('Please enter a valid amount');
       return;
     }
 
-    // Ensure valid wallet ID
     if (!selectedWalletId) {
-      try {
-        const wallet = await ensureDefaultWallet();
-        setSelectedWalletId(wallet.id);
-      } catch (err) {
-        setError('Could not set up a wallet. Please try again.');
-        return;
-      }
+      setError('Please select an account');
+      return;
+    }
+
+    if (!income.category) {
+      setError('Please select a category');
+      return;
     }
 
     setLoading(true);
@@ -107,7 +162,7 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
         walletId: selectedWalletId,
         amount: Number(income.amount),
         description: income.description,
-        category: income.category,
+        categoryId: income.category, // Use categoryId instead of category name
         date: income.date
       };
 
@@ -126,7 +181,7 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
       // Reset form
       setIncome({
         amount: '',
-        category: 'salary',
+        category: categories.length > 0 ? categories[0].id : '',
         description: '',
         date: new Date().toISOString().split('T')[0]
       });
@@ -149,7 +204,7 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
             <TextField
               autoFocus
               name="amount"
-              label="Amount ($)"
+              label={`Amount (${getCurrencySymbol(getSelectedWalletCurrency())})`}
               type="number"
               value={income.amount}
               onChange={handleChange}
@@ -158,7 +213,7 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
               disabled={loading}
             />
             
-            <FormControl fullWidth disabled={loading}>
+            <FormControl fullWidth disabled={loading || categoriesLoading}>
               <InputLabel id="income-category-label">Category</InputLabel>
               <Select
                 labelId="income-category-label"
@@ -167,14 +222,40 @@ const AddIncomeDialog = ({ open, onClose, onSave }) => {
                 label="Category"
                 onChange={handleChange}
               >
-                <MenuItem value="salary">Salary</MenuItem>
-                <MenuItem value="investment">Investment</MenuItem>
-                <MenuItem value="gift">Gift</MenuItem>
-                <MenuItem value="other">Other</MenuItem>
+                {categoriesLoading ? (
+                  <MenuItem disabled>
+                    <CircularProgress size={20} sx={{ mr: 1 }} />
+                    Loading categories...
+                  </MenuItem>
+                ) : (
+                  categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id} sx={{ py: 1 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box 
+                          sx={{ 
+                            backgroundColor: category.color,
+                            borderRadius: '50%',
+                            width: 20,
+                            height: 20,
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: 'white',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {category.name.charAt(0).toUpperCase()}
+                        </Box>
+                        <span>{category.name}</span>
+                      </Box>
+                    </MenuItem>
+                  ))
+                )}
               </Select>
             </FormControl>
             
-            <FormControl fullWidth disabled={loading || walletsLoading}>
+            <FormControl fullWidth disabled={loading}>
               <InputLabel id="wallet-select-label">Account</InputLabel>
               <Select
                 labelId="wallet-select-label"

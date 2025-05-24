@@ -7,7 +7,8 @@ using Microsoft.AspNetCore.Identity;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace api.Controllers
 {
@@ -47,6 +48,8 @@ namespace api.Controllers
             {
                 Id = user.Id,
                 FullName = user.FullName,
+                Email = user.Email,
+                ProfileImageUrl = user.ProfileImageUrl,
                 MainWalletId = user.MainWalletId
             };
 
@@ -55,22 +58,102 @@ namespace api.Controllers
 
         // PUT: api/Users/me
         [HttpPut("me")]
-        public async Task<IActionResult> UpdateCurrentUser([FromBody] User updatedUser)
+        public async Task<IActionResult> UpdateCurrentUser([FromBody] UpdateUserDto updateUserDto)
         {
-            var userId = GetUserIdFromToken();
+            try
+            {
+                var userId = GetUserIdFromToken();
 
-            var user = await _context.Users.FindAsync(userId);
-            if (user == null)
-                return NotFound();
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    return NotFound();
 
-            user.FullName = updatedUser.FullName;
-            user.Email = updatedUser.Email;
-            user.MainWalletId = updatedUser.MainWalletId;
+                // Log the incoming data
+                Console.WriteLine($"Updating user {userId}");
+                Console.WriteLine($"FullName: {updateUserDto.FullName}");
+                Console.WriteLine($"Email: {updateUserDto.Email}");
+                Console.WriteLine($"ProfileImageUrl length: {updateUserDto.ProfileImageUrl?.Length ?? 0}");
 
-            _context.Entry(user).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+                // Update only the provided fields
+                if (!string.IsNullOrEmpty(updateUserDto.FullName))
+                    user.FullName = updateUserDto.FullName;
+                
+                if (!string.IsNullOrEmpty(updateUserDto.Email))
+                    user.Email = updateUserDto.Email;
+                
+                if (!string.IsNullOrEmpty(updateUserDto.ProfileImageUrl))
+                    user.ProfileImageUrl = updateUserDto.ProfileImageUrl;
 
-            return NoContent();
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine("User updated successfully");
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating user: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return BadRequest($"Error updating user: {ex.Message}");
+            }
+        }
+
+        // PUT: api/Users/me/profile-image
+        [HttpPut("me/profile-image")]
+        public async Task<IActionResult> UpdateProfileImage(IFormFile profileImage)
+        {
+            try
+            {
+                var userId = GetUserIdFromToken();
+
+                var user = await _context.Users.FindAsync(userId);
+                if (user == null)
+                    return NotFound();
+
+                if (profileImage == null || profileImage.Length == 0)
+                    return BadRequest("No file uploaded.");
+
+                // Check file size (5MB limit)
+                const long maxFileSize = 5 * 1024 * 1024; // 5MB
+                if (profileImage.Length > maxFileSize)
+                    return BadRequest("File size too large. Maximum size is 5MB.");
+
+                // Check file type
+                var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
+                if (!allowedTypes.Contains(profileImage.ContentType.ToLower()))
+                    return BadRequest("Invalid file type. Only JPEG, PNG and GIF are allowed.");
+
+                // Create uploads directory if it doesn't exist
+                var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads", "profile-images");
+                Directory.CreateDirectory(uploadsPath);
+
+                // Generate unique filename
+                var fileExtension = Path.GetExtension(profileImage.FileName);
+                var fileName = $"{userId}_{Guid.NewGuid()}{fileExtension}";
+                var filePath = Path.Combine(uploadsPath, fileName);
+
+                // Save file
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await profileImage.CopyToAsync(stream);
+                }
+
+                // Update user's profile image URL
+                var imageUrl = $"/uploads/profile-images/{fileName}";
+                user.ProfileImageUrl = imageUrl;
+
+                _context.Entry(user).State = EntityState.Modified;
+                await _context.SaveChangesAsync();
+
+                Console.WriteLine($"Profile image updated for user {userId}: {imageUrl}");
+                return Ok(new { profileImageUrl = imageUrl });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating profile image: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                return BadRequest($"Error updating profile image: {ex.Message}");
+            }
         }
 
         // DELETE: api/Users/me

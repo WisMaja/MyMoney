@@ -46,6 +46,8 @@ import {
   MoreVert as MoreIcon
 } from '@mui/icons-material';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
+import { getAllCategories, createCategory, updateCategory, deleteCategory } from '../services/categoryService';
 import '../styles/Categories.css';
 
 // Map of category icons
@@ -75,32 +77,50 @@ const categoryColors = [
   '#546e7a', // Blue Grey
 ];
 
+// Helper function to get default UI properties for a category
+const getDefaultCategoryProps = (categoryName, isGlobal) => {
+  const name = categoryName.toLowerCase();
+  
+  // Determine type based on common category names
+  let type = 'expense';
+  if (name.includes('salary') || name.includes('income') || name.includes('wage') || 
+      name.includes('freelance') || name.includes('bonus') || name.includes('dividend')) {
+    type = 'income';
+  }
+  
+  // Determine icon based on category name
+  let icon = 'general';
+  if (name.includes('food') || name.includes('restaurant') || name.includes('dining')) icon = 'food';
+  else if (name.includes('transport') || name.includes('car') || name.includes('bus') || name.includes('taxi')) icon = 'transportation';
+  else if (name.includes('shop') || name.includes('grocery') || name.includes('store')) icon = 'shopping';
+  else if (name.includes('rent') || name.includes('house') || name.includes('home')) icon = 'housing';
+  else if (name.includes('health') || name.includes('medical') || name.includes('doctor')) icon = 'healthcare';
+  else if (name.includes('education') || name.includes('school') || name.includes('course')) icon = 'education';
+  else if (name.includes('tech') || name.includes('computer') || name.includes('software')) icon = 'technology';
+  else if (type === 'income') icon = 'income';
+  
+  // Assign color based on hash of name for consistency
+  const colorIndex = Math.abs(categoryName.split('').reduce((a, b) => a + b.charCodeAt(0), 0)) % categoryColors.length;
+  const color = categoryColors[colorIndex];
+  
+  return { type, icon, color };
+};
+
 const CategoryDialog = ({ open, onClose, onSave, category = null, title, categories }) => {
   const [categoryData, setCategoryData] = useState({
-    name: '',
-    type: 'expense',
-    icon: 'general',
-    color: '#1976d2',
-    description: ''
+    name: ''
   });
   const [nameError, setNameError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (category) {
       setCategoryData({
-        name: category.name || '',
-        type: category.type || 'expense',
-        icon: category.icon || 'general',
-        color: category.color || '#1976d2',
-        description: category.description || ''
+        name: category.name || ''
       });
     } else {
       setCategoryData({
-        name: '',
-        type: 'expense',
-        icon: 'general',
-        color: '#1976d2',
-        description: ''
+        name: ''
       });
     }
     setNameError('');
@@ -122,10 +142,18 @@ const CategoryDialog = ({ open, onClose, onSave, category = null, title, categor
     }
   };
 
-  const handleSubmit = () => {
-    if (nameError) return;
-    onSave(categoryData);
-    onClose();
+  const handleSubmit = async () => {
+    if (nameError || !categoryData.name.trim()) return;
+    
+    setLoading(true);
+    try {
+      await onSave(categoryData);
+      onClose();
+    } catch (error) {
+      console.error('Error saving category:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -142,108 +170,23 @@ const CategoryDialog = ({ open, onClose, onSave, category = null, title, categor
           required
           error={!!nameError}
           helperText={nameError}
+          disabled={loading}
         />
         
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="type-label">Category Type</InputLabel>
-          <Select
-            labelId="type-label"
-            name="type"
-            value={categoryData.type}
-            onChange={handleChange}
-            label="Category Type"
-          >
-            <MenuItem value="income">Income</MenuItem>
-            <MenuItem value="expense">Expense</MenuItem>
-          </Select>
-        </FormControl>
-        
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="icon-label">Icon</InputLabel>
-          <Select
-            labelId="icon-label"
-            name="icon"
-            value={categoryData.icon}
-            onChange={handleChange}
-            label="Icon"
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                {categoryIcons[selected]}
-                <Box sx={{ ml: 1 }}>{selected.charAt(0).toUpperCase() + selected.slice(1)}</Box>
-              </Box>
-            )}
-          >
-            {Object.entries(categoryIcons).map(([key, icon]) => (
-              <MenuItem key={key} value={key}>
-                <ListItemIcon>
-                  {icon}
-                </ListItemIcon>
-                <ListItemText primary={key.charAt(0).toUpperCase() + key.slice(1)} />
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        
-        <FormControl fullWidth margin="normal">
-          <InputLabel id="color-label">Color</InputLabel>
-          <Select
-            labelId="color-label"
-            name="color"
-            value={categoryData.color}
-            onChange={handleChange}
-            label="Color"
-            renderValue={(selected) => (
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Box 
-                  sx={{ 
-                    width: 20, 
-                    height: 20, 
-                    borderRadius: '50%', 
-                    bgcolor: selected,
-                    mr: 1
-                  }} 
-                />
-                {selected}
-              </Box>
-            )}
-          >
-            {categoryColors.map(color => (
-              <MenuItem key={color} value={color}>
-                <Box 
-                  sx={{ 
-                    width: 20, 
-                    height: 20, 
-                    borderRadius: '50%', 
-                    bgcolor: color,
-                    mr: 1
-                  }} 
-                />
-                {color}
-              </MenuItem>
-            ))}
-          </Select>
-        </FormControl>
-        
-        <TextField
-          fullWidth
-          label="Description (optional)"
-          name="description"
-          value={categoryData.description}
-          onChange={handleChange}
-          margin="normal"
-          multiline
-          rows={2}
-        />
+        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+          Note: Category type, icon, and color will be automatically assigned based on the name.
+        </Typography>
       </DialogContent>
       <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
+        <Button onClick={onClose} disabled={loading}>
+          Cancel
+        </Button>
         <Button 
           onClick={handleSubmit} 
           variant="contained" 
-          color="primary"
-          disabled={!categoryData.name || !!nameError}
+          disabled={!!nameError || !categoryData.name.trim() || loading}
         >
-          Save
+          {loading ? <CircularProgress size={20} /> : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
@@ -262,73 +205,27 @@ const Categories = () => {
   const [menuAnchorEl, setMenuAnchorEl] = useState(null);
   const [selectedCategoryId, setSelectedCategoryId] = useState(null);
 
-  // Dummy data for demonstration
+  // Fetch categories from API
   useEffect(() => {
     const fetchCategories = async () => {
-      // Here you would fetch categories from your API
-      // For now, let's use dummy data
       setLoading(true);
       
       try {
-        const dummyCategories = [
-          {
-            id: 1,
-            name: 'Groceries',
-            type: 'expense',
-            icon: 'shopping',
-            color: '#2e7d32',
-            description: 'Food and household items',
-            isDefault: true
-          },
-          {
-            id: 2,
-            name: 'Rent',
-            type: 'expense',
-            icon: 'housing',
-            color: '#c62828',
-            description: 'Monthly housing rent',
-            isDefault: true
-          },
-          {
-            id: 3,
-            name: 'Transportation',
-            type: 'expense',
-            icon: 'transportation',
-            color: '#f57c00',
-            description: 'Public transport and ride sharing',
-            isDefault: true
-          },
-          {
-            id: 4,
-            name: 'Dining Out',
-            type: 'expense',
-            icon: 'food',
-            color: '#6a1b9a',
-            description: 'Restaurants and cafes',
-            isDefault: false
-          },
-          {
-            id: 5,
-            name: 'Salary',
-            type: 'income',
-            icon: 'income',
-            color: '#1976d2',
-            description: 'Monthly income from job',
-            isDefault: true
-          },
-          {
-            id: 6,
-            name: 'Freelance',
-            type: 'income',
-            icon: 'income',
-            color: '#00838f',
-            description: 'Income from freelance work',
-            isDefault: false
-          }
-        ];
+        const apiCategories = await getAllCategories();
         
-        setCategories(dummyCategories);
-        applyFilter(dummyCategories, filter);
+        // Transform API categories to include UI properties
+        const transformedCategories = apiCategories.map(cat => {
+          const uiProps = getDefaultCategoryProps(cat.name, cat.isGlobal);
+          return {
+            id: cat.id,
+            name: cat.name,
+            isGlobal: cat.isGlobal,
+            ...uiProps
+          };
+        });
+        
+        setCategories(transformedCategories);
+        applyFilter(transformedCategories, filter);
       } catch (error) {
         console.error('Error fetching categories:', error);
         setAlert({
@@ -371,66 +268,95 @@ const Categories = () => {
     handleCloseMenu();
   };
 
-  const handleDeleteCategory = (categoryId) => {
-    // Check if it's a default category
+  const handleDeleteCategory = async (categoryId) => {
+    // Check if it's a global category
     const categoryToDelete = categories.find(cat => cat.id === categoryId);
     
-    if (categoryToDelete.isDefault) {
+    if (categoryToDelete.isGlobal) {
       setAlert({
         open: true,
-        message: 'Default categories cannot be deleted',
+        message: 'Global categories cannot be deleted',
         severity: 'error'
       });
       handleCloseMenu();
       return;
     }
     
-    // Here you would delete the category via API
-    setCategories(categories.filter(category => category.id !== categoryId));
-    applyFilter(categories.filter(category => category.id !== categoryId), filter);
-    
-    setAlert({
-      open: true,
-      message: 'Category deleted successfully',
-      severity: 'success'
-    });
+    try {
+      await deleteCategory(categoryId);
+      
+      const updatedCategories = categories.filter(category => category.id !== categoryId);
+      setCategories(updatedCategories);
+      applyFilter(updatedCategories, filter);
+      
+      setAlert({
+        open: true,
+        message: 'Category deleted successfully',
+        severity: 'success'
+      });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      setAlert({
+        open: true,
+        message: 'Failed to delete category',
+        severity: 'error'
+      });
+    }
     
     handleCloseMenu();
   };
 
-  const handleSaveCategory = (categoryData) => {
-    if (currentCategory) {
-      // Update existing category
-      const updatedCategories = categories.map(category => 
-        category.id === currentCategory.id 
-          ? { ...category, ...categoryData } 
-          : category
-      );
-      setCategories(updatedCategories);
-      applyFilter(updatedCategories, filter);
-      
+  const handleSaveCategory = async (categoryData) => {
+    try {
+      if (currentCategory) {
+        // Update existing category
+        const updatedCategory = await updateCategory(currentCategory.id, categoryData);
+        
+        const uiProps = getDefaultCategoryProps(updatedCategory.name, updatedCategory.isGlobal);
+        const categoryWithProps = {
+          ...updatedCategory,
+          ...uiProps
+        };
+        
+        const updatedCategories = categories.map(category => 
+          category.id === currentCategory.id ? categoryWithProps : category
+        );
+        setCategories(updatedCategories);
+        applyFilter(updatedCategories, filter);
+        
+        setAlert({
+          open: true,
+          message: 'Category updated successfully',
+          severity: 'success'
+        });
+      } else {
+        // Create new category
+        const newCategory = await createCategory(categoryData);
+        
+        const uiProps = getDefaultCategoryProps(newCategory.name, newCategory.isGlobal);
+        const categoryWithProps = {
+          ...newCategory,
+          ...uiProps
+        };
+        
+        const updatedCategories = [...categories, categoryWithProps];
+        setCategories(updatedCategories);
+        applyFilter(updatedCategories, filter);
+        
+        setAlert({
+          open: true,
+          message: 'Category created successfully',
+          severity: 'success'
+        });
+      }
+    } catch (error) {
+      console.error('Error saving category:', error);
       setAlert({
         open: true,
-        message: 'Category updated successfully',
-        severity: 'success'
+        message: `Failed to ${currentCategory ? 'update' : 'create'} category`,
+        severity: 'error'
       });
-    } else {
-      // Create new category
-      const newCategory = {
-        id: Date.now(), // Using timestamp as temporary ID
-        ...categoryData,
-        isDefault: false
-      };
-      
-      const updatedCategories = [...categories, newCategory];
-      setCategories(updatedCategories);
-      applyFilter(updatedCategories, filter);
-      
-      setAlert({
-        open: true,
-        message: 'Category created successfully',
-        severity: 'success'
-      });
+      throw error; // Re-throw to handle in dialog
     }
   };
 
@@ -456,36 +382,33 @@ const Categories = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="categories-header">
-          <Typography variant="h4" component="h1">
-            Categories
-          </Typography>
-          
-          <Box>
-            <FormControl variant="outlined" sx={{ minWidth: 150, mr: 2 }}>
-              <InputLabel id="filter-label">Filter</InputLabel>
-              <Select
-                labelId="filter-label"
-                value={filter}
-                onChange={handleFilterChange}
-                label="Filter"
-                size="small"
-              >
-                <MenuItem value="all">All Categories</MenuItem>
-                <MenuItem value="income">Income</MenuItem>
-                <MenuItem value="expense">Expense</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <Button
-              variant="contained"
-              color="primary"
-              startIcon={<AddIcon />}
-              onClick={handleCreateCategory}
+        <Header title="Categories" />
+        
+        {/* Filter and Create Button */}
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+          <FormControl variant="outlined" sx={{ minWidth: 150 }}>
+            <InputLabel id="filter-label">Filter</InputLabel>
+            <Select
+              labelId="filter-label"
+              value={filter}
+              onChange={handleFilterChange}
+              label="Filter"
+              size="small"
             >
-              Create Category
-            </Button>
-          </Box>
+              <MenuItem value="all">All Categories</MenuItem>
+              <MenuItem value="income">Income</MenuItem>
+              <MenuItem value="expense">Expense</MenuItem>
+            </Select>
+          </FormControl>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleCreateCategory}
+          >
+            Create Category
+          </Button>
         </Box>
 
         {/* Categories List */}
@@ -536,8 +459,8 @@ const Categories = () => {
                       primary={
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           {category.name}
-                          {category.isDefault && (
-                            <Tooltip title="Default category" placement="top">
+                          {category.isGlobal && (
+                            <Tooltip title="Global category" placement="top">
                               <CheckCircleIcon color="primary" fontSize="small" sx={{ ml: 1 }} />
                             </Tooltip>
                           )}
@@ -546,7 +469,6 @@ const Categories = () => {
                       secondary={
                         <Typography variant="body2" color="textSecondary">
                           {category.type.charAt(0).toUpperCase() + category.type.slice(1)}
-                          {category.description && ` • ${category.description}`}
                         </Typography>
                       }
                     />

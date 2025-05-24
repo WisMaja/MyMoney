@@ -15,6 +15,7 @@ import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
+import Header from '../components/Header';
 import '../styles/Dashboard.css';
 import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
 import { getMainWallet } from '../services/walletService';
@@ -28,7 +29,7 @@ const Dashboard = () => {
     incomes: 0,
     expenses: 0,
     mainAccountName: 'Main Account',
-    mainAccountCurrency: '$',
+    mainAccountCurrency: 'USD',
     mainAccountType: 'Personal'
   });
   
@@ -42,6 +43,17 @@ const Dashboard = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+
+  // Convert currency code to symbol
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$',
+      'EUR': '€',
+      'PLN': 'zł',
+      'GBP': '£'
+    };
+    return currencySymbols[currencyCode] || currencyCode;
+  };
 
   // Fetch transactions and main wallet on component mount
   useEffect(() => {
@@ -245,19 +257,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Box className="header">
-          <Typography variant="h4" component="h1" className="welcome-title">
-            Welcome In Money Tracker
-          </Typography>
-          <Box className="user-profile">
-            <Typography variant="body1">
-              {userData.name}
-            </Typography>
-            <Link to="/settings" className="user-settings-link">
-              <Avatar className="user-avatar" />
-            </Link>
-          </Box>
-        </Box>
+        <Header title="Welcome In Money Tracker" />
 
         {/* Financial Cards */}
         <Box className="cards-container">
@@ -269,7 +269,7 @@ const Dashboard = () => {
               </Box>
             </Typography>
             <Typography className="card-amount">
-              {userData.mainAccount.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
+              {userData.mainAccount.toFixed(2)}<span className="currency">{getCurrencySymbol(userData.mainAccountCurrency)}</span>
             </Typography>
             <Button 
               variant="text" 
@@ -286,7 +286,7 @@ const Dashboard = () => {
               Incomes
             </Typography>
             <Typography className="card-amount">
-              {userData.incomes.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
+              {userData.incomes.toFixed(2)}<span className="currency">{getCurrencySymbol(userData.mainAccountCurrency)}</span>
             </Typography>
           </Box>
           
@@ -295,7 +295,7 @@ const Dashboard = () => {
               Expenses
             </Typography>
             <Typography className="card-amount">
-              {userData.expenses.toFixed(2)}<span className="currency">{userData.mainAccountCurrency}</span>
+              {userData.expenses.toFixed(2)}<span className="currency">{getCurrencySymbol(userData.mainAccountCurrency)}</span>
             </Typography>
           </Box>
         </Box>
@@ -377,7 +377,7 @@ const Dashboard = () => {
                         mr: 2
                       }}
                     >
-                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} {userData.mainAccountCurrency}
+                      {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} {getCurrencySymbol(userData.mainAccountCurrency)}
                     </Typography>
                     <Tooltip title="Edit">
                       <IconButton 
@@ -443,7 +443,7 @@ const Dashboard = () => {
                 {transactionToDelete.description}
               </Typography>
               <Typography variant="body2">
-                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} {userData.mainAccountCurrency}
+                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} {getCurrencySymbol(userData.mainAccountCurrency)}
               </Typography>
               <Typography variant="body2">
                 Date: {transactionToDelete.date.toLocaleDateString()}

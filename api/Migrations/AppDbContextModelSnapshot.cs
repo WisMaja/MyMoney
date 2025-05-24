@@ -111,6 +111,9 @@ namespace api.Migrations
                     b.Property<Guid?>("MainWalletId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("ProfileImageUrl")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("RefreshToken")
                         .HasColumnType("nvarchar(max)");
 

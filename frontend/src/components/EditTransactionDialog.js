@@ -16,6 +16,7 @@ import {
   Alert
 } from '@mui/material';
 import { updateIncome, updateExpense } from '../services/transactionService';
+import { getWalletById } from '../services/walletService';
 
 const EditTransactionDialog = ({ open, onClose, onSave, transaction }) => {
   const isIncome = transaction?.type === 'income';
@@ -29,6 +30,18 @@ const EditTransactionDialog = ({ open, onClose, onSave, transaction }) => {
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [walletCurrency, setWalletCurrency] = useState('USD');
+
+  // Convert currency code to symbol
+  const getCurrencySymbol = (currencyCode) => {
+    const currencySymbols = {
+      'USD': '$',
+      'EUR': '€',
+      'PLN': 'zł',
+      'GBP': '£'
+    };
+    return currencySymbols[currencyCode] || currencyCode;
+  };
 
   useEffect(() => {
     if (transaction) {
@@ -41,6 +54,21 @@ const EditTransactionDialog = ({ open, onClose, onSave, transaction }) => {
         description: transaction.description || '',
         date: formattedDate
       });
+
+      // Fetch wallet currency
+      const fetchWalletCurrency = async () => {
+        try {
+          if (transaction.walletId) {
+            const wallet = await getWalletById(transaction.walletId);
+            setWalletCurrency(wallet.currency);
+          }
+        } catch (err) {
+          console.error('Error fetching wallet currency:', err);
+          // Keep default USD if error
+        }
+      };
+
+      fetchWalletCurrency();
     }
   }, [transaction]);
 
@@ -116,7 +144,7 @@ const EditTransactionDialog = ({ open, onClose, onSave, transaction }) => {
             <TextField
               autoFocus
               name="amount"
-              label="Amount ($)"
+              label={`Amount (${getCurrencySymbol(walletCurrency)})`}
               type="number"
               value={formData.amount}
               onChange={handleChange}
