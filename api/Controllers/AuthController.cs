@@ -77,10 +77,10 @@ namespace api.Controllers
 
                 var mainWallet = new Wallet
                 {
-                    Name = "Mój portfel",
+                    Name = "Main Wallet",
                     Type = WalletType.Personal,
                     InitialBalance = 0,
-                    Currency = "PLN",
+                    Currency = "zł",
                     CreatedByUserId = user.Id,
                     CreatedByUser = user,
                     Transactions = new List<Transaction>(),

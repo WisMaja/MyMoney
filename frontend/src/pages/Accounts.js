@@ -111,7 +111,12 @@ const Accounts = () => {
   };
 
   const handleOpenEditDialog = (wallet) => {
-    setWalletToEdit({ ...wallet,    manualBalance: wallet.balance});
+    setWalletToEdit({
+      ...wallet,
+      currency: wallet.currency || 'USD' // Domyślna waluta, jeśli brak danych
+    });
+
+    //setWalletToEdit({ ...wallet,    manualBalance: wallet.balance});
     setEditDialogOpen(true);
   };
 
@@ -119,7 +124,8 @@ const Accounts = () => {
     const { name, value } = e.target;
     setWalletToEdit(prev => ({
       ...prev,
-      [name]: ['initialBalance', 'manualBalance'].includes(name) ? parseFloat(value) || 0 : value
+      [name]: value,
+      //[name]: ['initialBalance', 'manualBalance'].includes(name) ? parseFloat(value) || 0 : value
     }));
   };
 
@@ -128,9 +134,9 @@ const Accounts = () => {
       await updateWallet(walletToEdit.id, {
         name: walletToEdit.name,
         currency: walletToEdit.currency,
-        type: walletToEdit.type
+        //type: walletToEdit.type
       });
-      await setManualBalance(walletToEdit.id, walletToEdit.manualBalance);
+      //await setManualBalance(walletToEdit.id, walletToEdit.manualBalance);
 
       setEditDialogOpen(false);
       fetchWallets();
@@ -335,15 +341,31 @@ const Accounts = () => {
                   fullWidth
                   required
               />
-              <TextField
-                  name="manualBalance"
-                  label="Balance"
-                  type="number"
-                  value={walletToEdit?.manualBalance || 0}
-                  onChange={handleWalletChange}
-                  fullWidth
-                  required
-              />
+              {/* Waluta */}
+              {/*<InputLabel id="currency-label">Currency</InputLabel>*/}
+              <FormControl fullWidth>
+                <Select
+                    labelId="currency-label"
+                    name="currency"
+                    value={walletToEdit?.currency || ''}
+                    onChange={handleWalletChange}
+                >
+                  <MenuItem value="zł">Polish Złoty (zł)</MenuItem>
+                  <MenuItem value="€">Euro (€)</MenuItem>
+                  <MenuItem value="$">US Dollar ($)</MenuItem>
+                  <MenuItem value="£">British Pound (£)</MenuItem>
+                </Select>
+              </FormControl>
+
+              {/*<TextField*/}
+              {/*    name="manualBalance"*/}
+              {/*    label="Balance"*/}
+              {/*    type="number"*/}
+              {/*    value={walletToEdit?.manualBalance || 0}*/}
+              {/*    onChange={handleWalletChange}*/}
+              {/*    fullWidth*/}
+              {/*    required*/}
+              {/*/>*/}
 
             </Box>
           </DialogContent>

@@ -29,13 +29,15 @@ namespace api.Controllers
 
         private static decimal CalculateCurrentBalance(Wallet wallet)
         {
-            var baseBalance = wallet.ManualBalance ?? wallet.InitialBalance;
-            var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue; // Odtąd liczymy transakcje
+            bool useManualBalance = wallet.ManualBalance.HasValue;
+            var baseBalance = useManualBalance ? wallet.ManualBalance.Value : wallet.InitialBalance;
+            var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue;
             var transactionSum = wallet.Transactions
-                .Where(t => t.CreatedAt >= fromDate) // Uwzględnimy transakcje od daty resetu
+                .Where(t => t.CreatedAt >= fromDate)
                 .Sum(t => t.Amount);
             return baseBalance + transactionSum;
         }
+
 
 
         // GET: api/wallets
@@ -202,7 +204,7 @@ namespace api.Controllers
 
             // Zaktualizuj dane portfela
             wallet.Name = dto.Name;
-            wallet.Type = dto.Type;
+            //wallet.Type = dto.Type;
             wallet.Currency = dto.Currency;
 
             // Jeśli `Currency` zostanie zmienione, dodatkowe działania mogą być potrzebne
