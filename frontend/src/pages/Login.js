@@ -16,7 +16,11 @@ const Login = () => {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated, logout } = useAuth();
+
+  if (isAuthenticated) {
+    logout();
+  }
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
