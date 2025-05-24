@@ -28,7 +28,7 @@ const Dashboard = () => {
     mainAccount: 0,
     incomes: 0,
     expenses: 0,
-    mainAccountName: 'Main Account',
+    mainAccountName: 'Loading...',
     mainAccountCurrency: 'USD',
     mainAccountType: 'Personal'
   });
@@ -43,6 +43,7 @@ const Dashboard = () => {
   const [deleteLoading, setDeleteLoading] = useState(false);
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false);
   const [transactionToDelete, setTransactionToDelete] = useState(null);
+  const [mainWallet, setMainWallet] = useState(null);
 
   // Convert currency code to symbol
   const getCurrencySymbol = (currencyCode) => {
@@ -66,18 +67,19 @@ const Dashboard = () => {
       setError(null);
       
       // Fetch main wallet info and transactions
-      const mainWallet = await getMainWallet();
+      const mainWalletData = await getMainWallet();
+      setMainWallet(mainWalletData);
       
       // Update user data with main wallet info
       setUserData(prev => ({
         ...prev,
-        mainAccountName: mainWallet.name,
-        mainAccountCurrency: mainWallet.currency,
-        mainAccountType: mainWallet.type
+        mainAccountName: mainWalletData.name,
+        mainAccountCurrency: mainWalletData.currency,
+        mainAccountType: mainWalletData.type
       }));
       
-      // Fetch transactions (this will use the main wallet)
-      await fetchTransactions();
+      // Fetch transactions using the already fetched main wallet
+      await fetchTransactions(mainWalletData);
       
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
@@ -87,22 +89,25 @@ const Dashboard = () => {
     }
   };
 
-  const fetchTransactions = async () => {
+  const fetchTransactions = async (mainWallet = null) => {
     try {
       console.log('Starting fetchTransactions...');
       
-      // Get main wallet first
-      console.log('Fetching main wallet...');
-      const mainWallet = await getMainWallet();
-      console.log('Main wallet for transactions:', mainWallet);
+      // Use provided wallet or fetch main wallet
+      let wallet = mainWallet;
+      if (!wallet) {
+        console.log('Fetching main wallet...');
+        wallet = await getMainWallet();
+      }
+      console.log('Main wallet for transactions:', wallet);
       
-      if (!mainWallet || !mainWallet.id) {
+      if (!wallet || !wallet.id) {
         throw new Error('Main wallet not found or missing ID');
       }
       
       // Get transactions only from the main wallet
-      console.log(`Fetching transactions for wallet ID: ${mainWallet.id}`);
-      const walletTransactions = await getTransactionsByWallet(mainWallet.id);
+      console.log(`Fetching transactions for wallet ID: ${wallet.id}`);
+      const walletTransactions = await getTransactionsByWallet(wallet.id);
       console.log('Wallet transactions received:', walletTransactions);
       
       // Transform transactions to the format expected by the UI
@@ -135,13 +140,13 @@ const Dashboard = () => {
       });
       
       console.log(`Calculated totals - Income: ${totalIncome}, Expense: ${totalExpense}`);
-      console.log(`Using CurrentBalance from API: ${mainWallet.currentBalance}`);
+      console.log(`Using CurrentBalance from API: ${wallet.currentBalance}`);
       
       // Update state - use CurrentBalance from API instead of calculating manually
       setTransactions(formattedTransactions);
       setUserData(prev => ({
         ...prev,
-        mainAccount: mainWallet.currentBalance, // Use API's CurrentBalance which includes InitialBalance
+        mainAccount: wallet.currentBalance, // Use API's CurrentBalance which includes InitialBalance
         incomes: totalIncome,
         expenses: totalExpense
       }));
@@ -180,7 +185,12 @@ const Dashboard = () => {
     try {
       setDeleteLoading(true);
       await deleteTransaction(transactionToDelete.id);
-      await fetchTransactions(); // Refresh data
+      if (mainWallet) {
+        await fetchTransactions(mainWallet);
+      } else {
+        console.warn('Main wallet not available, refetching data');
+        await fetchData();
+      }
       setConfirmDeleteDialog(false);
     } catch (err) {
       console.error('Error deleting transaction:', err);
@@ -193,19 +203,34 @@ const Dashboard = () => {
 
   const handleSaveIncome = async (incomeData) => {
     // The API call is now handled in the AddIncomeDialog component
-    // Here we just refresh the transaction list
-    await fetchTransactions();
+    // Here we just refresh the transaction list using stored main wallet
+    if (mainWallet) {
+      await fetchTransactions(mainWallet);
+    } else {
+      console.warn('Main wallet not available, refetching data');
+      await fetchData();
+    }
   };
 
   const handleSaveExpense = async (expenseData) => {
     // The API call is now handled in the AddExpenseDialog component
-    // Here we just refresh the transaction list
-    await fetchTransactions();
+    // Here we just refresh the transaction list using stored main wallet
+    if (mainWallet) {
+      await fetchTransactions(mainWallet);
+    } else {
+      console.warn('Main wallet not available, refetching data');
+      await fetchData();
+    }
   };
 
   const handleSaveEdit = async () => {
-    // Refresh transactions after edit is saved
-    await fetchTransactions();
+    // Refresh transactions after edit is saved using stored main wallet
+    if (mainWallet) {
+      await fetchTransactions(mainWallet);
+    } else {
+      console.warn('Main wallet not available, refetching data');
+      await fetchData();
+    }
     setEditDialogOpen(false);
     setSelectedTransaction(null);
   };

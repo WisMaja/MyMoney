@@ -115,16 +115,31 @@ namespace api.Controllers
 
         public async Task<IActionResult> LoginAsync([FromBody] LoginRequestDto dto)
         {
+            Console.WriteLine($"Login attempt for email: {dto.Email}");
+            
             var user = _context.Users.FirstOrDefault(u => u.Email!.Equals(dto.Email));
-            if (user == null) return Unauthorized();
+            if (user == null) 
+            {
+                Console.WriteLine("User not found");
+                return Unauthorized();
+            }
 
+            Console.WriteLine("User found, verifying password");
             var passwordHasher = new PasswordHasher<User>();
-                    var result = passwordHasher.VerifyHashedPassword(user, user.HashedPassword!, dto.Password);
-            if (result == PasswordVerificationResult.Failed) return Unauthorized();
+            var result = passwordHasher.VerifyHashedPassword(user, user.HashedPassword!, dto.Password);
+            if (result == PasswordVerificationResult.Failed) 
+            {
+                Console.WriteLine("Password verification failed");
+                return Unauthorized();
+            }
 
+            Console.WriteLine("Password verified, generating tokens");
             var refreshToken = _tokenService.GenerateRefreshToken();
             user.RefreshToken = refreshToken.token;
             user.RefreshTokenExpiration = refreshToken.expiration;
+            
+            // Save the refresh token to database
+            await _context.SaveChangesAsync();
 
             var response = new TokenResponseDto
             {
@@ -132,6 +147,7 @@ namespace api.Controllers
                 RefreshToken = refreshToken.token,
             };
             
+            Console.WriteLine("Login successful, returning tokens");
             return Ok(response);
 
         }

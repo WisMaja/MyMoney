@@ -76,10 +76,12 @@ const Statistics = () => {
   // Fetch statistics data based on time range
   useEffect(() => {
     const fetchStatistics = async () => {
+      console.log("Statistics: Starting fetchStatistics");
       setLoading(true);
       setError(null);
       
       try {
+        console.log("Statistics: Calculating date range for timeRange:", timeRange);
         // Calculate date range based on selected time range
         const today = new Date();
         let fromDate;
@@ -101,14 +103,20 @@ const Statistics = () => {
         // Use a fresh instance of today since the previous one might have been modified
         const to = new Date().toISOString().split('T')[0];
         
-        console.log(`Fetching statistics from: ${from} to: ${to}`);
+        console.log(`Statistics: Fetching statistics from: ${from} to: ${to}`);
         
         // Make parallel API requests
+        console.log("Statistics: Making API requests");
         const [incomeExpenseRes, categoryBreakdownRes, summaryRes] = await Promise.all([
           apiClient.get(`/transactions/statistics/income-expense?from=${from}&to=${to}`),
           apiClient.get(`/transactions/statistics/category-breakdown?from=${from}&to=${to}`),
           apiClient.get(`/transactions/statistics/summary?from=${from}&to=${to}`)
         ]);
+        
+        console.log("Statistics: Received API responses");
+        console.log("Statistics: incomeExpenseRes.data:", incomeExpenseRes.data);
+        console.log("Statistics: categoryBreakdownRes.data:", categoryBreakdownRes.data);
+        console.log("Statistics: summaryRes.data:", summaryRes.data);
         
         // Process income vs expense data
         const incomeExpenseData = incomeExpenseRes.data;
@@ -117,7 +125,7 @@ const Statistics = () => {
         const expenseData = incomeExpenseData.map(item => item.expense);
         
         // Set the state with fetched data
-        setStatsData({
+        const newStatsData = {
           incomeVsExpense: {
             labels,
             incomeData,
@@ -125,11 +133,17 @@ const Statistics = () => {
           },
           categoryBreakdown: categoryBreakdownRes.data,
           summary: summaryRes.data
-        });
+        };
+        
+        console.log("Statistics: Setting new stats data:", newStatsData);
+        setStatsData(newStatsData);
       } catch (err) {
-        console.error("Error fetching statistics:", err);
+        console.error("Statistics: Error fetching statistics:", err);
+        console.error("Statistics: Error details:", err.response?.data);
+        console.error("Statistics: Error status:", err.response?.status);
         setError("Failed to load statistics. Please try again later.");
       } finally {
+        console.log("Statistics: Setting loading to false");
         setLoading(false);
       }
     };
