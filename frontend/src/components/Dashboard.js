@@ -31,15 +31,19 @@ const Dashboard = () => {
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false);
 
   const fetchTransactions = async () => {
+    console.log("Dashboard: Starting fetchTransactions");
     setLoading(true);
     try {
+      console.log("Dashboard: Calling getAllTransactions");
       const data = await getAllTransactions();
+      console.log("Dashboard: Received data:", data);
       
       // Sort transactions by date in descending order (newest first)
       const sortedTransactions = data.sort((a, b) => {
         return new Date(b.createdAt) - new Date(a.createdAt);
       });
       
+      console.log("Dashboard: Sorted transactions:", sortedTransactions);
       setTransactions(sortedTransactions);
       
       // Calculate balance
@@ -51,11 +55,15 @@ const Dashboard = () => {
         }
       }, 0);
       
+      console.log("Dashboard: Calculated balance:", total);
       setBalance(total);
     } catch (err) {
-      console.error('Error fetching transactions:', err);
+      console.error('Dashboard: Error fetching transactions:', err);
+      console.error('Dashboard: Error details:', err.response?.data);
+      console.error('Dashboard: Error status:', err.response?.status);
       setError('Nie udało się załadować transakcji. Spróbuj ponownie później.');
     } finally {
+      console.log("Dashboard: Setting loading to false");
       setLoading(false);
     }
   };
