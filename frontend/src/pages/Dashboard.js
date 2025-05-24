@@ -122,7 +122,7 @@ const Dashboard = () => {
       // Sort transactions chronologically - newest first
       formattedTransactions.sort((a, b) => b.date - a.date);
       
-      // Calculate totals
+      // Calculate totals for display purposes (income/expense breakdown)
       let totalIncome = 0;
       let totalExpense = 0;
       
@@ -135,12 +135,13 @@ const Dashboard = () => {
       });
       
       console.log(`Calculated totals - Income: ${totalIncome}, Expense: ${totalExpense}`);
+      console.log(`Using CurrentBalance from API: ${mainWallet.currentBalance}`);
       
-      // Update state
+      // Update state - use CurrentBalance from API instead of calculating manually
       setTransactions(formattedTransactions);
       setUserData(prev => ({
         ...prev,
-        mainAccount: totalIncome - totalExpense,
+        mainAccount: mainWallet.currentBalance, // Use API's CurrentBalance which includes InitialBalance
         incomes: totalIncome,
         expenses: totalExpense
       }));
