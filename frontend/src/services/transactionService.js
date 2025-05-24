@@ -78,10 +78,18 @@ export const addIncome = async (incomeData) => {
   try {
     console.log("Starting addIncome with data:", incomeData);
     
-    // Get or create category ID based on the category name
-    console.log("Getting category ID for:", incomeData.category);
-    const categoryId = await getCategoryIdByName(incomeData.category);
-    console.log("Retrieved categoryId:", categoryId);
+    // Use categoryId directly if provided, otherwise get it from category name
+    let categoryId;
+    if (incomeData.categoryId) {
+      categoryId = incomeData.categoryId;
+      console.log("Using provided categoryId:", categoryId);
+    } else if (incomeData.category) {
+      // Fallback for old format
+      categoryId = await getCategoryIdByName(incomeData.category);
+      console.log("Retrieved categoryId from name:", categoryId);
+    } else {
+      throw new Error("Either categoryId or category name must be provided");
+    }
     
     // Ensure we have a valid wallet ID
     let walletId = incomeData.walletId || localStorage.getItem('defaultWalletId');
@@ -106,7 +114,7 @@ export const addIncome = async (incomeData) => {
       walletId: walletId,
       categoryId: categoryId,
       amount: parseFloat(incomeData.amount),
-      description: incomeData.description || incomeData.category,
+      description: incomeData.description || 'Income',
       createdAt: createdAt
     };
     
@@ -134,8 +142,18 @@ export const addExpense = async (expenseData) => {
   try {
     console.log("Starting addExpense with data:", expenseData);
     
-    // Get or create category ID based on the category name
-    const categoryId = await getCategoryIdByName(expenseData.category);
+    // Use categoryId directly if provided, otherwise get it from category name
+    let categoryId;
+    if (expenseData.categoryId) {
+      categoryId = expenseData.categoryId;
+      console.log("Using provided categoryId:", categoryId);
+    } else if (expenseData.category) {
+      // Fallback for old format
+      categoryId = await getCategoryIdByName(expenseData.category);
+      console.log("Retrieved categoryId from name:", categoryId);
+    } else {
+      throw new Error("Either categoryId or category name must be provided");
+    }
     
     // Ensure we have a valid wallet ID
     let walletId = expenseData.walletId || localStorage.getItem('defaultWalletId');
@@ -158,7 +176,7 @@ export const addExpense = async (expenseData) => {
       walletId: walletId,
       categoryId: categoryId,
       amount: parseFloat(expenseData.amount),
-      description: expenseData.description || expenseData.category,
+      description: expenseData.description || 'Expense',
       createdAt: createdAt
     };
     
