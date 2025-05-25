@@ -83,12 +83,15 @@ const Login = () => {
         navigate('/dashboard');
       }
     } catch (err) {
-      if (err.response?.data) {
-        setError(err.response.data);
+      if (err.response?.status === 401 || err.response?.status === 400) {
+        setError('Invalid login credentials');
+      } else if (err.response?.data?.message) {
+        setError(err.response.data.message);
       } else {
-        setError('Unexpected error occurred.');
+        setError('An unexpected error occurred.');
       }
     }
+
 
     setLoading(false);
   };

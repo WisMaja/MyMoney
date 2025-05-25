@@ -7,6 +7,7 @@ import PersonIcon from '@mui/icons-material/Person';
 import { getCurrentUser } from '../services/userService';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/Header.css';
+import apiClient from "../apiClient";
 
 const Header = ({ title }) => {
   const navigate = useNavigate();
@@ -22,28 +23,28 @@ const Header = ({ title }) => {
 
   const fetchUserData = async () => {
     try {
-      const userData = await getCurrentUser();
+      const response = await apiClient.get('/users/me');
+      const userData = response.data;
       setUser(userData);
-      
+
       // Set profile image if available
       if (userData.profileImageUrl) {
-        // If it's a relative URL, prepend the server URL
-        const imageUrl = userData.profileImageUrl.startsWith('http') 
-          ? userData.profileImageUrl 
-          : `http://localhost:5032${userData.profileImageUrl}`;
+        const imageUrl = userData.profileImageUrl.startsWith('http')
+            ? userData.profileImageUrl
+            : `${apiClient.defaults.baseURL}${userData.profileImageUrl}`;
         setProfileImage(imageUrl);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
-      // Fallback to default user data
       setUser({
-        fullName: 'User',
+        fullName: null,
         id: null
       });
     } finally {
       setLoading(false);
     }
   };
+
 
   const handleMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
