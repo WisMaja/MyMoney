@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Box, Typography, Button, Divider, Paper, TextField } from '@mui/material';
+import { Box, Typography, Button, Divider, Paper, TextField, List } from '@mui/material';
 import '../styles/Login.css';
 import apiClient from '../apiClient';
 import {useAuth} from "../hooks/useAuth";
 import { AuthProvider } from '../context/AuthContext';
 import { useEffect, useRef } from 'react';
-
 
 const Login = () => {
   const navigate = useNavigate();
@@ -16,7 +15,11 @@ const Login = () => {
   const [repeatPassword, setRepeatPassword] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const { login } = useAuth();
+  const { login, isAuthenticated, logout } = useAuth();
+
+  if (isAuthenticated) {
+    logout();
+  }
 
   const handleManualLogin = async (e) => {
     e.preventDefault();
@@ -27,6 +30,36 @@ const Login = () => {
       if (isRegistering) {
         if (password !== repeatPassword) {
           setError('Passwords do not match');
+          setLoading(false);
+          return;
+        }
+
+        if (password.length < 8) {
+          setError('Password must be at least 8 characters long');
+          setLoading(false);
+          return;
+        }
+
+        if (!/\d/.test(password)) {
+          setError('Password must contain at least one number');
+          setLoading(false);
+          return;
+        }
+
+        if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+          setError('Password must contain at least one special character');
+          setLoading(false);
+          return;
+        }
+
+        if (!/[A-Z]/.test(password)) {
+          setError('Password must contain at least one uppercase letter');
+          setLoading(false);
+          return;
+        }
+
+        if (!/[a-z]/.test(password)) {
+          setError('Password must contain at least one lowercase letter');
           setLoading(false);
           return;
         }
@@ -89,6 +122,20 @@ const Login = () => {
                     required
                     sx={{ flex: '1 1 100%' }}
                 />
+                {isRegistering && (
+                    <Box>
+                      <Typography sx={{ textAlign: 'left', fontSize: 16 }} className="password-requirements">
+                        A password must:
+                      </Typography>
+                      <List className="password-requirements-list" sx={{ paddingLeft: 2, marginBottom: 2, marginLeft: 2, textAlign: 'left', listStyleType: 'disc' }}>
+                        <li>8 characters long</li>
+                        <li>Contain at least one number</li>
+                        <li>Contain at least one special character</li>
+                        <li>Contain at least one uppercase letter</li>
+                        <li>Contain at least one lowercase letter</li>
+                      </List>
+                    </Box>
+                )}
                 <TextField
                     label="Password"
                     type="password"
@@ -98,7 +145,7 @@ const Login = () => {
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
-                    sx={{ flex: '1 1 48%' }}
+                    sx={{ flex: '1 1 100%' }}
                 />
                 {isRegistering && (
                     <TextField
@@ -110,11 +157,10 @@ const Login = () => {
                         value={repeatPassword}
                         onChange={(e) => setRepeatPassword(e.target.value)}
                         required
-                        sx={{ flex: '1 1 48%' }}
+                        sx={{ flex: '1 1 100%' }}
                     />
                 )}
               </Box>
-
               {error && (
                   <Typography color="error" variant="body2" sx={{ mt: 1 }}>
                     {error}
