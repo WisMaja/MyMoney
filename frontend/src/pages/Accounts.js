@@ -8,8 +8,12 @@ import { useNavigate } from 'react-router-dom';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import PersonAddIcon from '@mui/icons-material/PersonAdd';
+
 import CreditCardIcon from '@mui/icons-material/CreditCard';
 import SavingsIcon from '@mui/icons-material/Savings';
+import DeleteIcon from '@mui/icons-material/Delete';
+
 import Sidebar from '../components/Sidebar';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
@@ -113,7 +117,7 @@ const Accounts = () => {
   const handleOpenEditDialog = (wallet) => {
     setWalletToEdit({
       ...wallet,
-      currency: wallet.currency || 'USD' // Domyślna waluta, jeśli brak danych
+      currency: wallet.currency || 'USD'
     });
 
     //setWalletToEdit({ ...wallet,    manualBalance: wallet.balance});
@@ -252,18 +256,29 @@ const Accounts = () => {
                         </IconButton>
                       </Box>
 
-                      <Typography className="account-balance">
-                        {account.balance} {account.currency}
+                      <Typography
+                          className="account-balance"
+                          sx={{ fontSize: '2rem', fontWeight: 'bold' }}
+                      >
+                        {account.balance.toFixed(2)} {account.currency}
                       </Typography>
 
-                      <Box className="account-details">
+
+                      <Box className="account-details"
+                           sx={{
+                             display: 'flex',
+                             justifyContent: 'center',
+                             gap: 4,
+                             mt: 4,
+                           }}
+                      >
                         <Box className="account-detail">
-                          <Typography className="detail-label">Income</Typography>
-                          <Typography className="detail-value">{account.income} {account.currency}</Typography>
+                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Income</Typography>
+                          <Typography className="detail-value" sx={{ fontSize: '1.2rem'}}>{account.income} {account.currency}</Typography>
                         </Box>
                         <Box className="account-detail">
-                          <Typography className="detail-label">Expenses</Typography>
-                          <Typography className="detail-value">{account.expenses} {account.currency}</Typography>
+                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Expenses</Typography>
+                          <Typography className="detail-value" sx={{ fontSize: '1.2rem'}}>{account.expenses} {account.currency}</Typography>
                         </Box>
                         {/*<Box className="account-detail">*/}
                         {/*  <Typography className="detail-label">Net</Typography>*/}
@@ -271,27 +286,14 @@ const Accounts = () => {
                         {/*</Box>*/}
                       </Box>
 
+
+
                       <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                         <Button variant="contained" color="success" onClick={() => handleAddIncome(account.id)}>
                           Add Income
                         </Button>
                         <Button variant="contained" color="error" onClick={() => handleAddExpense(account.id)}>
                           Add Expense
-                        </Button>
-                        <Button
-                            variant="outlined"
-                            color="secondary"
-                            onClick={() => handleDeleteAccount(account.id)}
-                        >
-                          Delete Wallet
-                        </Button>
-                        <Button
-                            variant="contained"
-                            color="info"
-                            onClick={() => handleAddMember(account.id)}
-                            startIcon={<AddIcon />}
-                        >
-                          Add Member
                         </Button>
 
                         {account.id === mainWalletId ? (
@@ -307,6 +309,23 @@ const Accounts = () => {
                               Set as Main
                             </Button>
                         )}
+
+                        <IconButton
+                            onClick={() => handleAddMember(account.id)}
+                            color="info"
+                            size="medium"
+                        >
+                          <PersonAddIcon fontSize="medium" />
+                        </IconButton>
+
+                        <IconButton
+                            size="medium"
+                            onClick={() => handleDeleteAccount(account.id)}
+                            color="error"
+                        >
+                          <DeleteIcon fontSize="medium" />
+                        </IconButton>
+
 
                       </Box>
                     </Paper>
