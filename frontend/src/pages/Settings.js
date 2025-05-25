@@ -242,8 +242,11 @@ const Settings = () => {
 
       await apiClient.put('/users/me', updatedUser);
 
-      alert('Profile updated successfully!');
+      //alert('Profile updated successfully!');
       setHasChanges(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
       console.error('Error saving profile changes:', error);
       alert('Failed to update profile. Please try again later.');
