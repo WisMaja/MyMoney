@@ -189,10 +189,36 @@ namespace api.Controllers
             if (result == PasswordVerificationResult.Failed)
                 return BadRequest("Nieprawidłowe aktualne hasło.");
 
+            // Walidacja nowego hasła
+            var passwordValidationError = ValidatePassword(dto.NewPassword);
+            if (!string.IsNullOrEmpty(passwordValidationError))
+                return BadRequest(passwordValidationError);
+
             user.HashedPassword = hasher.HashPassword(user, dto.NewPassword);
             await _context.SaveChangesAsync();
 
             return NoContent();
+        }
+
+        // Funkcja walidująca nowe hasło pod kątem bezpieczeństwa
+        private string ValidatePassword(string password)
+        {
+            if (password.Length < 8)
+                return "Password must be at least 8 characters long";
+            
+            if (!password.Any(char.IsDigit))
+                return "Password must contain at least one number";
+            
+            if (!password.Any(char.IsUpper))
+                return "Password must contain at least one uppercase letter";
+            
+            if (!password.Any(char.IsLower))
+                return "Password must contain at least one lowercase letter";
+            
+            if (!password.Any(ch => "!@#$%^&*(),.?\":{}|<>".Contains(ch)))
+                return "Password must contain at least one special character";
+
+            return null; // brak błędów
         }
 
         
