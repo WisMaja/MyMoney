@@ -230,14 +230,3 @@ dotnet test
 - [Testowanie](docs/testowanie.md)
 - [Diagramy](docs/diagramy.md)
 
-## Współpraca
-
-1. Fork projektu
-2. Utwórz branch: `git checkout -b feature/nazwa`
-3. Commit: `git commit -m 'Dodaj funkcję'`
-4. Push: `git push origin feature/nazwa`
-5. Otwórz Pull Request
-
----
-
-**Wersja:** 1.0.0 | **Aktualizacja:** Grudzień 2024
