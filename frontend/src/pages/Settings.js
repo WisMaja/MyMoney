@@ -8,7 +8,6 @@ import {
   Switch,
   Divider,
   Avatar,
-  FormControlLabel,
   List,
   ListItem,
   ListItemIcon,
@@ -23,24 +22,16 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
 import PersonIcon from '@mui/icons-material/Person';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 import SecurityIcon from '@mui/icons-material/Security';
-import LanguageIcon from '@mui/icons-material/Language';
-import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
-import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/Settings.css';
 import { useAuth } from '../hooks/useAuth';
-import { getCurrentUser, updateCurrentUser, updateProfileImage } from '../services/userService';
+import { getCurrentUser, updateProfileImage } from '../services/userService';
 import apiClient from "../apiClient";
 
 const Settings = () => {
@@ -51,7 +42,7 @@ const Settings = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
   const [isSaving, setSaving] = useState(false);
-  const [hasChanges, setHasChanges] = useState(false); // Śledzi, czy są zmiany w formularzu
+  const [hasChanges, setHasChanges] = useState(false);
 
   const [originalUserSettings, setOriginalUserSettings] = useState({
     profile: {

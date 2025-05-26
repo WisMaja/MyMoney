@@ -1,11 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, Button, Avatar, Chip, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, InputLabel, FormControl, IconButton, Tooltip, CircularProgress } from '@mui/material';
-import { Link, useNavigate } from 'react-router-dom';
-import HomeIcon from '@mui/icons-material/Home';
-import ShowChartIcon from '@mui/icons-material/ShowChart';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
-import PeopleIcon from '@mui/icons-material/People';
-import SettingsIcon from '@mui/icons-material/Settings';
+import { Box, Typography, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Tooltip, CircularProgress } from '@mui/material';
+import { useNavigate } from 'react-router-dom';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalance from '@mui/icons-material/AccountBalance';
@@ -17,7 +12,7 @@ import EditTransactionDialog from '../components/EditTransactionDialog';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/Dashboard.css';
-import { getAllTransactions, getIncomeTransactions, getExpenseTransactions, deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
+import {  deleteTransaction, getTransactionsByWallet } from '../services/transactionService';
 import { getMainWallet } from '../services/walletService';
 
 const Dashboard = () => {

@@ -23,15 +23,13 @@ import {
   Tooltip,
   FormControl,
   InputLabel,
-  Select,
-  InputAdornment
+  Select
 } from '@mui/material';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
   Edit as EditIcon,
   Category as CategoryIcon,
-  ArrowDropDown as ArrowDropDownIcon,
   CheckCircle as CheckCircleIcon,
   ShoppingCart as ShoppingCartIcon,
   LocalDining as DiningIcon,
@@ -42,7 +40,6 @@ import {
   Devices as TechnologyIcon,
   LocalAtm as IncomeIcon,
   AttachMoney as GeneralIcon,
-  ColorLens as ColorIcon,
   MoreVert as MoreIcon
 } from '@mui/icons-material';
 import Sidebar from '../components/Sidebar';

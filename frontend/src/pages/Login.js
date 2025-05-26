@@ -4,8 +4,6 @@ import { Box, Typography, Button, Divider, Paper, TextField, List } from '@mui/m
 import '../styles/Login.css';
 import apiClient from '../apiClient';
 import {useAuth} from "../hooks/useAuth";
-import { AuthProvider } from '../context/AuthContext';
-import { useEffect, useRef } from 'react';
 
 const Login = () => {
   const navigate = useNavigate();

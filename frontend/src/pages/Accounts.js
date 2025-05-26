@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box, Typography, Button, Paper, Avatar, IconButton, LinearProgress, Divider,
-  Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Select,
+  Box, Typography, Button, Paper, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, Select,
   FormControl, InputLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
@@ -10,14 +9,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 
-import CreditCardIcon from '@mui/icons-material/CreditCard';
-import SavingsIcon from '@mui/icons-material/Savings';
 import DeleteIcon from '@mui/icons-material/Delete';
 
 import Sidebar from '../components/Sidebar';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
-import { getAllWallets, createWallet,deleteWallet, getWalletBalance, setMainWallet, fetchUserProfile, updateWallet, setManualBalance, addMemberToWallet  } from '../services/walletService';
+import { getAllWallets, createWallet,deleteWallet, getWalletBalance, setMainWallet, fetchUserProfile, updateWallet, addMemberToWallet  } from '../services/walletService';
 import '../styles/Accounts.css';
 
 

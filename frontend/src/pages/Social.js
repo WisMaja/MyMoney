@@ -10,12 +10,7 @@ import {
   IconButton,
   Avatar,
   Divider,
-  InputAdornment,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListItemSecondaryAction,
+  InputAdornment
 } from '@mui/material';
 import {
   Search as SearchIcon,
