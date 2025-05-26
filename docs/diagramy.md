@@ -739,7 +739,3 @@ graph LR
     ApiCalls -->|Validate| TokenValidator
     TokenValidator -->|Check| UserTable
 ```
-
----
-
-**Uwaga:** Wszystkie diagramy są renderowane automatycznie przez Mermaid. Możesz je kopiować i wklejać do dowolnego edytora obsługującego Mermaid (GitHub, GitLab, Notion, itp.). 
