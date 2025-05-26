@@ -16,10 +16,23 @@ import { AuthProvider } from './context/AuthContext';
 
 import PrivateRoute from './router/PrivateRoute';
 
-import { useAuth } from './hooks/useAuth';
-
 import './App.css';
 import './styles/common.css';
+
+if (typeof window !== "undefined" && window.console) {
+  console.log(
+    "%cOSTRZEŻENIE!",
+    "color: red; font-size: 40px; font-weight: bold; text-shadow: 1px 1px black;"
+  );
+  console.log(
+    "%cTa konsola jest przeznaczona dla deweloperów. Jeśli ktoś kazał Ci tutaj coś wkleić, może to być atak.",
+    "color: black; font-size: 16px;"
+  );
+  console.log(
+    "%cNigdy nie wpisuj tutaj nieznanych komend — możesz udostępnić dostęp do swojego konta.",
+    "color: black; font-size: 14px;"
+  );
+}
 
 // Dodajemy komponent diagnostyczny
 const DiagnosticPage = () => {
