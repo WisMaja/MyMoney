@@ -1,5 +1,7 @@
 import apiClient from '../apiClient';
 
+
+
 // Get all wallets
 export const getAllWallets = async () => {
   try {
@@ -9,6 +11,11 @@ export const getAllWallets = async () => {
     console.error('Error fetching wallets:', error);
     throw error;
   }
+};
+
+export const fetchUserProfile = async () => {
+  const response = await apiClient.get('/users/me');
+  return response.data;
 };
 
 // Get a wallet by ID
@@ -75,14 +82,9 @@ export const createWallet = async (walletData) => {
 };
 
 // Update a wallet
-export const updateWallet = async (id, walletData) => {
-  try {
-    const response = await apiClient.put(`/wallets/${id}`, walletData);
-    return response.data;
-  } catch (error) {
-    console.error(`Error updating wallet with ID ${id}:`, error);
-    throw error;
-  }
+export const updateWallet = async (id, data) => {
+  const response = await apiClient.put(`/wallets/${id}`, data);
+  return response.data;
 };
 
 // Delete a wallet
@@ -95,6 +97,24 @@ export const deleteWallet = async (id) => {
     throw error;
   }
 };
+// services/walletService.js
+
+export const getWalletBalance = async (walletId) => {
+  try {
+    const response = await apiClient.get(`/wallets/${walletId}/balance`);
+    // W odpowiedzi backendu powinny znajdować się składowe income/expenses:
+    return {
+      currentBalance: response.data.currentBalance,
+      totalIncome: response.data.totalIncome || 0,
+      totalExpenses: response.data.totalExpenses || 0,
+    };
+  } catch (error) {
+    console.error(`Error fetching balance for wallet ID ${walletId}:`, error);
+    throw error;
+  }
+};
+
+
 
 // Set manual balance for a wallet
 export const setManualBalance = async (id, balance) => {
@@ -242,25 +262,17 @@ export const ensureDefaultWallet = async () => {
 
 // Function to create a default wallet for the user
 export const createDefaultWallet = async () => {
-  console.log("Creating default wallet");
-  const defaultWallet = {
-    id: '00000000-0000-0000-0000-000000000000',
-    name: 'Default Wallet',
-    type: 'Personal',
-    currency: 'USD',
-    initialBalance: 0
-  };
-  
+  console.log("createDefaultWallet function called");
+  console.warn("Default wallet creation is disabled.");
+  return null;
+}; 
+// Dodaj członka do portfela
+export const addMemberToWallet = async (walletId, email) => {
   try {
-    const response = await apiClient.post('/wallets', defaultWallet);
-    console.log("Default wallet created successfully:", response.data);
+    const response = await apiClient.post(`/wallets/${walletId}/members/email`, { email });
     return response.data;
   } catch (error) {
-    console.error("Error creating default wallet:", error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    }
+    console.error(`Error adding member to wallet ID ${walletId}:`, error);
     throw error;
   }
-}; 
+};

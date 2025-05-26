@@ -29,11 +29,16 @@ namespace api.Controllers
 
         private static decimal CalculateCurrentBalance(Wallet wallet)
         {
-            var baseBalance = wallet.ManualBalance ?? wallet.InitialBalance;
+            bool useManualBalance = wallet.ManualBalance.HasValue;
+            var baseBalance = useManualBalance ? wallet.ManualBalance.Value : wallet.InitialBalance;
             var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue;
-            var transactionSum = wallet.Transactions.Where(t => t.CreatedAt >= fromDate).Sum(t => t.Amount);
+            var transactionSum = wallet.Transactions
+                .Where(t => t.CreatedAt >= fromDate)
+                .Sum(t => t.Amount);
             return baseBalance + transactionSum;
         }
+
+
 
         // GET: api/wallets
         [HttpGet]
@@ -115,14 +120,25 @@ namespace api.Controllers
 
             var currentBalance = CalculateCurrentBalance(wallet);
 
+            // Oblicz sumę przychodów i wydatków
+            var totalIncome = wallet.Transactions
+                .Where(t => t.Amount > 0).Sum(t => t.Amount);
+
+            var totalExpenses = wallet.Transactions
+                .Where(t => t.Amount < 0).Sum(t => Math.Abs(t.Amount));
+
+
             return Ok(new
             {
                 WalletId = wallet.Id,
                 InitialBalance = wallet.InitialBalance,
                 ManualBalance = wallet.ManualBalance,
                 BalanceResetAt = wallet.BalanceResetAt,
-                CurrentBalance = currentBalance
+                CurrentBalance = currentBalance,
+                TotalIncome = totalIncome,
+                TotalExpenses = totalExpenses
             });
+
         }
         
         [HttpGet("{id}/members")]
@@ -188,7 +204,7 @@ namespace api.Controllers
 
             // Zaktualizuj dane portfela
             wallet.Name = dto.Name;
-            wallet.Type = dto.Type;
+            //wallet.Type = dto.Type;
             wallet.Currency = dto.Currency;
 
             // Jeśli `Currency` zostanie zmienione, dodatkowe działania mogą być potrzebne
@@ -350,6 +366,37 @@ namespace api.Controllers
         }
         
         
+        [HttpPost("{id}/members/email")]
+        public async Task<IActionResult> AddMemberByEmail(Guid id, [FromBody] AddMemberByEmailDto dto)
+        {
+            var userId = GetUserIdFromToken();
+
+            var wallet = await _context.Wallets
+                .Include(w => w.Members)
+                .FirstOrDefaultAsync(w => w.Id == id && w.CreatedByUserId == userId);
+
+            if (wallet == null)
+                return Forbid("Only wallet owner can add members.");
+
+            var newUser = await _context.Users
+                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+            if (newUser == null)
+                return NotFound("User with this email does not exist.");
+
+            if (wallet.Members.Any(m => m.UserId == newUser.Id))
+                return Conflict("This user is already a member of the wallet.");
+
+            var member = new WalletMember
+            {
+                WalletId = id,
+                UserId = newUser.Id,
+            };
+
+            _context.WalletMembers.Add(member);
+            await _context.SaveChangesAsync();
+
+            return Ok("Member added successfully.");
+        }
 
         
         // DELETE: api/wallet/{id}

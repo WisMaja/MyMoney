@@ -41,6 +41,7 @@ import Header from '../components/Header';
 import '../styles/Settings.css';
 import { useAuth } from '../hooks/useAuth';
 import { getCurrentUser, updateCurrentUser, updateProfileImage } from '../services/userService';
+import apiClient from "../apiClient";
 
 const Settings = () => {
   const navigate = useNavigate();
@@ -49,11 +50,13 @@ const Settings = () => {
   const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isSaving, setSaving] = useState(false);
+  const [hasChanges, setHasChanges] = useState(false); // Śledzi, czy są zmiany w formularzu
+
   const [originalUserSettings, setOriginalUserSettings] = useState({
     profile: {
       name: '',
-      email: '',
-      phone: ''
+      email: ''
     },
     notifications: {
       emailNotifications: true,
@@ -77,8 +80,7 @@ const Settings = () => {
   const [userSettings, setUserSettings] = useState({
     profile: {
       name: '',
-      email: '',
-      phone: ''
+      email: ''
     },
     notifications: {
       emailNotifications: true,
@@ -132,8 +134,7 @@ const Settings = () => {
         ...userSettings,
         profile: {
           name: userData.fullName || '',
-          email: userData.email || '',
-          phone: userData.phone || ''
+          email: userData.email || ''
         }
       };
       
@@ -169,6 +170,8 @@ const Settings = () => {
     navigate('/social');
   };
 
+
+
   const handleSectionChange = (section) => {
     setActiveSection(section);
   };
@@ -187,9 +190,6 @@ const Settings = () => {
     handleSettingChange(section, setting, event.target.checked);
   };
 
-  const handleInputChange = (section, setting) => (event) => {
-    handleSettingChange(section, setting, event.target.value);
-  };
 
   const handleOpenDeleteDialog = () => {
     setDeleteAccountDialogOpen(true);
@@ -217,32 +217,41 @@ const Settings = () => {
     setSnackbarOpen(false);
   };
 
+  const handleInputChange = (section, setting) => (event) => {
+    const value = event.target.value;
+
+    setUserSettings((prevSettings) => ({
+      ...prevSettings,
+      [section]: {
+        ...prevSettings[section],
+        [setting]: value,
+      },
+    }));
+    setHasChanges(true);
+  };
+
+// Funkcja obsługująca zapis danych profilu
   const handleSaveProfileChanges = async () => {
     try {
-      // Prepare user data for API
-      const userData = {
-        fullName: userSettings.profile.name,
-        email: userSettings.profile.email,
-        // Note: phone is not in the API model yet, but we can add it later
+      setSaving(true);
+      const updatedUser = {
+        fullName: userSettings.profile.name.trim(),
+        email: userSettings.profile.email.trim(),
+        profileImageUrl: userSettings.profile.profileImageUrl || null,
       };
-      
-      // Update user via API
-      await updateCurrentUser(userData);
-      
-      // Update original settings to reflect saved state
-      setOriginalUserSettings({
-        ...originalUserSettings,
-        profile: { ...userSettings.profile }
-      });
-      
-      setSnackbarMessage('Profile updated successfully!');
-      setSnackbarSeverity('success');
-      setSnackbarOpen(true);
+
+      await apiClient.put('/users/me', updatedUser);
+
+      //alert('Profile updated successfully!');
+      setHasChanges(false);
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
     } catch (error) {
-      console.error('Error updating profile:', error);
-      setSnackbarMessage('Failed to update profile. Please try again.');
-      setSnackbarSeverity('error');
-      setSnackbarOpen(true);
+      console.error('Error saving profile changes:', error);
+      alert('Failed to update profile. Please try again later.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -279,8 +288,7 @@ const Settings = () => {
     
     return (
       originalProfile.name !== currentProfile.name ||
-      originalProfile.email !== currentProfile.email ||
-      originalProfile.phone !== currentProfile.phone
+      originalProfile.email !== currentProfile.email
     );
   };
 
@@ -320,12 +328,13 @@ const Settings = () => {
               </Box>
             </Box>
             
+            
             <Box className="settings-form-group">
               <Typography className="settings-form-label">Full Name</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.name}
-                onChange={handleInputChange('profile', 'name')}
+                onChange={handleInputChange('profile', 'name')} // Poprawne przypisanie funkcji
                 fullWidth
               />
             </Box>
@@ -340,16 +349,7 @@ const Settings = () => {
                 type="email"
               />
             </Box>
-            
-            <Box className="settings-form-group">
-              <Typography className="settings-form-label">Phone Number</Typography>
-              <TextField
-                className="settings-input"
-                value={userSettings.profile.phone}
-                onChange={handleInputChange('profile', 'phone')}
-                fullWidth
-              />
-            </Box>
+
 
             <Box className="settings-button-group">
               <Button
@@ -690,4 +690,4 @@ const Settings = () => {
   );
 };
 
-export default Settings; 
+export default Settings;
