@@ -75,12 +75,3 @@ MyMoney/
 ├── docs/               # Dokumentacja
 └── docker-compose.yml  # Konfiguracja Docker
 ```
-
-### Licencja
-
-Projekt jest własnością prywatną i nie jest udostępniany na licencji open source.
-
----
-
-**Ostatnia aktualizacja:** Grudzień 2024  
-**Wersja dokumentacji:** 1.0 
