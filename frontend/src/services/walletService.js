@@ -267,12 +267,28 @@ export const createDefaultWallet = async () => {
   return null;
 }; 
 // Dodaj członka do portfela
+// Dodaj członka do portfela
 export const addMemberToWallet = async (walletId, email) => {
   try {
-    const response = await apiClient.post(`/wallets/${walletId}/members/email`, { email });
+    const response = await apiClient.post(`users/add-friend-to-wallet`, {
+      WalletId: walletId,
+      FriendEmail: email,
+    });
     return response.data;
   } catch (error) {
     console.error(`Error adding member to wallet ID ${walletId}:`, error);
-    throw error;
+
+    if (error.response) {
+      if (
+          error.response?.status === 400 &&
+          error.response?.data === "Nie znaleziono użytkownika o podanym adresie e-mail."
+      ) {
+        return { error: 'user_not_found', message: 'Użytkownik o podanym adresie e-mail nie istnieje.' };
+      }
+    }
+
+    throw new Error(
+        error.response?.data || 'Wystąpił nieoczekiwany błąd. Spróbuj ponownie później.'
+    );
   }
 };

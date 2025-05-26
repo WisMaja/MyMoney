@@ -171,5 +171,48 @@ namespace api.Controllers
 
             return NoContent();
         }
+        [HttpPost("add-friend-to-wallet")]
+        public async Task<IActionResult> AddFriendToWallet([FromBody] AddFriendRequestDto request)
+        {
+            try
+            {
+                // Wyciągnięcie ID użytkownika z tokena
+                var userId = GetUserIdFromToken();
+
+                // Sprawdzenie, czy portfel istnieje i należy do użytkownika
+                var wallet = await _context.Wallets
+                                           .Include(w => w.Members)
+                                           .FirstOrDefaultAsync(w => w.Id == request.WalletId && w.CreatedByUserId == userId);
+                if (wallet == null)
+                    return BadRequest("Nie znaleziono portfela lub brak dostępu.");
+
+                // Sprawdzenie, czy użytkownik o podanym e-mailu istnieje
+                var friend = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.FriendEmail);
+                if (friend == null)
+                    return BadRequest("Nie znaleziono użytkownika o podanym adresie e-mail.");
+
+                // Sprawdzenie, czy użytkownik już jest członkiem portfela
+                if (wallet.Members.Any(m => m.UserId == friend.Id))
+                    return BadRequest("Ten użytkownik jest już członkiem portfela.");
+
+                // Dodanie znajomego jako członka portfela
+                var walletMember = new WalletMember
+                {
+                    WalletId = wallet.Id,
+                    UserId = friend.Id,
+                    
+                };
+
+                wallet.Members.Add(walletMember);
+                await _context.SaveChangesAsync();
+
+                return Ok("Pomyślnie dodano znajomego do portfela.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Błąd: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Wystąpił błąd serwera.");
+            }
+        }
     }
 }
