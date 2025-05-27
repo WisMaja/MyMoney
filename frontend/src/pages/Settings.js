@@ -34,6 +34,24 @@ import { useAuth } from '../hooks/useAuth';
 import { getCurrentUser, updateProfileImage } from '../services/userService';
 import apiClient from "../apiClient";
 
+const validatePassword = (password) => {
+  if (password.length < 8) {
+    return 'Password must be at least 8 characters long';
+  }
+  if (!/\d/.test(password)) {
+    return 'Password must contain at least one number';
+  }
+  if (!/[A-Z]/.test(password)) {
+    return 'Password must contain at least one uppercase letter';
+  }
+  if (!/[a-z]/.test(password)) {
+    return 'Password must contain at least one lowercase letter';
+  }
+  if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+    return 'Password must contain at least one special character';
+  }
+  return null; // brak błędów
+};
 const Settings = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -93,6 +111,10 @@ const Settings = () => {
     }
   });
 
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [isDeleteAccountDialogOpen, setDeleteAccountDialogOpen] = useState(false);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
@@ -110,16 +132,16 @@ const Settings = () => {
       setLoading(true);
       const userData = await getCurrentUser();
       setUser(userData);
-      
+
       // Set profile image if available
       if (userData.profileImageUrl) {
         // If it's a relative URL, prepend the server URL
-        const imageUrl = userData.profileImageUrl.startsWith('http') 
-          ? userData.profileImageUrl 
+        const imageUrl = userData.profileImageUrl.startsWith('http')
+          ? userData.profileImageUrl
           : `http://localhost:5032${userData.profileImageUrl}`;
         setProfileImage(imageUrl);
       }
-      
+
       // Update settings with real user data
       const updatedSettings = {
         ...userSettings,
@@ -128,7 +150,7 @@ const Settings = () => {
           email: userData.email || ''
         }
       };
-      
+
       setUserSettings(updatedSettings);
       setOriginalUserSettings(updatedSettings);
     } catch (error) {
@@ -162,6 +184,51 @@ const Settings = () => {
   };
 
 
+  const handleChangePassword = async () => {
+    if (newPassword !== confirmNewPassword) {
+      setSnackbarMessage('New passwords do not match');
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      setSnackbarMessage(passwordError);
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+      return;
+    }
+
+
+    try {
+      setIsChangingPassword(true);
+
+      await apiClient.put('/auth/change-password', {
+        currentPassword,
+        newPassword,
+      });
+
+      setSnackbarMessage('Password changed successfully');
+      setSnackbarSeverity('success');
+      setSnackbarOpen(true);
+
+      // Wyczyść pola formularza
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmNewPassword('');
+      setActiveSection('security');
+    } catch (error) {
+      console.error('Error changing password:', error);
+      setSnackbarMessage(
+          error.response?.data || 'Failed to change password. Try again.'
+      );
+      setSnackbarSeverity('error');
+      setSnackbarOpen(true);
+    } finally {
+      setIsChangingPassword(false);
+    }
+  };
 
   const handleSectionChange = (section) => {
     setActiveSection(section);
@@ -416,7 +483,7 @@ const Settings = () => {
             <Typography className="settings-section-title">
               Security Settings
             </Typography>
-            
+
             <Box className="settings-switch-group">
               <Typography className="settings-switch-label">Two-Factor Authentication</Typography>
               <Switch
@@ -425,7 +492,7 @@ const Settings = () => {
                 color="primary"
               />
             </Box>
-            
+
             <Box className="settings-switch-group">
               <Typography className="settings-switch-label">Remember Devices</Typography>
               <Switch
@@ -434,7 +501,7 @@ const Settings = () => {
                 color="primary"
               />
             </Box>
-            
+
             <Box className="settings-form-group">
               <Typography className="settings-form-label">Auto Logout (minutes)</Typography>
               <TextField
@@ -445,13 +512,67 @@ const Settings = () => {
                 fullWidth
               />
             </Box>
-            
-            <Button variant="outlined" sx={{ my: 2 }}>
-              Change Password
-            </Button>
-            
+
             <Divider className="settings-section-divider" />
-            
+
+            <Typography className="settings-section-title">
+              Change Password
+            </Typography>
+            <Box>
+              <Typography sx={{ textAlign: 'left', fontSize: 16, marginBottom: 2 }}>
+                A password must:
+              </Typography>
+              <List sx={{ paddingLeft: 3, marginBottom: 3, textAlign: 'left', listStyleType: 'disc' }}>
+                <li>Be at least 8 characters long</li>
+                <li>Contain at least one number</li>
+                <li>Contain at least one special character</li>
+                <li>Contain at least one uppercase letter</li>
+                <li>Contain at least one lowercase letter</li>
+              </List>
+            </Box>
+
+            <Box className="settings-form-group">
+              <Typography className="settings-form-label">Current Password</Typography>
+              <TextField
+                  className="settings-input"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  fullWidth
+              />
+            </Box>
+            <Box className="settings-form-group">
+              <Typography className="settings-form-label">New Password</Typography>
+              <TextField
+                  className="settings-input"
+                  type="password"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  fullWidth
+              />
+            </Box>
+            <Box className="settings-form-group">
+              <Typography className="settings-form-label">
+                Confirm New Password
+              </Typography>
+              <TextField
+                  className="settings-input"
+                  type="password"
+                  value={confirmNewPassword}
+                  onChange={(e) => setConfirmNewPassword(e.target.value)}
+                  fullWidth
+              />
+            </Box>
+            <Box className="settings-button-group">
+              <Button
+                  variant="contained"
+                  onClick={handleChangePassword}
+                  disabled={isChangingPassword}
+              >
+                {isChangingPassword ? 'Changing...' : 'Change Password'}
+              </Button>
+            </Box>
+
             <Box className="danger-zone">
               <Typography className="danger-zone-title" variant="h6">
                 Danger Zone
@@ -460,14 +581,14 @@ const Settings = () => {
                 Deleting your account is permanent and cannot be undone. All your data will be lost.
               </Typography>
               <Box className="settings-button-group" sx={{ flexDirection: 'row', gap: 1, justifyContent: 'center' }}>
-                <Button 
+                <Button
                   variant="contained"
                   color="error"
                   onClick={handleOpenDeleteDialog}
                 >
                   Delete Account
                 </Button>
-                <Button 
+                <Button
                   variant="outlined"
                   color="primary"
                   onClick={handleLogout}
@@ -624,8 +745,16 @@ const Settings = () => {
           </Paper>
 
           {/* Settings Content */}
-          <Paper className="settings-content">
-            {loading ? (
+          <Paper
+              className="settings-content"
+              sx={{
+                backgroundColor: 'white',
+                padding: 4,
+                borderRadius: 3,
+              }}
+          >
+
+          {loading ? (
               <CircularProgress />
             ) : (
               renderSettingsContent()

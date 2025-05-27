@@ -206,7 +206,14 @@ const Accounts = () => {
   // Wywołanie API
   const handleSaveMember = async () => {
     try {
-      await addMemberToWallet(walletIdToAddMember, email);
+      const response = await addMemberToWallet(walletIdToAddMember, email);
+
+      // Sprawdzenie błędu, jeśli użytkownik nie istnieje
+      if (response?.error === 'user_not_found') {
+        alert(response.message);
+        return;
+      }
+
       setAddMemberDialogOpen(false);
       alert('Member added successfully!');
     } catch (error) {

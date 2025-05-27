@@ -40,24 +40,24 @@ function Sidebar() {
       >
         <AccountsIcon className="sidebar-icon" />
       </div>
-      <div 
-        className={`sidebar-icon-wrapper ${currentPath === '/budgets' ? 'active' : ''}`}
-        onClick={() => handleNavigation('/budgets')}
-      >
-        <BudgetIcon className="sidebar-icon" />
-      </div>
+      {/*<div */}
+      {/*  className={`sidebar-icon-wrapper ${currentPath === '/budgets' ? 'active' : ''}`}*/}
+      {/*  onClick={() => handleNavigation('/budgets')}*/}
+      {/*>*/}
+      {/*  <BudgetIcon className="sidebar-icon" />*/}
+      {/*</div>*/}
       <div 
         className={`sidebar-icon-wrapper ${currentPath === '/categories' ? 'active' : ''}`}
         onClick={() => handleNavigation('/categories')}
       >
         <CategoryIcon className="sidebar-icon" />
       </div>
-      <div 
-        className={`sidebar-icon-wrapper ${currentPath === '/social' ? 'active' : ''}`}
-        onClick={() => handleNavigation('/social')}
-      >
-        <PersonIcon className="sidebar-icon" />
-      </div>
+      {/*<div */}
+      {/*  className={`sidebar-icon-wrapper ${currentPath === '/social' ? 'active' : ''}`}*/}
+      {/*  onClick={() => handleNavigation('/social')}*/}
+      {/*>*/}
+      {/*  <PersonIcon className="sidebar-icon" />*/}
+      {/*</div>*/}
       <div 
         className={`sidebar-icon-wrapper ${currentPath === '/settings' ? 'active' : ''}`}
         onClick={() => handleNavigation('/settings')}
