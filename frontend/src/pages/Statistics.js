@@ -13,6 +13,7 @@ import {
   Chip
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { 
   Chart as ChartJS, 
   CategoryScale, 
@@ -50,6 +51,7 @@ ChartJS.register(
 
 const Statistics = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [timeRange, setTimeRange] = useState('month');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -298,22 +300,22 @@ const Statistics = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Header title="Financial Statistics" />
+        <Header title={t('statistics.title')} />
         
         {/* Time Range Filter */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 3 }}>
           <FormControl sx={{ minWidth: 120 }}>
-            <InputLabel id="time-range-label">Time Range</InputLabel>
+            <InputLabel id="time-range-label">{t('statistics.thisMonth')}</InputLabel>
             <Select
               labelId="time-range-label"
               id="time-range-select"
               value={timeRange}
-              label="Time Range"
+              label={t('statistics.thisMonth')}
               onChange={handleTimeRangeChange}
             >
-              <MenuItem value="week">Last Week</MenuItem>
-              <MenuItem value="month">Last Month</MenuItem>
-              <MenuItem value="year">Last Year</MenuItem>
+              <MenuItem value="week">{t('statistics.thisMonth')}</MenuItem>
+              <MenuItem value="month">{t('statistics.lastMonth')}</MenuItem>
+              <MenuItem value="year">{t('statistics.thisYear')}</MenuItem>
             </Select>
           </FormControl>
         </Box>
@@ -327,7 +329,7 @@ const Statistics = () => {
         {!loading && !error && !hasData() && (
           <Box sx={{ my: 4, textAlign: 'center' }}>
             <Alert severity="info" sx={{ maxWidth: 600, mx: 'auto', mb: 3 }}>
-              No transaction data available for the selected period. Add some transactions to see your statistics!
+              {t('transactions.noTransactions')}
             </Alert>
             <Typography variant="body1" sx={{ color: 'text.secondary', mb: 2 }}>
               Try selecting a different time range or add new transactions to view statistics.
@@ -343,7 +345,7 @@ const Statistics = () => {
               <Grid item xs={12} md={8}>
                 <Paper elevation={2} className="chart-container">
                   <Typography variant="h6" className="chart-title">
-                    <InsightsIcon /> Income vs Expense Over Time
+                    <InsightsIcon /> {t('statistics.incomeVsExpenses')}
                   </Typography>
                   <Box sx={{ height: 300 }}>
                     <Line options={incomeVsExpenseOptions} data={incomeVsExpenseData} />
@@ -355,13 +357,13 @@ const Statistics = () => {
               <Grid item xs={12} md={4}>
                 <Paper elevation={2} className="chart-container">
                   <Typography variant="h6" className="chart-title">
-                    <TrendingDownIcon /> Expense Breakdown
+                    <TrendingDownIcon /> {t('statistics.categoryBreakdown')}
                   </Typography>
                   <Box sx={{ height: 300, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     {statsData.categoryBreakdown.expenses && statsData.categoryBreakdown.expenses.length > 0 ? (
                       <Pie data={expenseCategoryData} />
                     ) : (
-                      <Typography color="text.secondary">No expense data available</Typography>
+                      <Typography color="text.secondary">{t('transactions.noTransactions')}</Typography>
                     )}
                   </Box>
                 </Paper>
@@ -405,23 +407,23 @@ const Statistics = () => {
               <Grid item xs={12}>
                 <Paper elevation={2} className="summary-container">
                   <Typography variant="h6" className="chart-title">
-                    Financial Summary
+                    {t('statistics.overview')}
                   </Typography>
                   <Grid container spacing={2} sx={{ mt: 1 }}>
                     <Grid item xs={6} md={3}>
-                      <Typography variant="subtitle2" color="text.secondary">Total Income</Typography>
+                      <Typography variant="subtitle2" color="text.secondary">{t('statistics.totalIncome')}</Typography>
                       <Typography variant="h6" color="success.main">
                         ${statsData.summary.totalIncome.toFixed(2)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6} md={3}>
-                      <Typography variant="subtitle2" color="text.secondary">Total Expenses</Typography>
+                      <Typography variant="subtitle2" color="text.secondary">{t('statistics.totalExpenses')}</Typography>
                       <Typography variant="h6" color="error.main">
                         ${statsData.summary.totalExpenses.toFixed(2)}
                       </Typography>
                     </Grid>
                     <Grid item xs={6} md={3}>
-                      <Typography variant="subtitle2" color="text.secondary">Net Savings</Typography>
+                      <Typography variant="subtitle2" color="text.secondary">{t('statistics.netIncome')}</Typography>
                       <Typography variant="h6" color={statsData.summary.netSavings >= 0 ? "success.main" : "error.main"}>
                         ${statsData.summary.netSavings.toFixed(2)}
                       </Typography>
@@ -449,7 +451,7 @@ const Statistics = () => {
                           </Typography>
                         </Box>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">No expense data</Typography>
+                        <Typography variant="body2" color="text.secondary">{t('transactions.noTransactions')}</Typography>
                       )}
                     </Grid>
                     
@@ -468,7 +470,7 @@ const Statistics = () => {
                           </Typography>
                         </Box>
                       ) : (
-                        <Typography variant="body2" color="text.secondary">No income data</Typography>
+                        <Typography variant="body2" color="text.secondary">{t('transactions.noTransactions')}</Typography>
                       )}
                     </Grid>
                   </Grid>

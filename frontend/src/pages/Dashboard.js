@@ -11,6 +11,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalance from '@mui/icons-material/AccountBalance';
 import CreditCard from '@mui/icons-material/CreditCard';
 import Savings from '@mui/icons-material/Savings';
+import { useTranslation } from 'react-i18next';
 import AddIncomeDialog from '../components/AddIncomeDialog';
 import AddExpenseDialog from '../components/AddExpenseDialog';
 import EditTransactionDialog from '../components/EditTransactionDialog';
@@ -23,6 +24,7 @@ import { getMainWallet } from '../services/walletService';
 const Dashboard = () => {
 
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [userData, setUserData] = useState({
     name: 'John Doe',
     mainAccount: 0,
@@ -258,7 +260,7 @@ const Dashboard = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Header title="Welcome In Money Tracker" />
+        <Header title={t('dashboard.title')} />
 
         {/* Financial Cards */}
         <Box className="cards-container">
@@ -278,13 +280,13 @@ const Dashboard = () => {
               onClick={navigateToAccounts}
               sx={{ mt: 1, fontSize: '0.75rem' }}
             >
-              Change Main Account
+              {t('wallets.setAsMain')}
             </Button>
           </Box>
           
           <Box className="finance-card">
             <Typography className="card-title">
-              Incomes
+              {t('dashboard.income')}
             </Typography>
             <Typography className="card-amount">
               {userData.incomes.toFixed(2)}<span className="currency">{getCurrencySymbol(userData.mainAccountCurrency)}</span>
@@ -293,7 +295,7 @@ const Dashboard = () => {
           
           <Box className="finance-card">
             <Typography className="card-title">
-              Expenses
+              {t('dashboard.expenses')}
             </Typography>
             <Typography className="card-amount">
               {userData.expenses.toFixed(2)}<span className="currency">{getCurrencySymbol(userData.mainAccountCurrency)}</span>
@@ -308,7 +310,7 @@ const Dashboard = () => {
             className="action-button"
             onClick={handleAddIncome}
           >
-            Add Income
+            {t('dashboard.addIncome')}
           </Button>
           
           <Button 
@@ -316,19 +318,19 @@ const Dashboard = () => {
             className="action-button"
             onClick={handleAddExpense}
           >
-            Add Expense
+            {t('dashboard.addExpense')}
           </Button>
         </Box>
 
         {/* Transactions Section */}
         <Box className="transactions-container">
           <Typography variant="h6" className="transactions-title">
-            Recent Transactions
+            {t('dashboard.recentTransactions')}
           </Typography>
           <Box sx={{ height: '300px', overflowY: 'auto' }}>
             {loading ? (
               <Typography variant="body1" sx={{ textAlign: 'center', color: '#666', mt: 5 }}>
-                Loading transactions...
+                {t('common.loading')}
               </Typography>
             ) : error ? (
               <Box sx={{ textAlign: 'center', mt: 5 }}>
@@ -346,7 +348,7 @@ const Dashboard = () => {
               </Box>
             ) : transactions.length === 0 ? (
               <Typography variant="body1" sx={{ textAlign: 'center', color: '#666', mt: 5 }}>
-                No transactions yet. Add your first income or expense!
+                {t('dashboard.noTransactions')}
               </Typography>
             ) : (
               transactions.map(transaction => (
@@ -380,7 +382,7 @@ const Dashboard = () => {
                     >
                       {transaction.type === 'income' ? '+' : '-'}{transaction.amount.toFixed(2)} {getCurrencySymbol(userData.mainAccountCurrency)}
                     </Typography>
-                    <Tooltip title="Edit">
+                    <Tooltip title={t('common.edit')}>
                       <IconButton 
                         size="small" 
                         onClick={() => handleEditTransaction(transaction)}
@@ -389,7 +391,7 @@ const Dashboard = () => {
                         <EditIcon fontSize="small" />
                       </IconButton>
                     </Tooltip>
-                    <Tooltip title="Delete">
+                    <Tooltip title={t('common.delete')}>
                       <IconButton 
                         size="small" 
                         onClick={() => handleDeleteClick(transaction)}
@@ -433,7 +435,7 @@ const Dashboard = () => {
         open={confirmDeleteDialog}
         onClose={() => setConfirmDeleteDialog(false)}
       >
-        <DialogTitle>Confirm Delete</DialogTitle>
+        <DialogTitle>{t('transactions.deleteTransaction')}</DialogTitle>
         <DialogContent>
           <Typography>
             Are you sure you want to delete this {transactionToDelete?.type}?
@@ -444,22 +446,22 @@ const Dashboard = () => {
                 {transactionToDelete.description}
               </Typography>
               <Typography variant="body2">
-                Amount: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} {getCurrencySymbol(userData.mainAccountCurrency)}
+                {t('common.amount')}: {transactionToDelete.type === 'income' ? '+' : '-'}{transactionToDelete.amount.toFixed(2)} {getCurrencySymbol(userData.mainAccountCurrency)}
               </Typography>
               <Typography variant="body2">
-                Date: {transactionToDelete.date.toLocaleDateString()}
+                {t('common.date')}: {transactionToDelete.date.toLocaleDateString()}
               </Typography>
             </Box>
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setConfirmDeleteDialog(false)}>Cancel</Button>
+          <Button onClick={() => setConfirmDeleteDialog(false)}>{t('common.cancel')}</Button>
           <Button 
             onClick={handleDeleteConfirm} 
             color="error" 
             disabled={deleteLoading}
           >
-            {deleteLoading ? <CircularProgress size={24} /> : 'Delete'}
+            {deleteLoading ? <CircularProgress size={24} /> : t('common.delete')}
           </Button>
         </DialogActions>
       </Dialog>

@@ -26,6 +26,7 @@ import {
   Select,
   InputAdornment
 } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -107,6 +108,7 @@ const getDefaultCategoryProps = (categoryName, isGlobal) => {
 };
 
 const CategoryDialog = ({ open, onClose, onSave, category = null, title, categories }) => {
+  const { t } = useTranslation();
   const [categoryData, setCategoryData] = useState({
     name: ''
   });
@@ -162,7 +164,7 @@ const CategoryDialog = ({ open, onClose, onSave, category = null, title, categor
       <DialogContent>
         <TextField
           fullWidth
-          label="Category Name"
+          label={t('categories.categoryName')}
           name="name"
           value={categoryData.name}
           onChange={handleChange}
@@ -179,14 +181,14 @@ const CategoryDialog = ({ open, onClose, onSave, category = null, title, categor
       </DialogContent>
       <DialogActions>
         <Button onClick={onClose} disabled={loading}>
-          Cancel
+          {t('common.cancel')}
         </Button>
         <Button 
           onClick={handleSubmit} 
           variant="contained" 
           disabled={!!nameError || !categoryData.name.trim() || loading}
         >
-          {loading ? <CircularProgress size={20} /> : 'Save'}
+          {loading ? <CircularProgress size={20} /> : t('common.save')}
         </Button>
       </DialogActions>
     </Dialog>
@@ -194,6 +196,7 @@ const CategoryDialog = ({ open, onClose, onSave, category = null, title, categor
 };
 
 const Categories = () => {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [openDialog, setOpenDialog] = useState(false);
@@ -257,13 +260,13 @@ const Categories = () => {
 
   const handleCreateCategory = () => {
     setCurrentCategory(null);
-    setDialogTitle('Create Category');
+    setDialogTitle(t('categories.addCategory'));
     setOpenDialog(true);
   };
 
   const handleEditCategory = (category) => {
     setCurrentCategory(category);
-    setDialogTitle('Edit Category');
+    setDialogTitle(t('categories.editCategory'));
     setOpenDialog(true);
     handleCloseMenu();
   };
@@ -291,7 +294,7 @@ const Categories = () => {
       
       setAlert({
         open: true,
-        message: 'Category deleted successfully',
+        message: t('categories.categoryDeleted'),
         severity: 'success'
       });
     } catch (error) {
@@ -326,7 +329,7 @@ const Categories = () => {
         
         setAlert({
           open: true,
-          message: 'Category updated successfully',
+          message: t('categories.categoryUpdated'),
           severity: 'success'
         });
       } else {
@@ -345,7 +348,7 @@ const Categories = () => {
         
         setAlert({
           open: true,
-          message: 'Category created successfully',
+          message: t('categories.categoryAdded'),
           severity: 'success'
         });
       }
@@ -382,22 +385,22 @@ const Categories = () => {
       {/* Main Content */}
       <Box className="page-content">
         {/* Header */}
-        <Header title="Categories" />
+        <Header title={t('categories.title')} />
         
         {/* Filter and Create Button */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
           <FormControl variant="outlined" sx={{ minWidth: 150 }}>
-            <InputLabel id="filter-label">Filter</InputLabel>
+            <InputLabel id="filter-label">{t('common.filter')}</InputLabel>
             <Select
               labelId="filter-label"
               value={filter}
               onChange={handleFilterChange}
-              label="Filter"
+              label={t('common.filter')}
               size="small"
             >
-              <MenuItem value="all">All Categories</MenuItem>
-              <MenuItem value="income">Income</MenuItem>
-              <MenuItem value="expense">Expense</MenuItem>
+              <MenuItem value="all">{t('transactions.allTransactions')}</MenuItem>
+              <MenuItem value="income">{t('dashboard.income')}</MenuItem>
+              <MenuItem value="expense">{t('dashboard.expenses')}</MenuItem>
             </Select>
           </FormControl>
           
@@ -407,7 +410,7 @@ const Categories = () => {
             startIcon={<AddIcon />}
             onClick={handleCreateCategory}
           >
-            Create Category
+            {t('categories.addCategory')}
           </Button>
         </Box>
 
@@ -417,14 +420,14 @@ const Categories = () => {
             <Box className="loading-container">
               <CircularProgress />
               <Typography variant="body1" sx={{ mt: 2 }}>
-                Loading categories...
+                {t('common.loading')}
               </Typography>
             </Box>
           ) : filteredCategories.length === 0 ? (
             <Box className="no-categories">
               <CategoryIcon sx={{ fontSize: 60, color: '#aaa', mb: 2 }} />
               <Typography variant="h6" color="textSecondary">
-                No categories found
+                {t('categories.noCategories')}
               </Typography>
               <Typography variant="body2" color="textSecondary">
                 {filter === 'all' 
@@ -438,7 +441,7 @@ const Categories = () => {
                 onClick={handleCreateCategory}
                 sx={{ mt: 3 }}
               >
-                Create Category
+                {t('categories.addCategory')}
               </Button>
             </Box>
           ) : (
@@ -498,13 +501,13 @@ const Categories = () => {
             <ListItemIcon>
               <EditIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Edit" />
+            <ListItemText primary={t('common.edit')} />
           </MenuItem>
           <MenuItem onClick={() => handleDeleteCategory(selectedCategoryId)}>
             <ListItemIcon>
               <DeleteIcon fontSize="small" />
             </ListItemIcon>
-            <ListItemText primary="Delete" />
+            <ListItemText primary={t('common.delete')} />
           </MenuItem>
         </Menu>
 

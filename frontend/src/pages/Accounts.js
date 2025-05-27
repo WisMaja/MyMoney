@@ -5,6 +5,7 @@ import {
   FormControl, InputLabel,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -23,6 +24,7 @@ import '../styles/Accounts.css';
 
 const Accounts = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [accounts, setAccounts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isIncomeDialogOpen, setIncomeDialogOpen] = useState(false);
@@ -231,7 +233,7 @@ const Accounts = () => {
         <Box className="page-content">
           <Box className="accounts-header">
             <Typography variant="h4" component="h1" className="accounts-title">
-              My Accounts & Wallets
+              {t('wallets.title')}
             </Typography>
             <Box className="accounts-actions">
               <Button
@@ -240,16 +242,16 @@ const Accounts = () => {
                   startIcon={<AddIcon />}
                   onClick={handleOpenAddAccountDialog}
               >
-                Add Account
+                {t('wallets.addWallet')}
               </Button>
             </Box>
           </Box>
 
           <Box className="accounts-list">
             {isLoading ? (
-                <Typography>Loading wallets...</Typography>
+                <Typography>{t('common.loading')}</Typography>
             ) : accounts.length === 0 ? (
-                <Typography>No wallets found.</Typography>
+                <Typography>{t('wallets.myWallets')}</Typography>
             ) : (
                 accounts.map(account => (
                     <Paper key={account.id} className="account-card">
@@ -280,11 +282,11 @@ const Accounts = () => {
                            }}
                       >
                         <Box className="account-detail">
-                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Income</Typography>
+                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{t('dashboard.income')}</Typography>
                           <Typography className="detail-value" sx={{ fontSize: '1.2rem'}}>{account.income} {account.currency}</Typography>
                         </Box>
                         <Box className="account-detail">
-                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>Expenses</Typography>
+                          <Typography className="detail-label" sx={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{t('dashboard.expenses')}</Typography>
                           <Typography className="detail-value" sx={{ fontSize: '1.2rem'}}>{account.expenses} {account.currency}</Typography>
                         </Box>
                         {/*<Box className="account-detail">*/}
@@ -297,15 +299,15 @@ const Accounts = () => {
 
                       <Box sx={{ mt: 2, display: 'flex', gap: 1 }}>
                         <Button variant="contained" color="success" onClick={() => handleAddIncome(account.id)}>
-                          Add Income
+                          {t('dashboard.addIncome')}
                         </Button>
                         <Button variant="contained" color="error" onClick={() => handleAddExpense(account.id)}>
-                          Add Expense
+                          {t('dashboard.addExpense')}
                         </Button>
 
                         {account.id === mainWalletId ? (
                             <Typography variant="button" sx={{ mt: 1 }}>
-                              Main Wallet
+                              {t('wallets.mainWallet')}
                             </Typography>
                         ) : (
                             <Button
@@ -313,7 +315,7 @@ const Accounts = () => {
                                 color="primary"
                                 onClick={() => handleSetMainWallet(account.id)}
                             >
-                              Set as Main
+                              {t('wallets.setAsMain')}
                             </Button>
                         )}
 
@@ -356,12 +358,12 @@ const Accounts = () => {
         />
 
         <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} fullWidth maxWidth="sm">
-          <DialogTitle>Edit Wallet</DialogTitle>
+          <DialogTitle>{t('wallets.editWallet')}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
               <TextField
                   name="name"
-                  label="Wallet Name"
+                  label={t('wallets.walletName')}
                   value={walletToEdit?.name || ''}
                   onChange={handleWalletChange}
                   fullWidth
@@ -396,22 +398,22 @@ const Accounts = () => {
             </Box>
           </DialogContent>
           <DialogActions>
-            <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+            <Button onClick={() => setEditDialogOpen(false)}>{t('common.cancel')}</Button>
             <Button onClick={handleSaveWallet} variant="contained" color="primary">
-              Save
+              {t('common.save')}
             </Button>
           </DialogActions>
         </Dialog>
 
 
         <Dialog open={isAddAccountDialogOpen} onClose={handleCloseAddAccountDialog} fullWidth maxWidth="sm">
-          <DialogTitle>Add New Account</DialogTitle>
+          <DialogTitle>{t('wallets.addWallet')}</DialogTitle>
           <DialogContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mt: 2 }}>
               <TextField
                   autoFocus
                   name="name"
-                  label="Account Name"
+                  label={t('wallets.walletName')}
                   value={newAccount.name}
                   onChange={handleNewAccountChange}
                   fullWidth
@@ -419,23 +421,23 @@ const Accounts = () => {
               />
 
               <FormControl fullWidth>
-                <InputLabel id="account-type-label">Account Type</InputLabel>
+                <InputLabel id="account-type-label">{t('wallets.walletType')}</InputLabel>
                 <Select
                     labelId="account-type-label"
                     name="type"
                     value={newAccount.type}
-                    label="Account Type"
+                    label={t('wallets.walletType')}
                     onChange={handleNewAccountChange}
                 >
-                  <MenuItem value="checking">Checking Account</MenuItem>
+                  <MenuItem value="checking">{t('wallets.personal')}</MenuItem>
                   <MenuItem value="credit">Credit Card</MenuItem>
-                  <MenuItem value="savings">Savings Account</MenuItem>
+                  <MenuItem value="savings">{t('wallets.savings')}</MenuItem>
                 </Select>
               </FormControl>
 
               <TextField
                   name="balance"
-                  label={newAccount.type === 'credit' ? 'Current Balance (negative for debt)' : 'Current Balance'}
+                  label={newAccount.type === 'credit' ? 'Current Balance (negative for debt)' : t('wallets.initialBalance')}
                   type="number"
                   value={newAccount.balance}
                   onChange={handleNewAccountChange}
@@ -445,12 +447,12 @@ const Accounts = () => {
 
 
               <FormControl fullWidth>
-                <InputLabel id="currency-label">Currency</InputLabel>
+                <InputLabel id="currency-label">{t('wallets.currency')}</InputLabel>
                 <Select
                     labelId="currency-label"
                     name="currency"
                     value={newAccount.currency}
-                    label="Currency"
+                    label={t('wallets.currency')}
                     onChange={handleNewAccountChange}
                 >
                   <MenuItem value="zł">Polish Złoty (zł)</MenuItem>
@@ -463,10 +465,10 @@ const Accounts = () => {
           </DialogContent>
           <DialogActions>
             <Button onClick={handleCloseAddAccountDialog} color="primary">
-              Cancel
+              {t('common.cancel')}
             </Button>
             <Button onClick={handleAddAccount} color="primary" variant="contained">
-              Add Account
+              {t('wallets.addWallet')}
             </Button>
           </DialogActions>
         </Dialog>
@@ -476,7 +478,7 @@ const Accounts = () => {
             <TextField
               autoFocus
               name="email"
-              label="Email"
+              label={t('auth.email')}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               fullWidth
@@ -484,8 +486,8 @@ const Accounts = () => {
             />
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseAddMemberDialog} color="primary">Cancel</Button>
-            <Button onClick={handleSaveMember} variant="contained" color="primary">Add</Button>
+            <Button onClick={handleCloseAddMemberDialog} color="primary">{t('common.cancel')}</Button>
+            <Button onClick={handleSaveMember} variant="contained" color="primary">{t('common.add')}</Button>
           </DialogActions>
         </Dialog>
       </Box>

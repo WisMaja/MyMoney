@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Box, Typography, Button, Divider, Paper, TextField, List } from '@mui/material';
+import { useTranslation } from 'react-i18next';
 import '../styles/Login.css';
 import apiClient from '../apiClient';
 import {useAuth} from "../hooks/useAuth";
@@ -9,6 +10,7 @@ import { useEffect, useRef } from 'react';
 
 const Login = () => {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,17 +107,17 @@ const Login = () => {
       <Box className="login-container">
         <Paper elevation={3} className="login-paper">
           <Box className="login-content">
-            <Typography variant="h4" component="h1" className="welcome-text">Welcome To</Typography>
+            <Typography variant="h4" component="h1" className="welcome-text">{t('auth.welcomeBack')}</Typography>
             <Typography variant="h2" component="h2" className="app-name">Money Tracker</Typography>
             <Divider className="divider" />
             <Box component="form" className="manual-login-form" onSubmit={handleManualLogin}>
               <Typography variant="h6" className="manual-login-title">
-                {isRegistering ? 'Create Account' : 'Login to Your Account'}
+                {isRegistering ? t('auth.createAccount') : t('auth.signIn')}
               </Typography>
 
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
                 <TextField
-                    label="Email"
+                    label={t('auth.email')}
                     type="email"
                     variant="outlined"
                     fullWidth
@@ -140,7 +142,7 @@ const Login = () => {
                     </Box>
                 )}
                 <TextField
-                    label="Password"
+                    label={t('auth.password')}
                     type="password"
                     variant="outlined"
                     fullWidth
@@ -152,7 +154,7 @@ const Login = () => {
                 />
                 {isRegistering && (
                     <TextField
-                        label="Repeat Password"
+                        label={t('auth.confirmPassword')}
                         type="password"
                         variant="outlined"
                         fullWidth
@@ -178,7 +180,7 @@ const Login = () => {
                   type="submit"
                   disabled={loading}
               >
-                {loading ? (isRegistering ? 'Registering...' : 'Logging in...') : isRegistering ? 'Register' : 'Login'}
+                {loading ? (isRegistering ? 'Registering...' : 'Logging in...') : isRegistering ? t('auth.register') : t('auth.login')}
               </Button>
 
               <Button
@@ -187,7 +189,7 @@ const Login = () => {
                   onClick={toggleRegister}
                   disabled={loading}
               >
-                {isRegistering ? 'Back to Login' : 'Need an account? Register'}
+                {isRegistering ? 'Back to Login' : t('auth.dontHaveAccount')}
               </Button>
             </Box>
           </Box>

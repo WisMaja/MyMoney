@@ -36,6 +36,8 @@ import CurrencyExchangeIcon from '@mui/icons-material/CurrencyExchange';
 import ColorLensIcon from '@mui/icons-material/ColorLens';
 import DeleteIcon from '@mui/icons-material/Delete';
 import SaveIcon from '@mui/icons-material/Save';
+import { useTranslation } from 'react-i18next';
+import { useLanguage } from '../hooks/useLanguage';
 import Sidebar from '../components/Sidebar';
 import Header from '../components/Header';
 import '../styles/Settings.css';
@@ -64,6 +66,8 @@ const validatePassword = (password) => {
 const Settings = () => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useTranslation();
+  const { currentLanguage, changeLanguage, getAvailableLanguages } = useLanguage();
 
   const [activeSection, setActiveSection] = useState('profile');
   const [loading, setLoading] = useState(true);
@@ -89,7 +93,7 @@ const Settings = () => {
       autoLogout: '30'
     },
     preferences: {
-      language: 'en',
+      language: currentLanguage,
       currency: '$',
       theme: 'light',
       dateFormat: 'MM/DD/YYYY'
@@ -113,7 +117,7 @@ const Settings = () => {
       autoLogout: '30'
     },
     preferences: {
-      language: 'en',
+      language: currentLanguage,
       currency: '$',
       theme: 'light',
       dateFormat: 'MM/DD/YYYY'
@@ -365,7 +369,7 @@ const Settings = () => {
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title">
-              Profile Settings
+              {t('settings.profile')}
             </Typography>
             
             <Box sx={{ display: 'flex', marginY: 4, alignItems: 'center' }}>
@@ -397,7 +401,7 @@ const Settings = () => {
             
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Full Name</Typography>
+              <Typography className="settings-form-label">{t('settings.fullName')}</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.name}
@@ -407,7 +411,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Email</Typography>
+              <Typography className="settings-form-label">{t('auth.email')}</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.profile.email}
@@ -426,7 +430,7 @@ const Settings = () => {
                 onClick={handleSaveProfileChanges}
                 disabled={!hasProfileChanges()}
               >
-                Save Changes
+                {t('common.save')} Changes
               </Button>
             </Box>
           </Box>
@@ -436,11 +440,11 @@ const Settings = () => {
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title">
-              Notification Settings
+              {t('settings.notifications')}
             </Typography>
             
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Email Notifications</Typography>
+              <Typography className="settings-switch-label">{t('settings.emailNotifications')}</Typography>
               <Switch
                 checked={userSettings.notifications.emailNotifications}
                 onChange={handleSwitchChange('notifications', 'emailNotifications')}
@@ -449,7 +453,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Push Notifications</Typography>
+              <Typography className="settings-switch-label">{t('settings.pushNotifications')}</Typography>
               <Switch
                 checked={userSettings.notifications.pushNotifications}
                 onChange={handleSwitchChange('notifications', 'pushNotifications')}
@@ -458,7 +462,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Transaction Alerts</Typography>
+              <Typography className="settings-switch-label">{t('settings.transactionAlerts')}</Typography>
               <Switch
                 checked={userSettings.notifications.transactionAlerts}
                 onChange={handleSwitchChange('notifications', 'transactionAlerts')}
@@ -467,7 +471,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Weekly Financial Reports</Typography>
+              <Typography className="settings-switch-label">{t('settings.weeklyReports')}</Typography>
               <Switch
                 checked={userSettings.notifications.weeklyReports}
                 onChange={handleSwitchChange('notifications', 'weeklyReports')}
@@ -476,7 +480,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Savings Goal Alerts</Typography>
+              <Typography className="settings-switch-label">{t('settings.savingsGoalAlerts')}</Typography>
               <Switch
                 checked={userSettings.notifications.savingsGoalAlerts}
                 onChange={handleSwitchChange('notifications', 'savingsGoalAlerts')}
@@ -490,11 +494,11 @@ const Settings = () => {
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title">
-              Security Settings
+              {t('settings.security')}
             </Typography>
 
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Two-Factor Authentication</Typography>
+              <Typography className="settings-switch-label">{t('settings.twoFactorAuth')}</Typography>
               <Switch
                 checked={userSettings.security.twoFactorAuth}
                 onChange={handleSwitchChange('security', 'twoFactorAuth')}
@@ -503,7 +507,7 @@ const Settings = () => {
             </Box>
 
             <Box className="settings-switch-group">
-              <Typography className="settings-switch-label">Remember Devices</Typography>
+              <Typography className="settings-switch-label">{t('settings.rememberDevices')}</Typography>
               <Switch
                 checked={userSettings.security.rememberDevices}
                 onChange={handleSwitchChange('security', 'rememberDevices')}
@@ -512,7 +516,7 @@ const Settings = () => {
             </Box>
 
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Auto Logout (minutes)</Typography>
+              <Typography className="settings-form-label">{t('settings.autoLogout')}</Typography>
               <TextField
                 className="settings-input"
                 value={userSettings.security.autoLogout}
@@ -525,7 +529,7 @@ const Settings = () => {
             <Divider className="settings-section-divider" />
 
             <Typography className="settings-section-title">
-              Change Password
+              {t('settings.changePassword')}
             </Typography>
             <Box>
               <Typography sx={{ textAlign: 'left', fontSize: 16, marginBottom: 2 }}>
@@ -541,7 +545,7 @@ const Settings = () => {
             </Box>
 
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Current Password</Typography>
+              <Typography className="settings-form-label">{t('settings.currentPassword')}</Typography>
               <TextField
                   className="settings-input"
                   type="password"
@@ -551,7 +555,7 @@ const Settings = () => {
               />
             </Box>
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">New Password</Typography>
+              <Typography className="settings-form-label">{t('settings.newPassword')}</Typography>
               <TextField
                   className="settings-input"
                   type="password"
@@ -562,7 +566,7 @@ const Settings = () => {
             </Box>
             <Box className="settings-form-group">
               <Typography className="settings-form-label">
-                Confirm New Password
+                {t('settings.confirmNewPassword')}
               </Typography>
               <TextField
                   className="settings-input"
@@ -578,16 +582,16 @@ const Settings = () => {
                   onClick={handleChangePassword}
                   disabled={isChangingPassword}
               >
-                {isChangingPassword ? 'Changing...' : 'Change Password'}
+                {isChangingPassword ? 'Changing...' : t('settings.changePassword')}
               </Button>
             </Box>
 
             <Box className="danger-zone">
               <Typography className="danger-zone-title" variant="h6">
-                Danger Zone
+                {t('settings.dangerZone')}
               </Typography>
               <Typography paragraph>
-                Deleting your account is permanent and cannot be undone. All your data will be lost.
+                {t('settings.deleteAccountWarning')}
               </Typography>
               <Box className="settings-button-group" sx={{ flexDirection: 'row', gap: 1, justifyContent: 'center' }}>
                 <Button
@@ -595,14 +599,14 @@ const Settings = () => {
                   color="error"
                   onClick={handleOpenDeleteDialog}
                 >
-                  Delete Account
+                  {t('settings.deleteAccount')}
                 </Button>
                 <Button
                   variant="outlined"
                   color="primary"
                   onClick={handleLogout}
                 >
-                  Logout
+                  {t('auth.logout')}
                 </Button>
               </Box>
             </Box>
@@ -613,29 +617,52 @@ const Settings = () => {
         return (
           <Box className="settings-section">
             <Typography className="settings-section-title" sx={{ mb: 2 }}>
-              Preferences
+              {t('settings.preferences')}
             </Typography>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Language</Typography>
+              <Typography className="settings-form-label">{t('settings.language')}</Typography>
               <TextField
                 select
                 className="settings-input"
-                value={userSettings.preferences.language}
-                onChange={handleInputChange('preferences', 'language')}
+                value={currentLanguage}
+                onChange={async (e) => {
+                  const newLanguage = e.target.value;
+                  const success = await changeLanguage(newLanguage);
+                  if (success) {
+                    setSnackbarMessage(t('settings.languageChanged'));
+                    setSnackbarSeverity('success');
+                    setSnackbarOpen(true);
+                    
+                    // Update user settings
+                    setUserSettings(prev => ({
+                      ...prev,
+                      preferences: {
+                        ...prev.preferences,
+                        language: newLanguage
+                      }
+                    }));
+                  } else {
+                    setSnackbarMessage(t('errors.general'));
+                    setSnackbarSeverity('error');
+                    setSnackbarOpen(true);
+                  }
+                }}
                 fullWidth
                 SelectProps={{
                   native: true,
                 }}
               >
-                <option value="en">English</option>
-                <option value="pl">Polski</option>
-                <option value="de">Deutsch</option>
+                {getAvailableLanguages().map((language) => (
+                  <option key={language.code} value={language.code}>
+                    {language.flag} {language.name}
+                  </option>
+                ))}
               </TextField>
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Default Currency</Typography>
+              <Typography className="settings-form-label">{t('settings.currency')}</Typography>
               <TextField
                 select
                 className="settings-input"
@@ -654,7 +681,7 @@ const Settings = () => {
             </Box>
             
             <Box className="settings-form-group">
-              <Typography className="settings-form-label">Theme</Typography>
+              <Typography className="settings-form-label">{t('settings.theme')}</Typography>
               <TextField
                 select
                 className="settings-input"
@@ -702,13 +729,13 @@ const Settings = () => {
 
       {/* Main Content */}
       <Box className="page-content">
-        <Header title="Settings" />
+        <Header title={t('settings.title')} />
 
         <Box className="settings-layout">
           {/* Settings Navigation */}
           <Paper className="settings-nav">
             <Typography className="settings-nav-title">
-              Settings
+              {t('settings.title')}
             </Typography>
             <List className="settings-nav-list">
               <ListItem
@@ -718,7 +745,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <PersonIcon />
                 </ListItemIcon>
-                <ListItemText primary="Profile" />
+                <ListItemText primary={t('settings.profile')} />
               </ListItem>
 
               <ListItem
@@ -728,7 +755,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <NotificationsIcon />
                 </ListItemIcon>
-                <ListItemText primary="Notifications" />
+                <ListItemText primary={t('settings.notifications')} />
               </ListItem>
 
               <ListItem
@@ -738,7 +765,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <SecurityIcon />
                 </ListItemIcon>
-                <ListItemText primary="Security" />
+                <ListItemText primary={t('settings.security')} />
               </ListItem>
 
               <ListItem
@@ -748,7 +775,7 @@ const Settings = () => {
                 <ListItemIcon className="settings-nav-icon">
                   <ColorLensIcon />
                 </ListItemIcon>
-                <ListItemText primary="Preferences" />
+                <ListItemText primary={t('settings.preferences')} />
               </ListItem>
             </List>
           </Paper>
@@ -771,10 +798,10 @@ const Settings = () => {
             
             <Box className="settings-button-group">
               <Button variant="outlined">
-                Cancel
+                {t('common.cancel')}
               </Button>
               <Button variant="contained" className="settings-save-button">
-                Save Changes
+                {t('common.save')} Changes
               </Button>
             </Box>
           </Paper>
@@ -786,20 +813,20 @@ const Settings = () => {
           onClose={handleCloseDeleteDialog}
         >
           <DialogTitle>
-            {"Are you sure you want to delete your account?"}
+            {t('settings.deleteAccountConfirm')}
           </DialogTitle>
           <DialogContent>
             <DialogContentText>
-              This action cannot be undone. All your data will be permanently deleted.
+              {t('settings.deleteAccountWarning')}
             </DialogContentText>
           </DialogContent>
           <DialogActions>
-            <Button onClick={handleCloseDeleteDialog}>Cancel</Button>
+            <Button onClick={handleCloseDeleteDialog}>{t('common.cancel')}</Button>
             <Button 
               onClick={handleDeleteAccount}
               color="error"
             >
-              Delete Account
+              {t('settings.deleteAccount')}
             </Button>
           </DialogActions>
         </Dialog>

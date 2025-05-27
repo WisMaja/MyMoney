@@ -4,6 +4,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SettingsIcon from '@mui/icons-material/Settings';
 import LogoutIcon from '@mui/icons-material/Logout';
 import PersonIcon from '@mui/icons-material/Person';
+import { useTranslation } from 'react-i18next';
 import { getCurrentUser } from '../services/userService';
 import { useAuth } from '../hooks/useAuth';
 import '../styles/Header.css';
@@ -12,6 +13,7 @@ import apiClient from "../apiClient";
 const Header = ({ title }) => {
   const navigate = useNavigate();
   const { logout } = useAuth();
+  const { t } = useTranslation();
   const [user, setUser] = useState(null);
   const [anchorEl, setAnchorEl] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -124,12 +126,12 @@ const Header = ({ title }) => {
         >
           <MenuItem onClick={handleProfileClick}>
             <PersonIcon sx={{ mr: 1 }} />
-            Profile Settings
+            {t('settings.profile')}
           </MenuItem>
           <Divider />
           <MenuItem onClick={handleLogout}>
             <LogoutIcon sx={{ mr: 1 }} />
-            Logout
+            {t('auth.logout')}
           </MenuItem>
         </Menu>
       </Box>
