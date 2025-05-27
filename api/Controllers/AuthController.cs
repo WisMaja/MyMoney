@@ -22,41 +22,14 @@ namespace api.Controllers
             _tokenService = tokenService;
             _context = context;
         }
-        //
-        // #region Rejestracja
-        //
-        //
-        // [HttpPost("register")]
-        // [ProducesResponseType(StatusCodes.Status204NoContent)]
-        // [ProducesResponseType(StatusCodes.Status409Conflict)]
-        // public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto dto)
-        // {
-        //     var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email));
-        //     if (isEmailTaken) return Conflict("Użytkownik o tym emailu już istnieje");
-        //     var user = new User
-        //     {
-        //         Email = dto.Email,
-        //         Wallets = new List<Wallet>(),
-        //         Transactions = new List<Transaction>(),
-        //         WalletMemberships = new List<WalletMember>(),
-        //         CustomCategories = new List<Category>()
-        //     };
-        //     user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
-        //     _context.Users.Add(user);
-        //     await _context.SaveChangesAsync();
-        //     return NoContent();
-        // }
-        //
-        //
-        // #endregion
-        //
+
         #region Rejestracja z Tworzeniem Main wallet
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         public async Task<IActionResult> RegisterAsync([FromBody] RegisterRequestDto dto)
         {
-            var isEmailTaken = _context.Users.Any(u => u.Email.Equals(dto.Email));
+            var isEmailTaken = _context.Users.Any(u => u.Email != null && u.Email.Equals(dto.Email));
             if (isEmailTaken) return Conflict("Użytkownik o tym emailu już istnieje");
 
             using var transaction = await _context.Database.BeginTransactionAsync();
@@ -97,10 +70,9 @@ namespace api.Controllers
 
                 return NoContent();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 await transaction.RollbackAsync();
-                // Loguj ex, np. logger.LogError(ex, "Błąd rejestracji");
                 return StatusCode(StatusCodes.Status500InternalServerError, "Błąd serwera");
             }
         }
@@ -125,6 +97,8 @@ namespace api.Controllers
             var refreshToken = _tokenService.GenerateRefreshToken();
             user.RefreshToken = refreshToken.token;
             user.RefreshTokenExpiration = refreshToken.expiration;
+            
+            await _context.SaveChangesAsync();
 
             var response = new TokenResponseDto
             {
@@ -157,6 +131,8 @@ namespace api.Controllers
             var refreshToken = _tokenService.GenerateRefreshToken();
             user.RefreshToken = refreshToken.token;
             user.RefreshTokenExpiration = refreshToken.expiration;
+            
+            await _context.SaveChangesAsync();
             
             var response = new TokenResponseDto
             {

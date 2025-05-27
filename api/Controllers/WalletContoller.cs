@@ -30,7 +30,7 @@ namespace api.Controllers
         private static decimal CalculateCurrentBalance(Wallet wallet)
         {
             bool useManualBalance = wallet.ManualBalance.HasValue;
-            var baseBalance = useManualBalance ? wallet.ManualBalance.Value : wallet.InitialBalance;
+            var baseBalance = useManualBalance ? wallet.ManualBalance!.Value : wallet.InitialBalance;
             var fromDate = wallet.BalanceResetAt ?? DateTime.MinValue;
             var transactionSum = wallet.Transactions
                 .Where(t => t.CreatedAt >= fromDate)
@@ -232,24 +232,13 @@ namespace api.Controllers
         [HttpPost]
         public async Task<ActionResult<WalletDto>> CreateWallet([FromBody] CreateWalletDto dto)
         {
-            Console.WriteLine("=== CreateWallet method called ===");
-            Console.WriteLine($"Request received at: {DateTime.UtcNow}");
-            Console.WriteLine($"DTO is null: {dto == null}");
-            if (dto != null)
-            {
-                Console.WriteLine($"DTO properties - Name: {dto.Name}, Type: {dto.Type}, Currency: {dto.Currency}");
-            }
-            
             try
             {
                 var userId = GetUserIdFromToken();
-                Console.WriteLine($"Creating wallet for user: {userId}");
-                Console.WriteLine($"Wallet data: Name={dto.Name}, Type={dto.Type}, Currency={dto.Currency}, InitialBalance={dto.InitialBalance}");
                 
                 var user = await _context.Users.FindAsync(userId);
                 if (user == null)
                 {
-                    Console.WriteLine("User not found");
                     return Unauthorized();
                 }
 
@@ -260,13 +249,11 @@ namespace api.Controllers
                     !string.IsNullOrEmpty(dto.Id) && dto.Id == "00000000-0000-0000-0000-000000000000")
                 {
                     walletId = Guid.Parse("00000000-0000-0000-0000-000000000000");
-                    Console.WriteLine("Creating default wallet with special ID");
                     
                     // Check if this special wallet already exists
                     var existingDefaultWallet = await _context.Wallets.FindAsync(walletId);
                     if (existingDefaultWallet != null)
                     {
-                        Console.WriteLine("Default wallet already exists, returning existing one");
                         var existingResult = new WalletDto
                         {
                             Id = existingDefaultWallet.Id,
@@ -302,7 +289,6 @@ namespace api.Controllers
                     Transactions = new List<Transaction>()
                 };
 
-                Console.WriteLine($"Adding wallet to context with ID: {wallet.Id}");
                 _context.Wallets.Add(wallet);
                 await _context.SaveChangesAsync();
 
@@ -318,13 +304,10 @@ namespace api.Controllers
                     UpdatedAt = wallet.UpdatedAt
                 };
                 
-                Console.WriteLine($"Successfully created wallet: {wallet.Id}");
                 return CreatedAtAction(nameof(GetWallet), new { id = wallet.Id }, walletDto);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error creating wallet: {ex.Message}");
-                Console.WriteLine($"Stack trace: {ex.StackTrace}");
                 return StatusCode(500, new { message = "Error creating wallet", error = ex.Message });
             }
         }
@@ -379,7 +362,7 @@ namespace api.Controllers
                 return Forbid("Only wallet owner can add members.");
 
             var newUser = await _context.Users
-                .FirstOrDefaultAsync(u => u.Email == dto.Email);
+                .FirstOrDefaultAsync(u => u.Email != null && u.Email == dto.Email);
             if (newUser == null)
                 return NotFound("User with this email does not exist.");
 

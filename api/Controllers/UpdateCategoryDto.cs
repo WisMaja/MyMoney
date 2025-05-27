@@ -4,7 +4,8 @@ namespace api.Dtos.Category
 {
     public class UpdateCategoryDto
     {
-        [Required, MaxLength(100)]
-        public string Name { get; set; }
+        [Required]
+        [MaxLength(100)]
+        public required string Name { get; set; }
     }
 }

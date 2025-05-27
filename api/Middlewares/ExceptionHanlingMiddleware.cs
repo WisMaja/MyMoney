@@ -22,9 +22,10 @@ public class ExceptionHandlingMiddleware
         }
     }
 
-    private async Task HandleExceptionAsync(HttpContext context, Exception exception)
+    private Task HandleExceptionAsync(HttpContext context, Exception exception)
     {
         Console.WriteLine("Middleware is working. Logging error to file.");
         // Do some logic, log errors to file
+        return Task.CompletedTask;
     }
 }

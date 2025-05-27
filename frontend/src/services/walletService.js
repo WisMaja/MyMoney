@@ -31,50 +31,32 @@ export const getWalletById = async (id) => {
 
 // Create a new wallet
 export const createWallet = async (walletData) => {
+  const accessToken = localStorage.getItem('accessToken');
+  const refreshToken = localStorage.getItem('refreshToken');
+  
+  if (!accessToken || !refreshToken) {
+    throw new Error('No authentication tokens found');
+  }
+
   try {
-    const accessToken = localStorage.getItem('access_token');
-    const refreshToken = localStorage.getItem('refresh_token');
-    
-    console.log('Access token:', accessToken);
-    console.log('Refresh token:', refreshToken);
-    
-    // Mapowanie typów na wartości enum
-    const typeMap = {
-      'Personal': 0,
-      'Credit': 1,
-      'Savings': 2
-    };
-    
-    // Konwertuj typ na liczbę
-    const mappedType = typeMap[walletData.type] !== undefined ? typeMap[walletData.type] : 0;
-    
-    // Przygotuj dane z poprawnym typem
     const requestData = {
       name: walletData.name,
-      type: mappedType,
-      currency: walletData.currency,
-      initialBalance: walletData.initialBalance
+      type: walletData.type || 0,
+      currency: walletData.currency || 'zł',
+      initialBalance: walletData.initialBalance || 0,
+      id: walletData.id || null
     };
-    
-    console.log('Request URL:', `${apiClient.defaults.baseURL}/wallets`);
-    console.log('Request headers:', apiClient.defaults.headers);
-    console.log('Request data (stringified):', JSON.stringify(requestData));
-    
+
     const response = await apiClient.post('/wallets', requestData);
-    
-    console.log('Wallet created successfully:', response.data);
     return response.data;
   } catch (error) {
-    console.log('Error creating wallet:', error);
-    console.log('Error response:', error.response?.data);
-    console.log('Error status:', error.response?.status);
-    console.log('Error config:', error.config);
+    console.error('Error creating wallet:', error);
     
     if (error.response?.data?.errors) {
-      console.log('Validation errors:', error.response.data.errors);
-      Object.entries(error.response.data.errors).forEach(([field, messages]) => {
-        console.log(`Field '${field}':`, messages);
-      });
+      const validationErrors = error.response.data.errors;
+      for (const [field, messages] of Object.entries(validationErrors)) {
+        console.error(`Field '${field}':`, messages);
+      }
     }
     
     throw error;
@@ -202,59 +184,39 @@ export const getMainWalletId = async () => {
 // Ensure user has a default wallet, create one if needed
 export const ensureDefaultWallet = async () => {
   try {
-    console.log("Starting ensureDefaultWallet function");
-    
     // Check if we already have a wallet ID in localStorage
     const storedWalletId = localStorage.getItem('defaultWalletId');
-    console.log("Stored wallet ID from localStorage:", storedWalletId);
     
     if (storedWalletId) {
-      console.log("Attempting to verify stored wallet", storedWalletId);
       // Try to verify that this wallet still exists and is accessible
       try {
         const wallet = await apiClient.get(`/wallets/${storedWalletId}`);
-        console.log("Successfully verified wallet:", wallet.data);
         return storedWalletId; // Wallet exists and is accessible
       } catch (walletError) {
-        console.error("Error verifying stored wallet:", walletError);
         // If the wallet doesn't exist or isn't accessible, continue to create a new one
         localStorage.removeItem('defaultWalletId');
       }
     }
     
-    console.log("No valid stored wallet found, fetching all wallets");
     // Get the user's wallets
     const response = await apiClient.get('/wallets');
-    console.log("Fetched wallets response:", response.data);
     
     // If the user has any wallets, use the first one
     if (response.data && response.data.length > 0) {
       const defaultWallet = response.data[0];
-      console.log("Using existing wallet as default:", defaultWallet);
       localStorage.setItem('defaultWalletId', defaultWallet.id);
       return defaultWallet.id;
     }
     
-    console.log("No existing wallets found, creating a new default wallet");
     // If user has no wallets, create a default one
     const newWallet = await createDefaultWallet();
-    console.log("Created new default wallet:", newWallet);
     localStorage.setItem('defaultWalletId', newWallet.id);
     return newWallet.id;
   } catch (error) {
     console.error('Error in ensureDefaultWallet:', error);
-    if (error.response) {
-      console.error('Response status:', error.response.status);
-      console.error('Response data:', error.response.data);
-    } else if (error.request) {
-      console.error('No response received:', error.request);
-    } else {
-      console.error('Error message:', error.message);
-    }
     
     // If all else fails, use a mock wallet ID
     const mockWalletId = '00000000-0000-0000-0000-000000000000';
-    console.log("Using mock wallet ID as fallback:", mockWalletId);
     localStorage.setItem('defaultWalletId', mockWalletId);
     return mockWalletId;
   }
@@ -262,10 +224,10 @@ export const ensureDefaultWallet = async () => {
 
 // Function to create a default wallet for the user
 export const createDefaultWallet = async () => {
-  console.log("createDefaultWallet function called");
   console.warn("Default wallet creation is disabled.");
   return null;
-}; 
+};
+
 // Dodaj członka do portfela
 export const addMemberToWallet = async (walletId, email) => {
   try {

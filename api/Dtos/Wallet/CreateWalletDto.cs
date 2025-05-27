@@ -10,7 +10,7 @@ namespace api.Dtos.Wallet
         
         [Required]
         [MaxLength(100)]
-        public string Name { get; set; }
+        public required string Name { get; set; }
 
         public WalletType Type { get; set; } = WalletType.Personal;
 
