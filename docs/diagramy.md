@@ -18,8 +18,6 @@
 ```mermaid
 graph TB
     User[👤 Użytkownik]
-    Admin[👨‍💼 Administrator]
-    Guest[👥 Gość]
     
     subgraph "System MyMoney"
         UC1[Rejestracja konta]
@@ -29,16 +27,11 @@ graph TB
         UC5[Dodawanie transakcji]
         UC6[Kategoryzowanie wydatków]
         UC7[Przeglądanie statystyk]
-        UC8[Tworzenie budżetów]
-        UC9[Udostępnianie kont]
-        UC10[Eksport danych]
-        UC11[Zarządzanie użytkownikami]
-        UC12[Monitorowanie systemu]
+        UC8[Zarządzanie budżetami]
+        UC9[Funkcje społecznościowe]
     end
     
-    Guest --> UC1
-    Guest --> UC2
-    
+    User --> UC1
     User --> UC2
     User --> UC3
     User --> UC4
@@ -47,11 +40,6 @@ graph TB
     User --> UC7
     User --> UC8
     User --> UC9
-    User --> UC10
-    
-    Admin --> UC11
-    Admin --> UC12
-    Admin --> UC7
 ```
 
 ### Szczegółowe przypadki użycia - Zarządzanie transakcjami
@@ -65,29 +53,25 @@ graph LR
         UC2[Dodaj przychód]
         UC3[Edytuj transakcję]
         UC4[Usuń transakcję]
-        UC5[Filtruj transakcje]
-        UC6[Wyszukaj transakcje]
-        UC7[Eksportuj transakcje]
     end
     
     subgraph "Kategorie"
-        UC8[Wybierz kategorię]
-        UC9[Utwórz kategorię]
-        UC10[Edytuj kategorię]
+        UC5[Wybierz kategorię]
+        UC6[Utwórz kategorię]
+        UC7[Edytuj kategorię]
+        UC8[Usuń kategorię]
     end
     
     User --> UC1
     User --> UC2
     User --> UC3
     User --> UC4
-    User --> UC5
+    
+    UC1 --> UC5
+    UC2 --> UC5
     User --> UC6
     User --> UC7
-    
-    UC1 --> UC8
-    UC2 --> UC8
-    UC8 --> UC9
-    User --> UC10
+    User --> UC8
 ```
 
 ## Flow charty
@@ -96,13 +80,13 @@ graph LR
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> Input[Wprowadź dane rejestracji]
+    Start([Start]) --> Input[Wprowadź email i hasło]
     Input --> ValidateEmail{Email poprawny?}
     ValidateEmail -->|Nie| ErrorEmail[Błąd: Niepoprawny email]
     ErrorEmail --> Input
     
     ValidateEmail -->|Tak| ValidatePassword{Hasło bezpieczne?}
-    ValidatePassword -->|Nie| ErrorPassword[Błąd: Hasło za słabe]
+    ValidatePassword -->|Nie| ErrorPassword[Błąd: Hasło za słabe<br/>- 8 znaków<br/>- cyfra<br/>- znak specjalny<br/>- wielka litera<br/>- mała litera]
     ErrorPassword --> Input
     
     ValidatePassword -->|Tak| CheckExists{Użytkownik istnieje?}
@@ -110,9 +94,7 @@ flowchart TD
     ErrorExists --> Input
     
     CheckExists -->|Nie| CreateUser[Utwórz użytkownika]
-    CreateUser --> CreateMainWallet[Utwórz główne konto]
-    CreateMainWallet --> SendConfirmation[Wyślij email potwierdzający]
-    SendConfirmation --> Success[Rejestracja udana]
+    CreateUser --> Success[Rejestracja udana]
     Success --> End([Koniec])
 ```
 
@@ -120,28 +102,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    Start([Start]) --> SelectType{Wybierz typ transakcji}
-    SelectType -->|Wydatek| ExpenseForm[Formularz wydatku]
-    SelectType -->|Przychód| IncomeForm[Formularz przychodu]
+    Start([Start]) --> SelectType{Wybierz typ}
+    SelectType -->|Wydatek| ExpenseDialog[Dialog wydatku]
+    SelectType -->|Przychód| IncomeDialog[Dialog przychodu]
     
-    ExpenseForm --> SelectWallet[Wybierz konto]
-    IncomeForm --> SelectWallet
+    ExpenseDialog --> FillForm[Wypełnij formularz:<br/>- Kwota<br/>- Kategoria<br/>- Opis<br/>- Data<br/>- Konto]
+    IncomeDialog --> FillForm
     
-    SelectWallet --> SelectCategory[Wybierz kategorię]
-    SelectCategory --> EnterAmount[Wprowadź kwotę]
-    EnterAmount --> EnterDescription[Wprowadź opis]
-    EnterDescription --> SelectDate[Wybierz datę]
-    
-    SelectDate --> ValidateAmount{Kwota > 0?}
+    FillForm --> ValidateAmount{Kwota > 0?}
     ValidateAmount -->|Nie| ErrorAmount[Błąd: Niepoprawna kwota]
-    ErrorAmount --> EnterAmount
+    ErrorAmount --> FillForm
     
-    ValidateAmount -->|Tak| ValidateWallet{Konto dostępne?}
-    ValidateWallet -->|Nie| ErrorWallet[Błąd: Brak dostępu do konta]
-    ErrorWallet --> SelectWallet
-    
-    ValidateWallet -->|Tak| SaveTransaction[Zapisz transakcję]
-    SaveTransaction --> UpdateBalance[Aktualizuj saldo]
+    ValidateAmount -->|Tak| SaveTransaction[Zapisz transakcję]
+    SaveTransaction --> UpdateBalance[Aktualizuj saldo konta]
     UpdateBalance --> ShowSuccess[Pokaż potwierdzenie]
     ShowSuccess --> End([Koniec])
 ```
@@ -151,25 +124,14 @@ flowchart TD
 ```mermaid
 flowchart TD
     Start([Start]) --> LoginForm[Formularz logowania]
-    LoginForm --> ChooseMethod{Wybierz metodę}
-    
-    ChooseMethod -->|Email/Hasło| EmailLogin[Logowanie tradycyjne]
-    ChooseMethod -->|Google| GoogleOAuth[OAuth Google]
-    ChooseMethod -->|Facebook| FacebookOAuth[OAuth Facebook]
+    LoginForm --> EmailLogin[Wprowadź email i hasło]
     
     EmailLogin --> ValidateCredentials{Dane poprawne?}
     ValidateCredentials -->|Nie| ErrorCredentials[Błąd: Niepoprawne dane]
     ErrorCredentials --> LoginForm
     
     ValidateCredentials -->|Tak| GenerateTokens[Generuj tokeny JWT]
-    GoogleOAuth --> ValidateOAuth{OAuth poprawny?}
-    FacebookOAuth --> ValidateOAuth
-    
-    ValidateOAuth -->|Nie| ErrorOAuth[Błąd OAuth]
-    ErrorOAuth --> LoginForm
-    ValidateOAuth -->|Tak| GenerateTokens
-    
-    GenerateTokens --> SetSession[Ustaw sesję]
+    GenerateTokens --> SetSession[Zapisz tokeny w localStorage]
     SetSession --> RedirectDashboard[Przekieruj na dashboard]
     RedirectDashboard --> End([Koniec])
 ```
@@ -185,14 +147,14 @@ sequenceDiagram
     participant A as API
     participant DB as Baza Danych
     
-    U->>F: Klik "Dodaj transakcję"
-    F->>U: Pokaż formularz
+    U->>F: Klik "Add Income/Expense"
+    F->>U: Pokaż dialog
     U->>F: Wypełnij dane transakcji
     F->>F: Walidacja po stronie klienta
     F->>A: POST /api/transactions
     
     A->>A: Walidacja danych
-    A->>A: Sprawdź uprawnienia
+    A->>A: Sprawdź JWT token
     A->>DB: Sprawdź istnienie konta
     DB-->>A: Dane konta
     
@@ -202,7 +164,7 @@ sequenceDiagram
     DB-->>A: Nowe saldo
     
     A-->>F: 201 Created + dane transakcji
-    F->>F: Aktualizuj stan lokalny
+    F->>F: Aktualizuj listę transakcji
     F-->>U: Pokaż potwierdzenie
 ```
 
@@ -215,25 +177,20 @@ sequenceDiagram
     participant A as API
     participant DB as Baza Danych
     
-    U->>F: Wprowadź dane logowania
+    U->>F: Wprowadź email i hasło
     F->>A: POST /api/auth/login
     A->>A: Walidacja danych
     A->>DB: Sprawdź użytkownika
     DB-->>A: Dane użytkownika
     
-    A->>A: Weryfikuj hasło
-    A->>A: Generuj Access Token
-    A->>A: Generuj Refresh Token
+    A->>A: Weryfikuj hasło (bcrypt)
+    A->>A: Generuj Access Token (1h)
+    A->>A: Generuj Refresh Token (24h)
     A->>DB: Zapisz Refresh Token
     
     A-->>F: Tokeny JWT
     F->>F: Zapisz tokeny w localStorage
     F-->>U: Przekieruj na dashboard
-    
-    Note over F,A: Kolejne żądania
-    F->>A: GET /api/wallet (z Access Token)
-    A->>A: Weryfikuj token
-    A-->>F: Dane kont
 ```
 
 ### Sekwencja odświeżania tokenu
@@ -244,7 +201,7 @@ sequenceDiagram
     participant A as API
     participant DB as Baza Danych
     
-    F->>A: GET /api/wallet (wygasły token)
+    F->>A: GET /api/transactions (wygasły token)
     A-->>F: 401 Unauthorized
     
     F->>F: Sprawdź Refresh Token
@@ -260,7 +217,7 @@ sequenceDiagram
     A-->>F: Nowe tokeny
     F->>F: Aktualizuj localStorage
     F->>A: Powtórz oryginalne żądanie
-    A-->>F: Dane kont
+    A-->>F: Dane transakcji
 ```
 
 ## Diagramy stanów
@@ -269,18 +226,18 @@ sequenceDiagram
 
 ```mermaid
 stateDiagram-v2
-    [*] --> Draft: Rozpocznij tworzenie
-    Draft --> Validating: Wypełnij formularz
-    Validating --> Draft: Błędy walidacji
+    [*] --> Creating: Otwórz dialog
+    Creating --> Validating: Wypełnij formularz
+    Validating --> Creating: Błędy walidacji
     Validating --> Saving: Dane poprawne
     Saving --> Saved: Zapisano pomyślnie
     Saving --> Error: Błąd zapisu
-    Error --> Draft: Spróbuj ponownie
-    Saved --> Editing: Edytuj
+    Error --> Creating: Spróbuj ponownie
+    Saved --> Editing: Kliknij Edit
     Editing --> Validating: Zapisz zmiany
-    Saved --> Deleting: Usuń
-    Deleting --> Deleted: Potwierdzono usunięcie
-    Deleting --> Saved: Anulowano usunięcie
+    Saved --> Deleting: Kliknij Delete
+    Deleting --> Deleted: Potwierdź usunięcie
+    Deleting --> Saved: Anuluj usunięcie
     Deleted --> [*]
 ```
 
@@ -294,8 +251,7 @@ stateDiagram-v2
     Authenticating --> Anonymous: Logowanie nieudane
     
     Authenticated --> Active: Aktywność użytkownika
-    Active --> Authenticated: Brak aktywności
-    Authenticated --> TokenExpiring: Token wygasa
+    Active --> TokenExpiring: Token wygasa (1h)
     TokenExpiring --> Refreshing: Odśwież token
     Refreshing --> Authenticated: Token odświeżony
     Refreshing --> Anonymous: Odświeżenie nieudane
@@ -317,18 +273,7 @@ stateDiagram-v2
     Updating --> Active: Zmiany zapisane
     Updating --> Active: Anulowano zmiany
     
-    Active --> Sharing: Udostępnij konto
-    Sharing --> Shared: Konto udostępnione
-    Sharing --> Active: Anulowano udostępnianie
-    
-    Shared --> Active: Usuń udostępnienie
-    Active --> Archiving: Archiwizuj konto
-    Shared --> Archiving: Archiwizuj konto
-    Archiving --> Archived: Konto zarchiwizowane
-    Archived --> Active: Przywróć konto
-    
     Active --> Deleting: Usuń konto
-    Shared --> Deleting: Usuń konto
     Deleting --> [*]: Konto usunięte
     Deleting --> Active: Anulowano usunięcie
 ```
@@ -345,115 +290,90 @@ classDiagram
         +string HashedPassword
         +string RefreshToken
         +DateTime RefreshTokenExpiration
-        +Guid MainWalletId
+        +string FullName
+        +string ProfileImageUrl
         +DateTime CreatedAt
-        +ValidatePassword(password) bool
-        +GenerateRefreshToken() string
     }
     
     class Wallet {
         +Guid Id
         +string Name
-        +WalletType Type
+        +string Type
         +decimal InitialBalance
+        +decimal ManualBalance
         +string Currency
         +Guid CreatedByUserId
         +DateTime CreatedAt
+        +DateTime UpdatedAt
         +CalculateCurrentBalance() decimal
-        +AddMember(userId, role) void
-        +RemoveMember(userId) void
     }
     
     class Transaction {
         +Guid Id
         +Guid WalletId
         +Guid CategoryId
+        +Guid UserId
         +decimal Amount
         +string Description
-        +DateTime Date
-        +TransactionType Type
         +DateTime CreatedAt
         +DateTime UpdatedAt
-        +IsExpense() bool
-        +IsIncome() bool
     }
     
     class Category {
         +Guid Id
         +string Name
-        +CategoryType Type
-        +string Icon
-        +bool IsDefault
-        +Guid CreatedByUserId
-        +DateTime CreatedAt
-    }
-    
-    class WalletMember {
-        +Guid WalletId
         +Guid UserId
-        +MemberRole Role
-        +DateTime JoinedAt
-        +HasPermission(action) bool
+        +bool IsGlobal
     }
     
     User ||--o{ Wallet : creates
-    User ||--o{ WalletMember : participates
-    Wallet ||--o{ Transaction : contains
-    Wallet ||--o{ WalletMember : has
-    Category ||--o{ Transaction : categorizes
+    User ||--o{ Transaction : creates
     User ||--o{ Category : creates
+    Wallet ||--o{ Transaction : contains
+    Category ||--o{ Transaction : categorizes
 ```
 
 ### Kontrolery API
 
 ```mermaid
 classDiagram
-    class BaseController {
-        #ILogger Logger
-        #GetCurrentUserId() Guid
-        #HandleException(ex) IActionResult
-    }
-    
     class AuthController {
-        -IAuthService authService
         +Register(request) Task~IActionResult~
         +Login(request) Task~IActionResult~
         +RefreshToken(request) Task~IActionResult~
-        +ChangePassword(request) Task~IActionResult~
     }
     
-    class UserController {
-        -IUserService userService
-        +GetProfile() Task~IActionResult~
+    class UsersController {
+        +GetMe() Task~IActionResult~
         +UpdateProfile(request) Task~IActionResult~
-        +DeleteAccount() Task~IActionResult~
+        +UploadProfileImage(file) Task~IActionResult~
     }
     
-    class WalletController {
-        -IWalletService walletService
+    class WalletsController {
         +GetWallets() Task~IActionResult~
         +GetWallet(id) Task~IActionResult~
         +CreateWallet(request) Task~IActionResult~
         +UpdateWallet(id, request) Task~IActionResult~
         +DeleteWallet(id) Task~IActionResult~
-        +AddMember(id, request) Task~IActionResult~
-        +RemoveMember(walletId, userId) Task~IActionResult~
+        +GetMainWallet() Task~IActionResult~
     }
     
     class TransactionsController {
-        -ITransactionService transactionService
-        +GetTransactions(filter) Task~IActionResult~
+        +GetTransactions() Task~IActionResult~
+        +GetTransactionsByWallet(walletId) Task~IActionResult~
         +GetTransaction(id) Task~IActionResult~
         +CreateTransaction(request) Task~IActionResult~
         +UpdateTransaction(id, request) Task~IActionResult~
         +DeleteTransaction(id) Task~IActionResult~
-        +GetStatistics(filter) Task~IActionResult~
     }
     
-    BaseController <|-- AuthController
-    BaseController <|-- UserController
-    BaseController <|-- WalletController
-    BaseController <|-- TransactionsController
+    class CategoriesController {
+        +GetAll() Task~IActionResult~
+        +GetCategory(id) Task~IActionResult~
+        +CreateCategory(request) Task~IActionResult~
+        +UpdateCategory(id, request) Task~IActionResult~
+        +DeleteCategory(id) Task~IActionResult~
+    }
 ```
 
 ## Diagramy komponentów
@@ -464,57 +384,61 @@ classDiagram
 graph TB
     subgraph "Frontend Application"
         subgraph "Pages"
+            Login[Login]
             Dashboard[Dashboard]
-            Transactions[Transactions]
-            Wallets[Wallets]
+            Accounts[Accounts]
+            Categories[Categories]
             Statistics[Statistics]
             Settings[Settings]
+            Budgets[Budgets]
+            Social[Social]
         end
         
         subgraph "Components"
-            TransactionForm[TransactionForm]
-            WalletCard[WalletCard]
-            Charts[Charts]
-            Navigation[Navigation]
-            Modal[Modal]
+            Header[Header]
+            Sidebar[Sidebar]
+            AddIncomeDialog[AddIncomeDialog]
+            AddExpenseDialog[AddExpenseDialog]
+            EditTransactionDialog[EditTransactionDialog]
+            DeleteTransactionDialog[DeleteTransactionDialog]
+            FinanceChart[FinanceChart]
         end
         
         subgraph "Services"
             ApiClient[ApiClient]
-            AuthService[AuthService]
-            StorageService[StorageService]
+            TransactionService[TransactionService]
+            WalletService[WalletService]
+            CategoryService[CategoryService]
+            UserService[UserService]
         end
         
         subgraph "Context"
             AuthContext[AuthContext]
-            WalletContext[WalletContext]
-            ThemeContext[ThemeContext]
         end
         
         subgraph "Hooks"
             useAuth[useAuth]
-            useWallets[useWallets]
-            useTransactions[useTransactions]
+        end
+        
+        subgraph "Router"
+            PrivateRoute[PrivateRoute]
         end
     end
     
-    Dashboard --> TransactionForm
-    Dashboard --> WalletCard
-    Dashboard --> Charts
-    Transactions --> TransactionForm
-    Wallets --> WalletCard
-    Statistics --> Charts
+    Dashboard --> AddIncomeDialog
+    Dashboard --> AddExpenseDialog
+    Dashboard --> EditTransactionDialog
+    Dashboard --> DeleteTransactionDialog
     
-    TransactionForm --> ApiClient
-    WalletCard --> ApiClient
-    Charts --> ApiClient
-    
-    ApiClient --> AuthService
-    AuthService --> StorageService
+    AddIncomeDialog --> TransactionService
+    AddExpenseDialog --> TransactionService
+    TransactionService --> ApiClient
+    WalletService --> ApiClient
+    CategoryService --> ApiClient
+    UserService --> ApiClient
     
     useAuth --> AuthContext
-    useWallets --> WalletContext
-    useTransactions --> ApiClient
+    PrivateRoute --> useAuth
 ```
 
 ### Architektura backendu
@@ -523,42 +447,24 @@ graph TB
 graph TB
     subgraph "API Layer"
         Controllers[Controllers]
-        Middleware[Middleware]
-        Filters[Filters]
+        JwtMiddleware[JWT Middleware]
     end
     
-    subgraph "Business Layer"
-        Services[Services]
-        Validators[Validators]
-        Mappers[Mappers]
+    subgraph "Services"
+        TokenService[TokenService]
     end
     
     subgraph "Data Layer"
-        DbContext[DbContext]
-        Repositories[Repositories]
+        AppDbContext[AppDbContext]
+        Models[Models]
         Migrations[Migrations]
     end
     
-    subgraph "Cross-Cutting"
-        Logging[Logging]
-        Caching[Caching]
-        Configuration[Configuration]
-    end
-    
-    Controllers --> Services
-    Controllers --> Middleware
-    Controllers --> Filters
-    
-    Services --> Validators
-    Services --> Mappers
-    Services --> DbContext
-    Services --> Repositories
-    
-    DbContext --> Migrations
-    
-    Services --> Logging
-    Services --> Caching
-    Controllers --> Configuration
+    Controllers --> TokenService
+    Controllers --> JwtMiddleware
+    Controllers --> AppDbContext
+    AppDbContext --> Models
+    AppDbContext --> Migrations
 ```
 
 ## Diagramy wdrożenia

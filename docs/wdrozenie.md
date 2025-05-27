@@ -1,696 +1,474 @@
 # Wdrożenie MyMoney
 
-## Przegląd strategii wdrożenia
+## Aktualny stan wdrożenia
 
-MyMoney może być wdrożona na różne sposoby, w zależności od wymagań i budżetu. Dokumentacja obejmuje wdrożenie lokalne, w chmurze oraz przy użyciu kontenerów Docker.
+### ❌ Brak wdrożenia produkcyjnego
 
-## Środowiska
+Projekt MyMoney **nie jest wdrożony na żadnym środowisku produkcyjnym**. Dokumentacja opisuje rzeczywisty stan bez zmyślonych funkcji.
 
-### 1. Development (Deweloperskie)
-- **Cel**: Rozwój i testowanie funkcjonalności
-- **Infrastruktura**: Lokalne maszyny deweloperów
-- **Baza danych**: SQL Server Express lub Docker
-- **Dostęp**: Tylko zespół deweloperski
+## Dostępne konfiguracje
 
-### 2. Staging (Testowe)
-- **Cel**: Testowanie integracyjne i akceptacyjne
-- **Infrastruktura**: Serwer testowy lub chmura
-- **Baza danych**: SQL Server (kopia produkcyjnej)
-- **Dostęp**: Zespół deweloperski + testerzy
+### Docker - Częściowo skonfigurowany
 
-### 3. Production (Produkcyjne)
-- **Cel**: Środowisko dla użytkowników końcowych
-- **Infrastruktura**: Serwery produkcyjne lub chmura
-- **Baza danych**: SQL Server z replikacją
-- **Dostęp**: Użytkownicy końcowi
-
-## Wdrożenie lokalne
-
-### Wymagania serwera
-
-**Minimalne:**
-- CPU: 2 rdzenie, 2.0 GHz
-- RAM: 4 GB
-- Dysk: 50 GB SSD
-- OS: Windows Server 2019+ lub Ubuntu 20.04+
-
-**Zalecane:**
-- CPU: 4 rdzenie, 3.0 GHz
-- RAM: 8 GB
-- Dysk: 100 GB SSD
-- OS: Windows Server 2022 lub Ubuntu 22.04
-
-### Instalacja na Windows Server
-
-#### Krok 1: Instalacja wymaganych komponentów
-
-```powershell
-# Instalacja IIS
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServerRole
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-WebServer
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-CommonHttpFeatures
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpErrors
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-HttpLogging
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-Security
-Enable-WindowsOptionalFeature -Online -FeatureName IIS-RequestFiltering
-
-# Instalacja .NET 9.0 Hosting Bundle
-Invoke-WebRequest -Uri "https://download.dotnet.microsoft.com/dotnet/9.0/dotnet-hosting-9.0.0-win.exe" -OutFile "dotnet-hosting.exe"
-.\dotnet-hosting.exe /quiet
-
-# Restart IIS
-iisreset
-```
-
-#### Krok 2: Konfiguracja SQL Server
-
-```sql
--- Utworzenie bazy danych
-CREATE DATABASE MyMoneyDB;
-
--- Utworzenie użytkownika aplikacji
-CREATE LOGIN MyMoneyApp WITH PASSWORD = 'StrongPassword123!';
-USE MyMoneyDB;
-CREATE USER MyMoneyApp FOR LOGIN MyMoneyApp;
-ALTER ROLE db_owner ADD MEMBER MyMoneyApp;
-```
-
-#### Krok 3: Wdrożenie aplikacji
-
-```powershell
-# Publikacja backendu
-cd api
-dotnet publish -c Release -o C:\inetpub\wwwroot\mymoney-api
-
-# Budowanie frontendu
-cd ..\frontend
-npm install
-npm run build
-
-# Kopiowanie frontendu
-Copy-Item -Path "build\*" -Destination "C:\inetpub\wwwroot\mymoney-frontend" -Recurse
-```
-
-#### Krok 4: Konfiguracja IIS
-
-```xml
-<!-- web.config dla API -->
-<?xml version="1.0" encoding="utf-8"?>
-<configuration>
-  <location path="." inheritInChildApplications="false">
-    <system.webServer>
-      <handlers>
-        <add name="aspNetCore" path="*" verb="*" modules="AspNetCoreModuleV2" resourceType="Unspecified" />
-      </handlers>
-      <aspNetCore processPath="dotnet" 
-                  arguments=".\api.dll" 
-                  stdoutLogEnabled="false" 
-                  stdoutLogFile=".\logs\stdout" 
-                  hostingModel="inprocess" />
-    </system.webServer>
-  </location>
-</configuration>
-```
-
-### Instalacja na Ubuntu
-
-#### Krok 1: Instalacja wymaganych pakietów
-
-```bash
-# Aktualizacja systemu
-sudo apt update && sudo apt upgrade -y
-
-# Instalacja .NET 9.0
-wget https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb -O packages-microsoft-prod.deb
-sudo dpkg -i packages-microsoft-prod.deb
-sudo apt update
-sudo apt install -y dotnet-sdk-9.0 aspnetcore-runtime-9.0
-
-# Instalacja Nginx
-sudo apt install -y nginx
-
-# Instalacja Node.js
-curl -fsSL https://deb.nodesource.com/setup_18.x | sudo -E bash -
-sudo apt install -y nodejs
-```
-
-#### Krok 2: Konfiguracja bazy danych
-
-```bash
-# Instalacja SQL Server (Docker)
-sudo docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" \
-   -p 1433:1433 --name sqlserver --restart unless-stopped \
-   -d mcr.microsoft.com/mssql/server:2019-latest
-```
-
-#### Krok 3: Wdrożenie aplikacji
-
-```bash
-# Utworzenie użytkownika aplikacji
-sudo useradd -m -s /bin/bash mymoney
-sudo mkdir -p /var/www/mymoney
-sudo chown mymoney:mymoney /var/www/mymoney
-
-# Publikacja backendu
-cd api
-dotnet publish -c Release -o /var/www/mymoney/api
-sudo chown -R mymoney:mymoney /var/www/mymoney/api
-
-# Budowanie frontendu
-cd ../frontend
-npm install
-npm run build
-sudo cp -r build/* /var/www/mymoney/frontend/
-sudo chown -R www-data:www-data /var/www/mymoney/frontend
-```
-
-#### Krok 4: Konfiguracja systemd
-
-```ini
-# /etc/systemd/system/mymoney-api.service
-[Unit]
-Description=MyMoney API
-After=network.target
-
-[Service]
-Type=notify
-User=mymoney
-WorkingDirectory=/var/www/mymoney/api
-ExecStart=/usr/bin/dotnet /var/www/mymoney/api/api.dll
-Restart=always
-RestartSec=10
-KillSignal=SIGINT
-SyslogIdentifier=mymoney-api
-Environment=ASPNETCORE_ENVIRONMENT=Production
-Environment=DOTNET_PRINT_TELEMETRY_MESSAGE=false
-
-[Install]
-WantedBy=multi-user.target
-```
-
-```bash
-# Uruchomienie usługi
-sudo systemctl enable mymoney-api
-sudo systemctl start mymoney-api
-sudo systemctl status mymoney-api
-```
-
-#### Krok 5: Konfiguracja Nginx
-
-```nginx
-# /etc/nginx/sites-available/mymoney
-server {
-    listen 80;
-    server_name yourdomain.com;
-    
-    # Frontend
-    location / {
-        root /var/www/mymoney/frontend;
-        index index.html;
-        try_files $uri $uri/ /index.html;
-    }
-    
-    # API
-    location /api/ {
-        proxy_pass http://localhost:5000/;
-        proxy_http_version 1.1;
-        proxy_set_header Upgrade $http_upgrade;
-        proxy_set_header Connection keep-alive;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-        proxy_cache_bypass $http_upgrade;
-    }
-}
-```
-
-```bash
-# Aktywacja konfiguracji
-sudo ln -s /etc/nginx/sites-available/mymoney /etc/nginx/sites-enabled/
-sudo nginx -t
-sudo systemctl reload nginx
-```
-
-## Wdrożenie w chmurze
-
-### Azure App Service
-
-#### Krok 1: Utworzenie zasobów
-
-```bash
-# Logowanie do Azure
-az login
-
-# Utworzenie grupy zasobów
-az group create --name MyMoneyRG --location "West Europe"
-
-# Utworzenie planu App Service
-az appservice plan create --name MyMoneyPlan --resource-group MyMoneyRG --sku B1 --is-linux
-
-# Utworzenie Web App dla API
-az webapp create --resource-group MyMoneyRG --plan MyMoneyPlan --name mymoney-api --runtime "DOTNETCORE:9.0"
-
-# Utworzenie Web App dla frontendu
-az webapp create --resource-group MyMoneyRG --plan MyMoneyPlan --name mymoney-frontend --runtime "NODE:18-lts"
-
-# Utworzenie SQL Database
-az sql server create --name mymoney-sql --resource-group MyMoneyRG --location "West Europe" --admin-user mymoneyadmin --admin-password "YourStrong@Passw0rd"
-az sql db create --resource-group MyMoneyRG --server mymoney-sql --name MyMoneyDB --service-objective Basic
-```
-
-#### Krok 2: Konfiguracja zmiennych środowiskowych
-
-```bash
-# Konfiguracja API
-az webapp config appsettings set --resource-group MyMoneyRG --name mymoney-api --settings \
-    ConnectionStrings__DefaultConnection="Server=mymoney-sql.database.windows.net;Database=MyMoneyDB;User Id=mymoneyadmin;Password=YourStrong@Passw0rd;Encrypt=true;" \
-    JwtSettings__SecretKey="your-super-secret-key-here-minimum-32-characters" \
-    ASPNETCORE_ENVIRONMENT="Production"
-
-# Konfiguracja frontendu
-az webapp config appsettings set --resource-group MyMoneyRG --name mymoney-frontend --settings \
-    REACT_APP_API_URL="https://mymoney-api.azurewebsites.net/api"
-```
-
-#### Krok 3: Wdrożenie kodu
-
-```bash
-# Wdrożenie API
-cd api
-az webapp deployment source config-zip --resource-group MyMoneyRG --name mymoney-api --src publish.zip
-
-# Wdrożenie frontendu
-cd ../frontend
-npm run build
-zip -r build.zip build/*
-az webapp deployment source config-zip --resource-group MyMoneyRG --name mymoney-frontend --src build.zip
-```
-
-### AWS Elastic Beanstalk
-
-#### Krok 1: Przygotowanie aplikacji
-
-```bash
-# Instalacja EB CLI
-pip install awsebcli
-
-# Inicjalizacja projektu
-cd api
-eb init mymoney-api --platform "64bit Amazon Linux 2 v2.2.0 running .NET Core" --region us-west-2
-
-# Utworzenie środowiska
-eb create production --database.engine sqlserver-ex --database.username mymoneyadmin
-```
-
-#### Krok 2: Konfiguracja
-
+**docker-compose.yml** (tylko SQL Server):
 ```yaml
-# .ebextensions/01-environment.config
-option_settings:
-  aws:elasticbeanstalk:application:environment:
-    ASPNETCORE_ENVIRONMENT: Production
-    ConnectionStrings__DefaultConnection: "Server=your-rds-endpoint;Database=MyMoneyDB;User Id=mymoneyadmin;Password=YourPassword;"
-```
-
-#### Krok 3: Wdrożenie
-
-```bash
-# Wdrożenie API
-eb deploy
-
-# Wdrożenie frontendu do S3 + CloudFront
-cd ../frontend
-npm run build
-aws s3 sync build/ s3://mymoney-frontend-bucket --delete
-aws cloudfront create-invalidation --distribution-id YOUR_DISTRIBUTION_ID --paths "/*"
-```
-
-## Wdrożenie z Docker
-
-### Docker Compose - Produkcja
-
-```yaml
-# docker-compose.prod.yml
-version: '3.8'
-
 services:
-  sqlserver:
-    image: mcr.microsoft.com/mssql/server:2019-latest
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: local_mssql_server_MyMoney
     environment:
-      - ACCEPT_EULA=Y
-      - SA_PASSWORD=YourStrong@Passw0rd
-    volumes:
-      - sqlserver_data:/var/opt/mssql
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
     ports:
       - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
     restart: unless-stopped
+```
+
+**docker-compose-prod.yml** (pełna aplikacja):
+```yaml
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+    volumes:
+      - mssql_data:/var/opt/mssql
 
   api:
     build:
       context: ./api
       dockerfile: Dockerfile-prod.dockerfile
+    ports:
+      - "80:80"
+      - "5032:5032"
     environment:
       - ASPNETCORE_ENVIRONMENT=Production
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MyMoneyDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
-    depends_on:
-      - sqlserver
-    ports:
-      - "5000:80"
-    restart: unless-stopped
 
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile-prod.dockerfile
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000/api
     ports:
-      - "3000:80"
-    restart: unless-stopped
-
-  nginx:
-    image: nginx:alpine
-    volumes:
-      - ./nginx.conf:/etc/nginx/nginx.conf
-    ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - api
-      - frontend
-    restart: unless-stopped
-
-volumes:
-  sqlserver_data:
+      - "3000:3000"
 ```
 
-### Konfiguracja Nginx dla Docker
+### Dockerfiles
 
-```nginx
-# nginx.conf
-events {
-    worker_connections 1024;
-}
-
-http {
-    upstream api {
-        server api:80;
-    }
-    
-    upstream frontend {
-        server frontend:80;
-    }
-    
-    server {
-        listen 80;
-        server_name localhost;
-        
-        location /api/ {
-            proxy_pass http://api/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-        
-        location / {
-            proxy_pass http://frontend/;
-            proxy_set_header Host $host;
-            proxy_set_header X-Real-IP $remote_addr;
-            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto $scheme;
-        }
-    }
-}
+**api/Dockerfile** (development):
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS dev
+WORKDIR /app
+COPY *.csproj ./
+RUN dotnet restore
+COPY . ./
+RUN dotnet tool install --global dotnet-watch
+ENV PATH="$PATH:/root/.dotnet/tools"
+EXPOSE 5032
+CMD ["dotnet", "watch", "run"]
 ```
 
-### Uruchomienie produkcyjne
+**api/Dockerfile-prod.dockerfile**:
+```dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+WORKDIR /app
+COPY *.csproj ./
+RUN dotnet restore
+COPY . ./
+RUN dotnet publish -c Release -o out
+
+FROM mcr.microsoft.com/dotnet/aspnet:9.0
+WORKDIR /app
+COPY --from=build /app/out /out
+ENTRYPOINT ["dotnet", "/out/api.dll"]
+```
+
+**frontend/Dockerfile** (development):
+```dockerfile
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . ./
+EXPOSE 3000
+CMD ["npm", "start"]
+```
+
+**frontend/Dockerfile-prod.dockerfile**:
+```dockerfile
+FROM node:18-alpine AS build
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+FROM node:18-alpine
+WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --only=production
+COPY --from=build /app/build ./build
+EXPOSE 3000
+ENV NODE_ENV=production
+CMD ["npx", "serve", "-s", "build", "-l", "3000"]
+```
+
+## Aktualne uruchomienie
+
+### Lokalne (bez Docker)
 
 ```bash
-# Budowanie i uruchomienie
-docker-compose -f docker-compose.prod.yml up -d
+# Backend
+cd api
+dotnet run  # http://localhost:5032
 
-# Sprawdzenie statusu
-docker-compose -f docker-compose.prod.yml ps
-
-# Logi
-docker-compose -f docker-compose.prod.yml logs -f
+# Frontend  
+cd frontend
+npm start   # http://localhost:3000
 ```
 
-## Kubernetes
-
-### Deployment manifesty
-
-```yaml
-# api-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mymoney-api
-spec:
-  replicas: 3
-  selector:
-    matchLabels:
-      app: mymoney-api
-  template:
-    metadata:
-      labels:
-        app: mymoney-api
-    spec:
-      containers:
-      - name: api
-        image: mymoney/api:latest
-        ports:
-        - containerPort: 80
-        env:
-        - name: ASPNETCORE_ENVIRONMENT
-          value: "Production"
-        - name: ConnectionStrings__DefaultConnection
-          valueFrom:
-            secretKeyRef:
-              name: mymoney-secrets
-              key: connection-string
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mymoney-api-service
-spec:
-  selector:
-    app: mymoney-api
-  ports:
-  - port: 80
-    targetPort: 80
-  type: ClusterIP
-```
-
-```yaml
-# frontend-deployment.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: mymoney-frontend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: mymoney-frontend
-  template:
-    metadata:
-      labels:
-        app: mymoney-frontend
-    spec:
-      containers:
-      - name: frontend
-        image: mymoney/frontend:latest
-        ports:
-        - containerPort: 80
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: mymoney-frontend-service
-spec:
-  selector:
-    app: mymoney-frontend
-  ports:
-  - port: 80
-    targetPort: 80
-  type: ClusterIP
-```
-
-```yaml
-# ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: mymoney-ingress
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-spec:
-  rules:
-  - host: mymoney.yourdomain.com
-    http:
-      paths:
-      - path: /api
-        pathType: Prefix
-        backend:
-          service:
-            name: mymoney-api-service
-            port:
-              number: 80
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: mymoney-frontend-service
-            port:
-              number: 80
-```
-
-## SSL/TLS
-
-### Let's Encrypt z Certbot
+### Z Docker (tylko baza danych)
 
 ```bash
-# Instalacja Certbot
-sudo apt install certbot python3-certbot-nginx
-
-# Uzyskanie certyfikatu
-sudo certbot --nginx -d yourdomain.com -d www.yourdomain.com
-
-# Automatyczne odnawianie
-sudo crontab -e
-# Dodaj linię:
-0 12 * * * /usr/bin/certbot renew --quiet
+docker-compose up -d  # Tylko SQL Server
+# Potem uruchom backend i frontend lokalnie
 ```
 
-### Konfiguracja HTTPS w Nginx
+### Pełny Docker (teoretyczny)
 
-```nginx
-server {
-    listen 443 ssl http2;
-    server_name yourdomain.com;
-    
-    ssl_certificate /etc/letsencrypt/live/yourdomain.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/yourdomain.com/privkey.pem;
-    
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers ECDHE-RSA-AES256-GCM-SHA512:DHE-RSA-AES256-GCM-SHA512:ECDHE-RSA-AES256-GCM-SHA384:DHE-RSA-AES256-GCM-SHA384;
-    ssl_prefer_server_ciphers off;
-    
-    # Reszta konfiguracji...
-}
-
-# Przekierowanie HTTP na HTTPS
-server {
-    listen 80;
-    server_name yourdomain.com;
-    return 301 https://$server_name$request_uri;
-}
+```bash
+docker-compose -f docker-compose-prod.yml up -d
 ```
 
-## Monitorowanie i logowanie
+**Problem:** Nie testowane, może nie działać
 
-### Konfiguracja logowania
+## Brakujące elementy wdrożenia
+
+### 1. Środowiska
+
+**Brak:**
+- Staging environment
+- Production environment
+- Development environment (poza lokalnym)
+
+### 2. CI/CD Pipeline
+
+**Brak:**
+- GitHub Actions
+- Automatyczne buildy
+- Automatyczne testy
+- Automatyczne wdrożenie
+
+### 3. Infrastruktura chmurowa
+
+**Brak:**
+- Azure App Service
+- AWS Elastic Beanstalk
+- Google Cloud Platform
+- Heroku
+
+### 4. Konfiguracja produkcyjna
+
+**Problemy:**
+- Hardcoded JWT secret
+- Brak HTTPS
+- CORS AllowAll
+- Brak zmiennych środowiskowych
+- Brak konfiguracji logowania
+
+### 5. Monitoring i logowanie
+
+**Brak:**
+- Application Insights
+- Sentry
+- Health checks
+- Metryki wydajności
+
+### 6. Backup i odzyskiwanie
+
+**Brak:**
+- Automatyczne backupy bazy danych
+- Strategia disaster recovery
+- Monitoring dostępności
+
+## Konfiguracja środowisk (do zrobienia)
+
+### appsettings.Production.json (NIE ISTNIEJE)
 
 ```json
-// appsettings.Production.json
 {
   "Logging": {
     "LogLevel": {
-      "Default": "Information",
+      "Default": "Warning",
       "Microsoft.AspNetCore": "Warning"
-    },
-    "File": {
-      "Path": "/var/log/mymoney/app.log",
-      "FileSizeLimitBytes": 10485760,
-      "MaxRollingFiles": 10
     }
-  }
+  },
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=prod-server;Database=MyMoney;User Id=prod-user;Password=prod-password;Encrypt=true;"
+  },
+  "JwtSettings": {
+    "SecretKey": "production-secret-key-32-characters-minimum",
+    "ExpirationMinutes": 60,
+    "RefreshExpirationHours": 24
+  },
+  "AllowedHosts": "yourdomain.com"
 }
 ```
 
-### Health Checks
-
-```csharp
-// Program.cs
-builder.Services.AddHealthChecks()
-    .AddSqlServer(connectionString)
-    .AddCheck("api", () => HealthCheckResult.Healthy());
-
-app.MapHealthChecks("/health");
-```
-
-### Monitoring z Prometheus
-
-```yaml
-# prometheus.yml
-global:
-  scrape_interval: 15s
-
-scrape_configs:
-  - job_name: 'mymoney-api'
-    static_configs:
-      - targets: ['localhost:5000']
-    metrics_path: '/metrics'
-```
-
-## Backup i odzyskiwanie
-
-### Automatyczny backup bazy danych
+### Zmienne środowiskowe (do skonfigurowania)
 
 ```bash
-#!/bin/bash
-# backup-script.sh
+# Backend
+ASPNETCORE_ENVIRONMENT=Production
+ConnectionStrings__DefaultConnection="Server=..."
+JwtSettings__SecretKey="..."
 
-DATE=$(date +%Y%m%d_%H%M%S)
-BACKUP_DIR="/backups/mymoney"
-DB_NAME="MyMoneyDB"
-
-# Utworzenie katalogu backup
-mkdir -p $BACKUP_DIR
-
-# Backup bazy danych
-sqlcmd -S localhost -U sa -P 'YourStrong@Passw0rd' -Q "BACKUP DATABASE [$DB_NAME] TO DISK = N'$BACKUP_DIR/MyMoneyDB_$DATE.bak'"
-
-# Usunięcie starych backupów (starszych niż 30 dni)
-find $BACKUP_DIR -name "*.bak" -mtime +30 -delete
-
-echo "Backup completed: MyMoneyDB_$DATE.bak"
+# Frontend
+REACT_APP_API_URL=https://api.yourdomain.com/api
+NODE_ENV=production
 ```
+
+## Plan wdrożenia (do zaimplementowania)
+
+### Faza 1: Przygotowanie
+
+1. **Konfiguracja środowisk**
+   - Utworzenie appsettings.Production.json
+   - Konfiguracja zmiennych środowiskowych
+   - Usunięcie hardcoded secrets
+
+2. **Bezpieczeństwo**
+   - Konfiguracja HTTPS
+   - Poprawka CORS
+   - Secure JWT secrets
+   - Rate limiting
+
+3. **Testy**
+   - Implementacja testów jednostkowych
+   - Testy integracyjne
+   - Testy E2E
+
+### Faza 2: CI/CD
+
+1. **GitHub Actions**
+   ```yaml
+   # .github/workflows/deploy.yml (NIE ISTNIEJE)
+   name: Deploy
+   
+   on:
+     push:
+       branches: [ main ]
+   
+   jobs:
+     test:
+       runs-on: ubuntu-latest
+       steps:
+         - uses: actions/checkout@v3
+         - name: Run tests
+           run: |
+             cd frontend && npm test
+             cd api && dotnet test
+   
+     deploy:
+       needs: test
+       runs-on: ubuntu-latest
+       steps:
+         - name: Deploy to production
+           run: echo "Deploy steps here"
+   ```
+
+2. **Automatyzacja**
+   - Build na każdy commit
+   - Deploy na main branch
+   - Rollback w przypadku błędów
+
+### Faza 3: Infrastruktura
+
+1. **Wybór platformy**
+   - Azure App Service (zalecane dla .NET)
+   - AWS Elastic Beanstalk
+   - Docker na VPS
+
+2. **Baza danych**
+   - Azure SQL Database
+   - AWS RDS
+   - Managed SQL Server
+
+3. **CDN i static files**
+   - Azure Blob Storage
+   - AWS S3 + CloudFront
+   - Nginx dla static files
+
+### Faza 4: Monitoring
+
+1. **Logowanie**
+   - Structured logging
+   - Centralized logs
+   - Error tracking
+
+2. **Metryki**
+   - Application performance
+   - Database performance
+   - User analytics
+
+3. **Alerting**
+   - Downtime alerts
+   - Error rate alerts
+   - Performance alerts
+
+## Przykład wdrożenia Azure (do zaimplementowania)
+
+### 1. Utworzenie zasobów
 
 ```bash
-# Dodanie do crontab
-0 2 * * * /path/to/backup-script.sh
+# Grupa zasobów
+az group create --name MyMoneyRG --location "West Europe"
+
+# App Service Plan
+az appservice plan create --name MyMoneyPlan --resource-group MyMoneyRG --sku B1
+
+# Web Apps
+az webapp create --resource-group MyMoneyRG --plan MyMoneyPlan --name mymoney-api --runtime "DOTNETCORE:9.0"
+az webapp create --resource-group MyMoneyRG --plan MyMoneyPlan --name mymoney-frontend --runtime "NODE:18-lts"
+
+# SQL Database
+az sql server create --name mymoney-sql --resource-group MyMoneyRG --admin-user admin --admin-password "StrongPassword123!"
+az sql db create --resource-group MyMoneyRG --server mymoney-sql --name MyMoneyDB
 ```
 
-## Checklist wdrożenia
+### 2. Konfiguracja
 
-### Pre-deployment
-- [ ] Testy jednostkowe przechodzą
-- [ ] Testy integracyjne przechodzą
-- [ ] Code review zakończony
-- [ ] Dokumentacja zaktualizowana
-- [ ] Zmienne środowiskowe skonfigurowane
-- [ ] Certyfikaty SSL gotowe
+```bash
+# API settings
+az webapp config appsettings set --resource-group MyMoneyRG --name mymoney-api --settings \
+    ConnectionStrings__DefaultConnection="Server=mymoney-sql.database.windows.net;Database=MyMoneyDB;User Id=admin;Password=StrongPassword123!;Encrypt=true;" \
+    JwtSettings__SecretKey="production-secret-key-32-characters-minimum" \
+    ASPNETCORE_ENVIRONMENT="Production"
 
-### Deployment
-- [ ] Backup bazy danych utworzony
-- [ ] Aplikacja wdrożona
-- [ ] Migracje bazy danych uruchomione
-- [ ] Health checks przechodzą
-- [ ] SSL działa poprawnie
-- [ ] Monitoring skonfigurowany
+# Frontend settings
+az webapp config appsettings set --resource-group MyMoneyRG --name mymoney-frontend --settings \
+    REACT_APP_API_URL="https://mymoney-api.azurewebsites.net/api"
+```
 
-### Post-deployment
-- [ ] Testy smoke przeszły
-- [ ] Logi sprawdzone
-- [ ] Wydajność zweryfikowana
-- [ ] Użytkownicy powiadomieni
-- [ ] Dokumentacja wdrożenia zaktualizowana
+### 3. Wdrożenie
+
+```bash
+# API
+cd api
+dotnet publish -c Release -o ./publish
+zip -r publish.zip ./publish/*
+az webapp deployment source config-zip --resource-group MyMoneyRG --name mymoney-api --src publish.zip
+
+# Frontend
+cd frontend
+npm run build
+zip -r build.zip build/*
+az webapp deployment source config-zip --resource-group MyMoneyRG --name mymoney-frontend --src build.zip
+```
+
+## Problemy do rozwiązania
+
+### 1. Bezpieczeństwo
+- 🔴 Hardcoded JWT secret w kodzie
+- 🔴 Brak HTTPS
+- 🔴 CORS AllowAll
+- 🟡 Brak rate limiting
+- 🟡 Brak input validation
+
+### 2. Konfiguracja
+- 🔴 Brak production appsettings
+- 🔴 Brak zmiennych środowiskowych
+- 🟡 Brak health checks
+- 🟡 Brak structured logging
+
+### 3. Infrastruktura
+- 🔴 Brak środowiska produkcyjnego
+- 🔴 Brak CI/CD
+- 🔴 Brak monitoringu
+- 🟡 Brak backup strategy
+
+### 4. Wydajność
+- 🟡 Brak cache'owania
+- 🟡 Brak CDN
+- 🟡 Brak optymalizacji obrazów
+- 🟡 Brak compression
+
+## Komendy do testowania Docker
+
+### Lokalne testowanie
+
+```bash
+# Build images
+docker build -t mymoney-api -f api/Dockerfile-prod.dockerfile api/
+docker build -t mymoney-frontend -f frontend/Dockerfile-prod.dockerfile frontend/
+
+# Run production compose
+docker-compose -f docker-compose-prod.yml up -d
+
+# Check logs
+docker-compose -f docker-compose-prod.yml logs -f
+
+# Stop
+docker-compose -f docker-compose-prod.yml down
+```
+
+### Sprawdzenie statusu
+
+```bash
+# Check containers
+docker ps
+
+# Check networks
+docker network ls
+
+# Check volumes
+docker volume ls
+
+# Check images
+docker images
+```
+
+## Checklist przed wdrożeniem
+
+### Bezpieczeństwo
+- [ ] Usunięcie hardcoded secrets
+- [ ] Konfiguracja HTTPS
+- [ ] Poprawka CORS
+- [ ] Implementacja rate limiting
+- [ ] Walidacja input
+
+### Konfiguracja
+- [ ] Production appsettings
+- [ ] Zmienne środowiskowe
+- [ ] Health checks
+- [ ] Structured logging
+- [ ] Error handling
+
+### Testy
+- [ ] Testy jednostkowe
+- [ ] Testy integracyjne
+- [ ] Testy E2E
+- [ ] Load testing
+- [ ] Security testing
+
+### Infrastruktura
+- [ ] Wybór platformy
+- [ ] Konfiguracja bazy danych
+- [ ] Backup strategy
+- [ ] Monitoring setup
+- [ ] CI/CD pipeline
+
+### Dokumentacja
+- [ ] Deployment guide
+- [ ] Runbook
+- [ ] Troubleshooting guide
+- [ ] API documentation
+- [ ] User manual
 
 ---
 
-**Uwaga:** Zawsze testuj procedury wdrożenia w środowisku staging przed wdrożeniem produkcyjnym. 
+**Status:** Wdrożenie nie jest zaimplementowane. Projekt wymaga kompletnej konfiguracji przed wdrożeniem produkcyjnym. 

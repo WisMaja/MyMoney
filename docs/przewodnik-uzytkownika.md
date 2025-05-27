@@ -1,352 +1,194 @@
 # Przewodnik Użytkownika MyMoney
 
-## Wprowadzenie
-
-MyMoney to intuicyjna aplikacja do zarządzania finansami osobistymi, która pomoże Ci kontrolować wydatki, planować budżet i analizować swoje nawyki finansowe. Ten przewodnik przeprowadzi Cię przez wszystkie funkcjonalności aplikacji.
-
 ## Pierwsze kroki
 
-### Rejestracja konta
+### Rejestracja i logowanie
 
-1. **Otwórz aplikację** w przeglądarce
-2. **Kliknij "Zarejestruj się"** na stronie logowania
-3. **Wybierz sposób rejestracji:**
-   - Tradycyjne konto (email + hasło)
-   - Konto Google
-   - Konto Facebook
+**Rejestracja:**
+1. Otwórz aplikację w przeglądarce
+2. Kliknij "Need an account? Register"
+3. Wprowadź email i hasło
+4. Hasło musi spełniać wymagania:
+   - 8 znaków
+   - Jedna cyfra
+   - Jeden znak specjalny
+   - Jedna wielka litera
+   - Jedna mała litera
+5. Powtórz hasło
+6. Kliknij "Register"
 
-#### Rejestracja tradycyjna
-1. Wprowadź swój adres email
-2. Utwórz bezpieczne hasło (minimum 8 znaków)
-3. Podaj imię i nazwisko
-4. Kliknij "Utwórz konto"
-5. Sprawdź email i potwierdź rejestrację
-
-#### Rejestracja przez Google/Facebook
-1. Kliknij odpowiednią ikonę
-2. Zaloguj się do swojego konta Google/Facebook
-3. Potwierdź uprawnienia aplikacji
-4. Zostaniesz automatycznie przekierowany do aplikacji
-
-### Pierwsze logowanie
-
-Po rejestracji zostaniesz automatycznie zalogowany. Przy kolejnych wizytach:
-
+**Logowanie:**
 1. Wprowadź email i hasło
-2. Lub użyj logowania społecznościowego
-3. Kliknij "Zaloguj się"
+2. Kliknij "Login"
 
-## Główny panel (Dashboard)
+## Dashboard (Strona główna)
 
-Po zalogowaniu zobaczysz główny panel z przeglądem Twoich finansów:
+Po zalogowaniu zobaczysz:
 
-### Sekcje dashboardu
+**Podsumowanie konta:**
+- Nazwa głównego konta
+- Aktualne saldo
+- Suma przychodów
+- Suma wydatków
 
-1. **Podsumowanie finansowe**
-   - Łączne saldo wszystkich kont
-   - Przychody i wydatki w bieżącym miesiącu
-   - Bilans miesięczny
+**Ostatnie transakcje:**
+- Lista transakcji z głównego konta
+- Data, opis, kategoria, kwota
+- Przyciski edycji i usuwania
 
-2. **Ostatnie transakcje**
-   - Lista najnowszych operacji
-   - Szybki podgląd kategorii i kwot
+**Akcje:**
+- "Add Income" - dodaj przychód
+- "Add Expense" - dodaj wydatek
 
-3. **Wykresy i statystyki**
-   - Wykres wydatków według kategorii
-   - Trend przychodów i wydatków
-   - Porównanie z poprzednim miesiącem
-
-4. **Szybkie akcje**
-   - Dodaj nową transakcję
-   - Utwórz nowe konto
-   - Zobacz pełne statystyki
-
-## Zarządzanie kontami
-
-### Tworzenie nowego konta
-
-1. **Przejdź do sekcji "Konta"** w menu głównym
-2. **Kliknij "Dodaj nowe konto"**
-3. **Wypełnij formularz:**
-   - Nazwa konta (np. "Konto główne", "Oszczędności")
-   - Typ konta (Gotówka, Konto bankowe, Karta kredytowa)
-   - Waluta (PLN, EUR, USD, itp.)
-   - Początkowe saldo
-4. **Kliknij "Utwórz konto"**
-
-### Edycja konta
-
-1. **Znajdź konto** na liście
-2. **Kliknij ikonę edycji** (ołówek)
-3. **Zmień potrzebne dane**
-4. **Zapisz zmiany**
-
-### Usuwanie konta
-
-⚠️ **Uwaga:** Usunięcie konta spowoduje również usunięcie wszystkich powiązanych transakcji.
-
-1. **Kliknij ikonę usuwania** (kosz)
-2. **Potwierdź operację** wpisując nazwę konta
-3. **Kliknij "Usuń definitywnie"**
-
-### Udostępnianie konta
-
-MyMoney pozwala na dzielenie kont z innymi użytkownikami (np. konto rodzinne):
-
-1. **Otwórz szczegóły konta**
-2. **Kliknij "Zarządzaj członkami"**
-3. **Wprowadź email osoby** którą chcesz dodać
-4. **Wybierz poziom uprawnień:**
-   - Tylko odczyt
-   - Dodawanie transakcji
-   - Pełne zarządzanie
-5. **Wyślij zaproszenie**
-
-## Zarządzanie transakcjami
-
-### Dodawanie wydatku
-
-1. **Kliknij "Dodaj wydatek"** na dashboardzie lub w sekcji Transakcje
-2. **Wypełnij formularz:**
-   - Kwota (zawsze jako liczba dodatnia)
-   - Konto z którego płacisz
-   - Kategoria wydatku
-   - Opis transakcji
-   - Data (domyślnie dzisiejsza)
-3. **Kliknij "Zapisz wydatek"**
+## Transakcje
 
 ### Dodawanie przychodu
 
-1. **Kliknij "Dodaj przychód"**
-2. **Wypełnij formularz:**
-   - Kwota przychodu
-   - Konto na które wpływają środki
-   - Kategoria przychodu (Wynagrodzenie, Bonus, itp.)
+1. Kliknij "Add Income" na dashboardzie
+2. Wypełnij formularz:
+   - Kwota
+   - Kategoria (z listy dostępnych)
    - Opis
    - Data
-3. **Kliknij "Zapisz przychód"**
+   - Konto (wybierz z listy)
+3. Kliknij "Save"
 
-### Kategorie transakcji
+### Dodawanie wydatku
 
-#### Domyślne kategorie wydatków:
-- 🍕 Jedzenie i restauracje
-- 🚗 Transport
-- 🏠 Dom i mieszkanie
-- 👕 Odzież
-- 🎬 Rozrywka
-- 💊 Zdrowie
-- 📚 Edukacja
-- 🎁 Prezenty
-
-#### Domyślne kategorie przychodów:
-- 💰 Wynagrodzenie
-- 💼 Freelancing
-- 🎯 Bonus
-- 💸 Zwrot
-- 📈 Inwestycje
+1. Kliknij "Add Expense" na dashboardzie
+2. Wypełnij formularz:
+   - Kwota
+   - Kategoria (z listy dostępnych)
+   - Opis
+   - Data
+   - Konto (wybierz z listy)
+3. Kliknij "Save"
 
 ### Edycja transakcji
 
-1. **Znajdź transakcję** na liście
-2. **Kliknij na nią** aby otworzyć szczegóły
-3. **Kliknij "Edytuj"**
-4. **Zmień potrzebne dane**
-5. **Zapisz zmiany**
+1. Kliknij ikonę ołówka przy transakcji
+2. Zmień potrzebne dane
+3. Kliknij "Save"
 
 ### Usuwanie transakcji
 
-1. **Otwórz szczegóły transakcji**
-2. **Kliknij "Usuń"**
-3. **Potwierdź operację**
+1. Kliknij ikonę kosza przy transakcji
+2. Potwierdź usunięcie
 
-### Filtrowanie i wyszukiwanie
+## Konta (Accounts)
 
-W sekcji Transakcje możesz:
+### Lista kont
 
-1. **Filtrować według:**
-   - Zakresu dat
-   - Kategorii
-   - Konta
-   - Typu (przychód/wydatek)
+W sekcji "Accounts" zobaczysz:
+- Wszystkie swoje konta
+- Saldo każdego konta
+- Walutę konta
+- Typ konta
 
-2. **Wyszukiwać po:**
-   - Opisie transakcji
-   - Kwocie
-   - Kategorii
+### Tworzenie konta
 
-3. **Sortować według:**
-   - Daty (najnowsze/najstarsze)
-   - Kwoty (rosnąco/malejąco)
-   - Kategorii (alfabetycznie)
+1. Przejdź do sekcji "Accounts"
+2. Kliknij "Add New Account"
+3. Wypełnij formularz:
+   - Nazwa konta
+   - Typ (Personal, Business, Savings, itp.)
+   - Waluta (USD, EUR, PLN, GBP)
+   - Początkowe saldo
+4. Kliknij "Create Account"
 
-## Statystyki i raporty
+### Edycja konta
 
-### Wykresy wydatków
+1. Znajdź konto na liście
+2. Kliknij przycisk edycji
+3. Zmień dane
+4. Zapisz zmiany
 
-1. **Przejdź do sekcji "Statystyki"**
-2. **Wybierz zakres dat** (ostatni miesiąc, 3 miesiące, rok)
-3. **Przeglądaj dostępne wykresy:**
-   - Wykres kołowy wydatków według kategorii
-   - Wykres liniowy trendów miesięcznych
-   - Wykres słupkowy porównania przychodów i wydatków
+## Kategorie (Categories)
 
-### Raporty miesięczne
+### Przeglądanie kategorii
 
-Automatycznie generowane raporty zawierają:
-- Łączne przychody i wydatki
-- Bilans miesięczny
-- Top 5 kategorii wydatków
-- Porównanie z poprzednim miesiącem
-- Średnia dzienna wydatków
+W sekcji "Categories" zobaczysz:
+- Wszystkie dostępne kategorie
+- Kategorie globalne (oznaczone ikoną)
+- Twoje własne kategorie
+- Filtr: wszystkie/przychody/wydatki
 
-### Eksport danych
+### Tworzenie kategorii
 
-1. **W sekcji Statystyki kliknij "Eksportuj dane"**
-2. **Wybierz format:**
-   - CSV (do Excel)
-   - PDF (raport)
-   - JSON (backup)
-3. **Wybierz zakres dat**
-4. **Pobierz plik**
+1. Przejdź do sekcji "Categories"
+2. Kliknij "Create Category"
+3. Wprowadź nazwę kategorii
+4. Kliknij "Save"
 
-## Budżetowanie
+Typ, ikona i kolor są przypisywane automatycznie na podstawie nazwy.
 
-### Tworzenie budżetu
+### Edycja kategorii
 
-1. **Przejdź do sekcji "Budżet"**
-2. **Kliknij "Utwórz nowy budżet"**
-3. **Wypełnij formularz:**
-   - Nazwa budżetu
-   - Okres (miesięczny, kwartalny, roczny)
-   - Kategorie i limity wydatków
-   - Data rozpoczęcia
-4. **Zapisz budżet**
+1. Kliknij menu (trzy kropki) przy kategorii
+2. Wybierz "Edit"
+3. Zmień nazwę
+4. Zapisz
 
-### Monitorowanie budżetu
+**Uwaga:** Można edytować tylko własne kategorie, nie globalne.
 
-Dashboard budżetu pokazuje:
-- Procent wykorzystania każdej kategorii
-- Pozostałą kwotę do wydania
-- Ostrzeżenia przy przekroczeniu 80% limitu
-- Alerty przy przekroczeniu budżetu
+### Usuwanie kategorii
 
-### Powiadomienia budżetowe
+1. Kliknij menu (trzy kropki) przy kategorii
+2. Wybierz "Delete"
+3. Potwierdź usunięcie
 
-Aplikacja automatycznie wysyła powiadomienia:
-- Przy osiągnięciu 80% limitu kategorii
-- Przy przekroczeniu budżetu
-- Cotygodniowe podsumowanie wydatków
+**Uwaga:** Można usuwać tylko własne kategorie, nie globalne.
 
-## Funkcje społecznościowe
+## Statystyki (Statistics)
 
-### Dodawanie znajomych
+Sekcja zawiera wykresy i analizy finansowe na podstawie twoich transakcji.
 
-1. **Przejdź do sekcji "Znajomi"**
-2. **Kliknij "Dodaj znajomego"**
-3. **Wprowadź email** osoby
-4. **Wyślij zaproszenie**
+## Budżety (Budgets)
 
-### Dzielenie się kontami
+Funkcja planowania i monitorowania budżetów.
 
-Po dodaniu znajomych możesz:
-- Udostępnić im swoje konta
-- Otrzymać dostęp do ich kont
-- Wspólnie zarządzać budżetem rodzinnym
-
-### Porównywanie wydatków
-
-Funkcja pozwala na anonimowe porównanie:
-- Średnich wydatków w kategorii
-- Nawyków finansowych
-- Trendów oszczędzania
-
-## Ustawienia konta
+## Ustawienia (Settings)
 
 ### Profil użytkownika
 
-1. **Kliknij na swoje imię** w prawym górnym rogu
-2. **Wybierz "Ustawienia profilu"**
-3. **Edytuj dane:**
-   - Imię i nazwisko
-   - Adres email
-   - Zdjęcie profilowe
-   - Preferowana waluta
-
-### Bezpieczeństwo
-
-1. **W ustawieniach przejdź do "Bezpieczeństwo"**
-2. **Dostępne opcje:**
-   - Zmiana hasła
-   - Uwierzytelnianie dwuskładnikowe (2FA)
-   - Sesje aktywne
-   - Historia logowań
+W ustawieniach możesz:
+- Zmienić dane profilu (imię, email)
+- Dodać zdjęcie profilowe
+- Zmienić hasło
 
 ### Powiadomienia
 
-Skonfiguruj powiadomienia dla:
-- Nowych transakcji
-- Przekroczenia budżetu
-- Raportów miesięcznych
-- Zaproszeń od znajomych
-
-### Prywatność
-
-Kontroluj:
-- Widoczność profilu dla znajomych
-- Udostępnianie danych statystycznych
-- Eksport danych osobowych
-- Usunięcie konta
-
-## Wskazówki i najlepsze praktyki
-
-### Regularne wprowadzanie danych
-
-- Dodawaj transakcje codziennie lub co kilka dni
-- Używaj opisowych nazw dla transakcji
-- Kategoryzuj wydatki konsekwentnie
-
-### Planowanie budżetu
-
-- Zacznij od analizy wydatków z ostatnich miesięcy
-- Ustaw realistyczne limity
-- Pozostaw 10-15% buforu na nieprzewidziane wydatki
-
-### Analiza trendów
-
-- Regularnie przeglądaj statystyki miesięczne
-- Identyfikuj kategorie z największymi wydatkami
-- Szukaj możliwości oszczędności
+Konfiguracja różnych typów powiadomień.
 
 ### Bezpieczeństwo
 
-- Używaj silnego hasła
-- Włącz uwierzytelnianie dwuskładnikowe
-- Regularnie sprawdzaj historię logowań
-- Nie udostępniaj danych logowania
+- Uwierzytelnianie dwuskładnikowe
+- Zarządzanie sesjami
+- Automatyczne wylogowanie
 
-## Rozwiązywanie problemów
+### Usuwanie konta
 
-### Nie mogę się zalogować
+W sekcji "Danger Zone" możesz usunąć swoje konto.
 
-1. Sprawdź poprawność email i hasła
-2. Użyj funkcji "Przypomnij hasło"
-3. Sprawdź czy konto zostało potwierdzone
-4. Wyczyść cache przeglądarki
+## Nawigacja
 
-### Transakcja nie została zapisana
+**Menu boczne zawiera:**
+- Dashboard
+- Statistics
+- Accounts
+- Budgets
+- Categories
+- Social
+- Settings
 
-1. Sprawdź połączenie internetowe
-2. Odśwież stronę i spróbuj ponownie
-3. Sprawdź czy wszystkie pola są wypełnione
-4. Skontaktuj się z pomocą techniczną
+**Nagłówek zawiera:**
+- Tytuł aktualnej strony
+- Twoje imię
+- Menu użytkownika (ustawienia, wylogowanie)
 
-### Błędne saldo konta
+## Wskazówki
 
-1. Sprawdź wszystkie transakcje w danym okresie
-2. Zweryfikuj początkowe saldo konta
-3. Sprawdź czy nie ma duplikatów transakcji
-4. Użyj funkcji "Przelicz saldo"
-
----
-
-**Potrzebujesz pomocy?** Skontaktuj się z nami przez formularz kontaktowy w aplikacji lub napisz na support@mymoney.app 
+- Transakcje są automatycznie sortowane od najnowszych
+- Saldo konta jest obliczane automatycznie
+- Kategorie mają automatycznie przypisane kolory i ikony
+- Główne konto jest używane domyślnie dla nowych transakcji

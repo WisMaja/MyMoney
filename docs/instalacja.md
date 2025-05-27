@@ -14,8 +14,8 @@
 #### Dla rozwoju lokalnego:
 - **Node.js** 16.0 lub nowszy
 - **.NET 9.0 SDK**
-- **SQL Server** 2019 lub nowszy (lub SQL Server Express)
-- **Git** (do klonowania repozytorium)
+- **SQL Server** 2022 (lub Docker z SQL Server)
+- **Git**
 
 #### Dla wdrożenia z Docker:
 - **Docker** 20.10 lub nowszy
@@ -26,26 +26,18 @@
 ### Krok 1: Klonowanie repozytorium
 
 ```bash
-git clone https://github.com/your-username/MyMoney.git
+git clone <repository-url>
 cd MyMoney
 ```
 
 ### Krok 2: Konfiguracja bazy danych
 
-#### Instalacja SQL Server Express (Windows)
-
-1. Pobierz SQL Server Express z [oficjalnej strony Microsoft](https://www.microsoft.com/pl-pl/sql-server/sql-server-downloads)
-2. Uruchom instalator i wybierz "Basic installation"
-3. Zanotuj connection string (domyślnie: `Server=localhost\\SQLEXPRESS;Database=MyMoneyDB;Trusted_Connection=true;`)
-
-#### Konfiguracja na macOS/Linux
-
-Użyj Docker do uruchomienia SQL Server:
+#### Uruchomienie SQL Server przez Docker
 
 ```bash
-docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" \
+docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong!Passw0rd" \
    -p 1433:1433 --name sql-server \
-   -d mcr.microsoft.com/mssql/server:2019-latest
+   -d mcr.microsoft.com/mssql/server:2022-latest
 ```
 
 ### Krok 3: Konfiguracja backendu
@@ -55,48 +47,27 @@ docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong@Passw0rd" \
 cd api
 ```
 
-2. Skopiuj plik konfiguracyjny:
-```bash
-cp appsettings.json appsettings.Development.json
-```
-
-3. Edytuj `appsettings.Development.json`:
+2. Sprawdź plik `appsettings.json` (już skonfigurowany):
 ```json
 {
   "ConnectionStrings": {
-    "DefaultConnection": "Server=localhost\\SQLEXPRESS;Database=MyMoneyDB;Trusted_Connection=true;TrustServerCertificate=true;"
-  },
-  "JwtSettings": {
-    "SecretKey": "your-super-secret-key-here-minimum-32-characters",
-    "Issuer": "MyMoney",
-    "Audience": "MyMoney-Users",
-    "ExpirationMinutes": 60
-  },
-  "OAuth": {
-    "Google": {
-      "ClientId": "your-google-client-id",
-      "ClientSecret": "your-google-client-secret"
-    },
-    "Facebook": {
-      "AppId": "your-facebook-app-id",
-      "AppSecret": "your-facebook-app-secret"
-    }
+    "DefaultConnection": "Server=localhost,1433;Database=MyMoney;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
   }
 }
 ```
 
-4. Zainstaluj zależności i uruchom migracje:
+3. Zainstaluj zależności i uruchom migracje:
 ```bash
 dotnet restore
 dotnet ef database update
 ```
 
-5. Uruchom backend:
+4. Uruchom backend:
 ```bash
 dotnet run
 ```
 
-Backend będzie dostępny pod adresem: `https://localhost:7001`
+Backend będzie dostępny pod adresem: `http://localhost:5032`
 
 ### Krok 4: Konfiguracja frontendu
 
@@ -105,115 +76,61 @@ Backend będzie dostępny pod adresem: `https://localhost:7001`
 cd ../frontend
 ```
 
-2. Skopiuj plik środowiskowy:
-```bash
-cp template.env .env
-```
-
-3. Edytuj plik `.env`:
-```env
-REACT_APP_API_URL=https://localhost:7001/api
-REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id
-REACT_APP_FACEBOOK_APP_ID=your-facebook-app-id
-```
-
-4. Zainstaluj zależności:
+2. Zainstaluj zależności:
 ```bash
 npm install
 ```
 
-5. Uruchom aplikację:
+3. Uruchom aplikację:
 ```bash
 npm start
 ```
 
 Frontend będzie dostępny pod adresem: `http://localhost:3000`
 
-## Instalacja z Docker
+**Uwaga:** Frontend automatycznie łączy się z API pod adresem `http://localhost:5032/api` (zdefiniowane w `apiClient.js`).
+
+## Instalacja z Docker (tylko baza danych)
 
 ### Krok 1: Klonowanie repozytorium
 
 ```bash
-git clone https://github.com/your-username/MyMoney.git
+git clone <repository-url>
 cd MyMoney
 ```
 
-### Krok 2: Konfiguracja zmiennych środowiskowych
-
-1. Skopiuj przykładowy plik docker-compose:
-```bash
-cp docker-compose.yml docker-compose.override.yml
-```
-
-2. Edytuj `docker-compose.override.yml`:
-```yaml
-version: '3.8'
-
-services:
-  api:
-    environment:
-      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=MyMoneyDB;User Id=sa;Password=YourStrong@Passw0rd;TrustServerCertificate=true;
-      - JwtSettings__SecretKey=your-super-secret-key-here-minimum-32-characters
-      - OAuth__Google__ClientId=your-google-client-id
-      - OAuth__Google__ClientSecret=your-google-client-secret
-      - OAuth__Facebook__AppId=your-facebook-app-id
-      - OAuth__Facebook__AppSecret=your-facebook-app-secret
-
-  frontend:
-    environment:
-      - REACT_APP_API_URL=http://localhost:5000/api
-      - REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id
-      - REACT_APP_FACEBOOK_APP_ID=your-facebook-app-id
-```
-
-### Krok 3: Uruchomienie aplikacji
+### Krok 2: Uruchomienie bazy danych
 
 ```bash
 docker-compose up -d
 ```
 
-Aplikacja będzie dostępna pod adresami:
-- Frontend: `http://localhost:3000`
-- Backend API: `http://localhost:5000`
-- Swagger UI: `http://localhost:5000/swagger`
+To uruchomi tylko SQL Server 2022 na porcie 1433.
 
-### Krok 4: Inicjalizacja bazy danych
+### Krok 3: Uruchomienie aplikacji lokalnie
+
+Następnie uruchom backend i frontend lokalnie jak w poprzedniej sekcji.
+
+## Instalacja produkcyjna z Docker
+
+### Krok 1: Użyj pliku docker-compose-prod.yml
 
 ```bash
-# Uruchom migracje bazy danych
-docker-compose exec api dotnet ef database update
+docker-compose -f docker-compose-prod.yml up -d
 ```
 
-## Konfiguracja OAuth
-
-### Google OAuth
-
-1. Przejdź do [Google Cloud Console](https://console.cloud.google.com/)
-2. Utwórz nowy projekt lub wybierz istniejący
-3. Włącz Google+ API
-4. Utwórz credentials (OAuth 2.0 Client ID)
-5. Dodaj authorized redirect URIs:
-   - `http://localhost:3000` (development)
-   - `https://yourdomain.com` (production)
-
-### Facebook OAuth
-
-1. Przejdź do [Facebook Developers](https://developers.facebook.com/)
-2. Utwórz nową aplikację
-3. Dodaj Facebook Login product
-4. Skonfiguruj Valid OAuth Redirect URIs:
-   - `http://localhost:3000` (development)
-   - `https://yourdomain.com` (production)
+To uruchomi:
+- SQL Server 2022 na porcie 1433
+- API na porcie 5032
+- Frontend na porcie 3000
 
 ## Weryfikacja instalacji
 
 ### Sprawdzenie backendu
 
 ```bash
-curl -X GET "https://localhost:7001/api/health" -H "accept: text/plain"
+curl http://localhost:5032/api/auth
 ```
-
-Oczekiwana odpowiedź: `Healthy`
 
 ### Sprawdzenie frontendu
 
@@ -222,73 +139,106 @@ Otwórz przeglądarkę i przejdź do `http://localhost:3000`. Powinieneś zobacz
 ### Sprawdzenie bazy danych
 
 ```bash
-# Dla instalacji lokalnej
-sqlcmd -S localhost\SQLEXPRESS -Q "SELECT name FROM sys.databases WHERE name = 'MyMoneyDB'"
-
 # Dla Docker
-docker-compose exec sqlserver /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P YourStrong@Passw0rd -Q "SELECT name FROM sys.databases WHERE name = 'MyMoneyDB'"
+docker exec -it local_mssql_server_MyMoney /opt/mssql-tools/bin/sqlcmd -S localhost -U sa -P "YourStrong!Passw0rd" -Q "SELECT name FROM sys.databases WHERE name = 'MyMoney'"
 ```
 
-## Rozwiązywanie problemów instalacji
+## Rozwiązywanie problemów
 
 ### Problem: Błąd połączenia z bazą danych
 
 **Rozwiązanie:**
-1. Sprawdź czy SQL Server jest uruchomiony
-2. Zweryfikuj connection string
-3. Sprawdź czy baza danych została utworzona
-
-### Problem: Błąd CORS w przeglądarce
-
-**Rozwiązanie:**
-1. Sprawdź konfigurację CORS w `Program.cs`
-2. Upewnij się, że frontend URL jest dodany do allowed origins
-
-### Problem: Błąd certyfikatu SSL
-
-**Rozwiązanie:**
-1. Dla developmentu dodaj `TrustServerCertificate=true` do connection string
-2. Zainstaluj certyfikat deweloperski: `dotnet dev-certs https --trust`
+1. Sprawdź czy kontener SQL Server jest uruchomiony: `docker ps`
+2. Sprawdź logi: `docker logs local_mssql_server_MyMoney`
+3. Zweryfikuj connection string w `appsettings.json`
 
 ### Problem: Port już używany
 
 **Rozwiązanie:**
-1. Zmień porty w `launchSettings.json` (backend) i `package.json` (frontend)
-2. Lub zatrzymaj proces używający portu: `lsof -ti:3000 | xargs kill -9`
+1. Sprawdź co używa portu: `lsof -i :5032` lub `netstat -ano | findstr :5032`
+2. Zatrzymaj proces lub zmień port w `Properties/launchSettings.json`
 
-## Konfiguracja środowiska produkcyjnego
+### Problem: Błąd CORS w przeglądarce
 
-### Zmienne środowiskowe produkcyjne
+**Rozwiązanie:**
+1. Sprawdź konfigurację CORS w `Program.cs` (powinna być ustawiona na "AllowAll")
+2. Upewnij się, że backend działa na porcie 5032
 
+### Problem: Migracje nie działają
+
+**Rozwiązanie:**
 ```bash
-# Backend
-export ConnectionStrings__DefaultConnection="your-production-connection-string"
-export JwtSettings__SecretKey="your-production-secret-key"
-export ASPNETCORE_ENVIRONMENT="Production"
+# Sprawdź status migracji
+dotnet ef migrations list
 
-# Frontend
-export REACT_APP_API_URL="https://api.yourdomain.com"
-export NODE_ENV="production"
+# Usuń bazę i utwórz ponownie
+dotnet ef database drop
+dotnet ef database update
 ```
 
-### Budowanie dla produkcji
+## Struktura projektu
 
-```bash
-# Frontend
-cd frontend
-npm run build
-
-# Backend
-cd api
-dotnet publish -c Release -o ./publish
+```
+MyMoney/
+├── api/                    # Backend .NET 9
+│   ├── Controllers/        # Kontrolery API
+│   ├── Models/            # Modele danych
+│   ├── Database/          # DbContext
+│   ├── Migrations/        # Migracje EF
+│   ├── Services/          # Serwisy (TokenService)
+│   ├── Dtos/              # Data Transfer Objects
+│   └── appsettings.json   # Konfiguracja
+├── frontend/              # Frontend React 18
+│   ├── src/
+│   │   ├── components/    # Komponenty React
+│   │   ├── pages/         # Strony aplikacji
+│   │   ├── context/       # React Context (AuthContext)
+│   │   ├── hooks/         # Custom hooks (useAuth)
+│   │   ├── services/      # Serwisy API
+│   │   ├── styles/        # Style CSS
+│   │   └── apiClient.js   # Konfiguracja Axios
+│   └── package.json       # Zależności npm
+├── docs/                  # Dokumentacja
+├── docker-compose.yml     # Docker dla bazy danych
+└── docker-compose-prod.yml # Docker produkcyjny
 ```
 
-### Konfiguracja HTTPS
+## Konfiguracja środowiska
 
-1. Uzyskaj certyfikat SSL (Let's Encrypt, CloudFlare, itp.)
-2. Skonfiguruj reverse proxy (nginx, Apache)
-3. Zaktualizuj konfigurację CORS
+### Zmienne środowiskowe backendu
+
+Backend używa standardowej konfiguracji .NET:
+- `appsettings.json` - konfiguracja podstawowa
+- `appsettings.Development.json` - konfiguracja deweloperska (opcjonalna)
+
+### Zmienne środowiskowe frontendu
+
+Frontend automatycznie używa:
+- `REACT_APP_API_URL` - domyślnie `http://localhost:5032/api` (w `apiClient.js`)
+
+## Funkcjonalności
+
+### Uwierzytelnianie
+- JWT tokeny (1h access, 24h refresh)
+- Automatyczne odświeżanie tokenów
+- Hashowanie haseł przez PasswordHasher
+
+### Baza danych
+- SQL Server 2022
+- Entity Framework Core 9.0.5
+- Automatyczne migracje przy starcie
+
+### API
+- ASP.NET Core Web API
+- Swagger UI dostępne w trybie Development
+- CORS skonfigurowany na "AllowAll"
+
+### Frontend
+- React 18 z Material-UI
+- React Router 6.3.0
+- Axios dla HTTP
+- Chart.js dla wykresów
 
 ---
 
-**Uwaga:** Pamiętaj o regularnym aktualizowaniu zależności i monitorowaniu bezpieczeństwa aplikacji. 
+**Uwaga:** Aplikacja jest w fazie rozwoju. Niektóre funkcje mogą być niekompletne. 

@@ -2,213 +2,312 @@
 
 ## Przegląd architektury
 
-MyMoney został zaprojektowany jako aplikacja typu SPA (Single Page Application) z architekturą klient-serwer. System składa się z trzech głównych warstw:
+MyMoney to aplikacja typu SPA (Single Page Application) z architekturą klient-serwer składająca się z trzech warstw:
 
-1. **Warstwa prezentacji** - aplikacja React
-2. **Warstwa logiki biznesowej** - API .NET Core
-3. **Warstwa danych** - baza danych SQL Server
+1. **Warstwa prezentacji** - React 18 z Material-UI
+2. **Warstwa API** - ASP.NET Core Web API (.NET 9)
+3. **Warstwa danych** - SQL Server 2022 z Entity Framework Core
 
 ## Architektura wysokiego poziomu
 
 ```
-┌─────────────────┐    HTTP/HTTPS    ┌─────────────────┐    SQL    ┌─────────────────┐
-│   Frontend      │ ◄──────────────► │    Backend      │ ◄────────► │   Baza Danych   │
-│   (React)       │                  │   (.NET Core)   │            │  (SQL Server)   │
-└─────────────────┘                  └─────────────────┘            └─────────────────┘
+┌─────────────────┐    HTTP/JSON     ┌─────────────────┐    EF Core    ┌─────────────────┐
+│   Frontend      │ ◄──────────────► │    Backend      │ ◄────────────► │   Baza Danych   │
+│   (React 18)    │                  │   (.NET 9 API)  │                │  (SQL Server)   │
+└─────────────────┘                  └─────────────────┘                └─────────────────┘
 ```
 
 ## Warstwa prezentacji (Frontend)
 
-### Struktura komponentów
-
-Frontend oparty jest na React z wykorzystaniem wzorca komponentowego:
+### Rzeczywista struktura komponentów
 
 ```
-src/
-├── components/          # Komponenty wielokrotnego użytku
-│   ├── common/         # Podstawowe komponenty UI
-│   ├── forms/          # Komponenty formularzy
-│   └── charts/         # Komponenty wykresów
-├── pages/              # Komponenty stron
-│   ├── Dashboard/      # Strona główna
-│   ├── Transactions/   # Zarządzanie transakcjami
-│   ├── Accounts/       # Zarządzanie kontami
-│   ├── Statistics/     # Statystyki i raporty
-│   └── Settings/       # Ustawienia użytkownika
-├── services/           # Usługi komunikacji z API
-├── context/            # Konteksty React (stan globalny)
+frontend/src/
+├── components/          # Komponenty React
+│   ├── AddExpenseDialog.js
+│   ├── AddIncomeDialog.js
+│   ├── Dashboard.js
+│   ├── DeleteTransactionDialog.js
+│   ├── EditTransactionDialog.js
+│   ├── FinanceChart.js
+│   ├── Header.js
+│   └── Sidebar.js
+├── pages/              # Strony aplikacji
+│   ├── Accounts.js
+│   ├── Budgets.js
+│   ├── Categories.js
+│   ├── Dashboard.js
+│   ├── Login.js
+│   ├── Settings.js
+│   ├── Social.js
+│   └── Statistics.js
+├── services/           # Serwisy API
+│   ├── categoryService.js
+│   ├── transactionService.js
+│   ├── userService.js
+│   └── walletService.js
+├── context/            # React Context
+│   └── AuthContext.js
 ├── hooks/              # Custom hooks
-└── router/             # Konfiguracja routingu
+│   └── useAuth.js
+├── router/             # Routing
+│   └── PrivateRoute.jsx
+├── styles/             # Style CSS
+└── apiClient.js        # Konfiguracja Axios
 ```
 
 ### Zarządzanie stanem
 
-Aplikacja wykorzystuje kombinację:
-- **React Context** - dla stanu globalnego (uwierzytelnianie, dane użytkownika)
-- **Local State** - dla stanu komponentów
-- **Custom Hooks** - dla logiki biznesowej i komunikacji z API
+- **AuthContext** - stan uwierzytelniania (isAuthenticated, login, logout)
+- **Local State** - stan komponentów (useState)
+- **Custom Hook useAuth** - logika uwierzytelniania
 
 ### Komunikacja z backendem
 
-Wszystkie żądania HTTP są obsługiwane przez:
-- **Axios** - klient HTTP
-- **apiClient.js** - centralna konfiguracja API
-- **Interceptory** - automatyczne dodawanie tokenów JWT
+**apiClient.js** - centralna konfiguracja Axios:
+- Base URL: `http://localhost:5032/api`
+- Automatyczne dodawanie Bearer token
+- Interceptor do odświeżania tokenów przy 401
+- Obsługa błędów i przekierowanie na login
 
-## Warstwa logiki biznesowej (Backend)
+## Warstwa API (Backend)
 
-### Architektura API
+### Rzeczywista architektura
 
-Backend wykorzystuje wzorzec **Controller-Service-Repository**:
+Backend używa prostej architektury **Controller + DbContext**:
 
 ```
-Controllers/            # Kontrolery API (warstwa prezentacji)
-├── AuthController      # Uwierzytelnianie
-├── UserController      # Zarządzanie użytkownikami
-├── WalletController    # Zarządzanie kontami
-├── TransactionsController # Transakcje
-└── CategoryController  # Kategorie
-
-Services/               # Logika biznesowa
-├── AuthService         # Usługi uwierzytelniania
-├── UserService         # Usługi użytkowników
-├── WalletService       # Usługi kont
-└── TransactionService  # Usługi transakcji
-
-Database/               # Warstwa dostępu do danych
-├── ApplicationDbContext # Kontekst Entity Framework
-└── Repositories/       # Repozytoria (jeśli używane)
+api/
+├── Controllers/            # Kontrolery API
+│   ├── AuthController.cs   # Uwierzytelnianie (register, login, refresh)
+│   ├── CategoriesController.cs # CRUD kategorii
+│   ├── TransactionsController.cs # CRUD transakcji + statystyki
+│   ├── UsersController.cs  # Profil użytkownika, upload zdjęć
+│   └── WalletController.cs # CRUD kont finansowych
+├── Services/               # Tylko TokenService
+│   └── ITokenService.cs    # Generowanie i walidacja JWT
+├── Database/               # Entity Framework
+│   └── AppDbContext.cs     # Kontekst bazy danych
+├── Models/                 # Modele danych
+│   ├── User.cs
+│   ├── Wallet.cs
+│   ├── Transaction.cs
+│   ├── Category.cs
+│   └── WalletMember.cs
+├── Dtos/                   # Data Transfer Objects
+├── Migrations/             # Migracje EF
+└── Program.cs              # Konfiguracja aplikacji
 ```
 
 ### Wzorce projektowe
 
-1. **Dependency Injection** - wstrzykiwanie zależności
-2. **Repository Pattern** - abstrakcja dostępu do danych
-3. **DTO Pattern** - obiekty transferu danych
-4. **Middleware Pattern** - przetwarzanie żądań HTTP
+1. **Dependency Injection** - TokenService wstrzykiwany do kontrolerów
+2. **DTO Pattern** - obiekty transferu danych
+3. **Repository Pattern** - **NIE UŻYWANY** (bezpośredni dostęp do DbContext)
 
-### Uwierzytelnianie i autoryzacja
+### Uwierzytelnianie
 
-- **JWT Tokens** - bezstanowe uwierzytelnianie
-- **Role-based authorization** - autoryzacja oparta na rolach
-- **OAuth 2.0** - integracja z Google/Facebook
+- **JWT Tokens** - 1h access token, 24h refresh token
+- **PasswordHasher** - hashowanie haseł
+- **Bearer Authentication** - middleware JWT
+- **Brak OAuth** - tylko email/hasło
 
 ## Warstwa danych
 
-### Model danych
-
-Główne encje systemu:
+### Rzeczywisty model danych
 
 ```
-User (Użytkownik)
+User
 ├── Id: Guid
 ├── Email: string
-├── PasswordHash: string
-├── FirstName: string
-├── LastName: string
-└── CreatedAt: DateTime
+├── HashedPassword: string
+├── RefreshToken: string
+├── RefreshTokenExpiration: DateTime
+├── FullName: string
+├── ProfileImageUrl: string
+├── MainWalletId: Guid
+├── CreatedAt: DateTime
+└── LastLogin: DateTime
 
-Wallet (Konto)
+Wallet
 ├── Id: Guid
-├── UserId: Guid (FK)
 ├── Name: string
-├── Balance: decimal
+├── Type: WalletType (enum)
+├── InitialBalance: decimal
+├── ManualBalance: decimal
 ├── Currency: string
-└── Type: WalletType
+├── CreatedByUserId: Guid
+├── CreatedAt: DateTime
+├── UpdatedAt: DateTime
+└── BalanceResetAt: DateTime
 
-Transaction (Transakcja)
+Transaction
 ├── Id: Guid
-├── WalletId: Guid (FK)
-├── CategoryId: Guid (FK)
-├── Amount: decimal
+├── WalletId: Guid
+├── UserId: Guid
+├── CategoryId: Guid
+├── Amount: decimal (+ przychód, - wydatek)
 ├── Description: string
-├── Date: DateTime
-└── Type: TransactionType
+├── CreatedAt: DateTime
+└── UpdatedAt: DateTime
 
-Category (Kategoria)
+Category
 ├── Id: Guid
 ├── Name: string
-├── Type: CategoryType
-└── Icon: string
+└── UserId: Guid (null = globalna)
 
-WalletMember (Członek konta)
-├── WalletId: Guid (FK)
-├── UserId: Guid (FK)
-└── Role: MemberRole
+WalletMember
+├── WalletId: Guid
+└── UserId: Guid
 ```
 
 ### Relacje między encjami
 
-- **User ↔ Wallet**: 1:N (użytkownik może mieć wiele kont)
-- **Wallet ↔ Transaction**: 1:N (konto może mieć wiele transakcji)
-- **Category ↔ Transaction**: 1:N (kategoria może mieć wiele transakcji)
-- **User ↔ WalletMember**: N:M (użytkownicy mogą dzielić konta)
+- **User ↔ Wallet**: 1:N (CreatedByUserId)
+- **User ↔ Transaction**: 1:N (UserId)
+- **User ↔ Category**: 1:N (UserId, null = globalna)
+- **Wallet ↔ Transaction**: 1:N (WalletId)
+- **Category ↔ Transaction**: 1:N (CategoryId)
+- **User ↔ WalletMember**: N:M (udostępnianie kont)
 
 ## Bezpieczeństwo
 
 ### Uwierzytelnianie
 
-1. **Rejestracja/Logowanie** - hashowanie haseł (bcrypt)
-2. **JWT Tokens** - podpisane tokeny z czasem wygaśnięcia
-3. **Refresh Tokens** - odnawianie sesji
-4. **OAuth 2.0** - logowanie przez dostawców zewnętrznych
+1. **Rejestracja** - walidacja hasła (8 znaków, cyfra, znak specjalny, wielka/mała litera)
+2. **JWT Tokens** - podpisane kluczem "e5be8f13-627b-4632-805f-37a86ce0d76d"
+3. **Refresh Tokens** - przechowywane w bazie danych
+4. **PasswordHasher** - hashowanie haseł ASP.NET Core
 
 ### Autoryzacja
 
-1. **Middleware autoryzacji** - sprawdzanie uprawnień
-2. **Resource-based authorization** - dostęp do zasobów
-3. **Role-based access** - różne poziomy dostępu
+1. **[Authorize]** - atrybut na kontrolerach
+2. **GetUserIdFromToken()** - wyciąganie ID użytkownika z JWT
+3. **UserHasAccessToWallet()** - sprawdzanie dostępu do kont
 
 ### Ochrona danych
 
-1. **HTTPS** - szyfrowanie komunikacji
-2. **CORS** - kontrola dostępu cross-origin
-3. **Input validation** - walidacja danych wejściowych
-4. **SQL Injection protection** - parametryzowane zapytania
+1. **CORS "AllowAll"** - w trybie development
+2. **Entity Framework** - parametryzowane zapytania
+3. **Input validation** - atrybuty walidacji na DTO
+4. **TrustServerCertificate** - dla SQL Server
 
-## Wydajność i skalowalność
+## Funkcjonalności
 
-### Optymalizacje frontendu
+### Rzeczywiste endpointy API
 
-- **Code splitting** - podział kodu na chunki
-- **Lazy loading** - ładowanie komponentów na żądanie
-- **Memoization** - cache'owanie wyników obliczeń
-- **Virtual scrolling** - dla długich list
+**AuthController:**
+- POST /api/auth/register
+- POST /api/auth/login  
+- POST /api/auth/refresh
 
-### Optymalizacje backendu
+**TransactionsController:**
+- GET /api/transactions (wszystkie)
+- GET /api/transactions/income
+- GET /api/transactions/expenses
+- GET /api/transactions/wallet/{walletId}
+- GET /api/transactions/{id}
+- POST /api/transactions/income
+- POST /api/transactions/expenses
+- PUT /api/transactions/income/{id}
+- PUT /api/transactions/expenses/{id}
+- DELETE /api/transactions/{id}
+- GET /api/transactions/statistics/income-expense
 
-- **Entity Framework optimizations** - optymalne zapytania
-- **Caching** - cache'owanie często używanych danych
-- **Pagination** - stronicowanie wyników
-- **Async/await** - asynchroniczne operacje
+**WalletsController:**
+- GET /api/wallets
+- GET /api/wallets/{id}
+- GET /api/wallets/main
+- POST /api/wallets
+- PUT /api/wallets/{id}
+- DELETE /api/wallets/{id}
 
-### Monitorowanie
+**CategoriesController:**
+- GET /api/categories
+- GET /api/categories/{id}
+- POST /api/categories
+- PUT /api/categories/{id}
+- DELETE /api/categories/{id}
 
-- **Logging** - szczegółowe logowanie błędów
-- **Health checks** - sprawdzanie stanu aplikacji
-- **Performance metrics** - metryki wydajności
+**UsersController:**
+- GET /api/users/me
+- PUT /api/users/me
+- POST /api/users/me/profile-image
+
+## Konfiguracja
+
+### Program.cs
+
+```csharp
+// CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+
+// Entity Framework
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// JWT Authentication
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options => { /* konfiguracja JWT */ });
+
+// TokenService
+builder.Services.AddScoped<ITokenService, TokenService>();
+
+// Automatyczne migracje
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+```
+
+### Connection String
+
+```json
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server=localhost,1433;Database=MyMoney;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;"
+  }
+}
+```
 
 ## Wdrożenie
 
-### Środowiska
+### Docker
 
-1. **Development** - środowisko deweloperskie
-2. **Staging** - środowisko testowe
-3. **Production** - środowisko produkcyjne
+**docker-compose.yml** - tylko SQL Server:
+```yaml
+services:
+  mssql:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      SA_PASSWORD: "YourStrong!Passw0rd"
+      ACCEPT_EULA: "Y"
+    ports:
+      - "1433:1433"
+```
 
-### Konteneryzacja
+**docker-compose-prod.yml** - pełna aplikacja:
+- SQL Server na porcie 1433
+- API na porcie 5032  
+- Frontend na porcie 3000
 
-- **Docker** - konteneryzacja aplikacji
-- **Docker Compose** - orkiestracja kontenerów
-- **Multi-stage builds** - optymalizacja obrazów
+### Uruchamianie
 
-### CI/CD
+```bash
+# Backend
+cd api
+dotnet run  # http://localhost:5032
 
-Potencjalne narzędzia do wdrożenia:
-- **GitHub Actions** - automatyzacja wdrożeń
-- **Azure DevOps** - pipeline CI/CD
-- **Docker Hub** - rejestr obrazów
-
----
-
-**Uwaga:** Architektura może ewoluować wraz z rozwojem projektu i nowymi wymaganiami. 
+# Frontend  
+cd frontend
+npm start   # http://localhost:3000
+```

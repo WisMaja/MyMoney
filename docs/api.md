@@ -2,13 +2,12 @@
 
 ## Przegląd
 
-API MyMoney to RESTful API zbudowane w .NET 9.0, które obsługuje wszystkie operacje związane z zarządzaniem finansami osobistymi. API wykorzystuje uwierzytelnianie JWT i obsługuje operacje CRUD dla użytkowników, kont, transakcji i kategorii.
+API MyMoney to RESTful API zbudowane w .NET 9, które obsługuje operacje związane z zarządzaniem finansami osobistymi. API wykorzystuje uwierzytelnianie JWT i obsługuje operacje CRUD dla użytkowników, kont, transakcji i kategorii.
 
 ## Adres bazowy
 
 ```
-Development: https://localhost:7001/api
-Production: https://api.yourdomain.com/api
+Development: http://localhost:5032/api
 ```
 
 ## Uwierzytelnianie
@@ -23,15 +22,15 @@ Authorization: Bearer <your-jwt-token>
 
 ### Tokeny
 
-- **Access Token**: Ważny przez 60 minut
-- **Refresh Token**: Ważny przez 7 dni
+- **Access Token**: Ważny przez 1 godzinę
+- **Refresh Token**: Ważny przez 24 godziny
 
 ## Kontrolery i Endpointy
 
 ### 1. AuthController - Uwierzytelnianie
 
 #### POST /api/auth/register
-Rejestracja nowego użytkownika z automatycznym utworzeniem głównego konta.
+Rejestracja nowego użytkownika z automatycznym utworzeniem głównego konta "Main Wallet".
 
 **Request Body:**
 ```json
@@ -45,16 +44,6 @@ Rejestracja nowego użytkownika z automatycznym utworzeniem głównego konta.
 - `204 No Content` - Rejestracja udana
 - `409 Conflict` - Użytkownik już istnieje
 - `500 Internal Server Error` - Błąd serwera
-
-**Przykład:**
-```bash
-curl -X POST "https://localhost:7001/api/auth/register" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "email": "jan.kowalski@example.com",
-    "password": "MojeHaslo123!"
-  }'
-```
 
 #### POST /api/auth/login
 Logowanie użytkownika.
@@ -114,9 +103,9 @@ Zmiana hasła użytkownika (wymaga uwierzytelniania).
 - `400 Bad Request` - Nieprawidłowe aktualne hasło
 - `401 Unauthorized` - Brak autoryzacji
 
-### 2. UserController - Zarządzanie użytkownikami
+### 2. UsersController - Zarządzanie użytkownikami
 
-#### GET /api/user/profile
+#### GET /api/users/me
 Pobieranie profilu aktualnego użytkownika.
 
 **Headers:**
@@ -128,25 +117,51 @@ Authorization: Bearer <jwt-token>
 ```json
 {
   "id": "123e4567-e89b-12d3-a456-426614174000",
+  "fullName": "Jan Kowalski",
   "email": "user@example.com",
+  "profileImageUrl": "/uploads/profile-images/image.jpg",
   "mainWalletId": "456e7890-e89b-12d3-a456-426614174001"
 }
 ```
 
-#### PUT /api/user/profile
+#### PUT /api/users/me
 Aktualizacja profilu użytkownika.
 
 **Request Body:**
 ```json
 {
-  "email": "newemail@example.com"
+  "fullName": "Nowe Imię Nazwisko",
+  "email": "newemail@example.com",
+  "profileImageUrl": "data:image/jpeg;base64,..."
 }
 ```
 
-### 3. WalletController - Zarządzanie kontami
+#### PUT /api/users/me/profile-image
+Upload zdjęcia profilowego (multipart/form-data).
 
-#### GET /api/wallet
-Pobieranie wszystkich kont użytkownika.
+**Request:** FormData z plikiem `profileImage`
+
+**Ograniczenia:**
+- Maksymalny rozmiar: 5MB
+- Dozwolone typy: JPEG, PNG, GIF
+
+**Response:**
+```json
+{
+  "profileImageUrl": "/uploads/profile-images/filename.jpg"
+}
+```
+
+#### DELETE /api/users/me
+Usuwanie konta użytkownika.
+
+**Response:**
+- `204 No Content` - Konto usunięte
+
+### 3. WalletsController - Zarządzanie kontami
+
+#### GET /api/wallets
+Pobieranie wszystkich kont użytkownika (własnych + udostępnionych).
 
 **Response:**
 ```json
@@ -155,15 +170,37 @@ Pobieranie wszystkich kont użytkownika.
     "id": "456e7890-e89b-12d3-a456-426614174001",
     "name": "Main Wallet",
     "type": "Personal",
-    "initialBalance": 1000.00,
-    "currentBalance": 850.50,
     "currency": "zł",
-    "createdByUserId": "123e4567-e89b-12d3-a456-426614174000"
+    "initialBalance": 0.00,
+    "manualBalance": null,
+    "balanceResetAt": null,
+    "currentBalance": 850.50,
+    "createdAt": "2024-01-01T00:00:00Z",
+    "updatedAt": "2024-01-01T00:00:00Z"
   }
 ]
 ```
 
-#### POST /api/wallet
+#### GET /api/wallets/{id}
+Pobieranie szczegółów konkretnego konta.
+
+#### GET /api/wallets/main
+Pobieranie głównego konta użytkownika.
+
+#### GET /api/wallets/{id}/balance
+Pobieranie salda konta.
+
+**Response:**
+```json
+{
+  "currentBalance": 850.50,
+  "initialBalance": 0.00,
+  "manualBalance": null,
+  "transactionSum": 850.50
+}
+```
+
+#### POST /api/wallets
 Tworzenie nowego konta.
 
 **Request Body:**
@@ -176,49 +213,7 @@ Tworzenie nowego konta.
 }
 ```
 
-**Response:**
-```json
-{
-  "id": "789e0123-e89b-12d3-a456-426614174002",
-  "name": "Konto oszczędnościowe",
-  "type": "Personal",
-  "initialBalance": 500.00,
-  "currentBalance": 500.00,
-  "currency": "zł",
-  "createdByUserId": "123e4567-e89b-12d3-a456-426614174000"
-}
-```
-
-#### GET /api/wallet/{id}
-Pobieranie szczegółów konkretnego konta.
-
-**Response:**
-```json
-{
-  "id": "456e7890-e89b-12d3-a456-426614174001",
-  "name": "Main Wallet",
-  "type": "Personal",
-  "initialBalance": 1000.00,
-  "currentBalance": 850.50,
-  "currency": "zł",
-  "members": [
-    {
-      "userId": "123e4567-e89b-12d3-a456-426614174000",
-      "role": "Owner"
-    }
-  ],
-  "transactions": [
-    {
-      "id": "abc123def456",
-      "amount": -50.00,
-      "description": "Zakupy spożywcze",
-      "date": "2024-12-01T10:30:00Z"
-    }
-  ]
-}
-```
-
-#### PUT /api/wallet/{id}
+#### PUT /api/wallets/{id}
 Aktualizacja konta.
 
 **Request Body:**
@@ -229,15 +224,20 @@ Aktualizacja konta.
 }
 ```
 
-#### DELETE /api/wallet/{id}
+#### PUT /api/wallets/{id}/set-balance
+Ustawienie ręcznego salda konta.
+
+**Request Body:**
+```json
+{
+  "balance": 1000.00
+}
+```
+
+#### DELETE /api/wallets/{id}
 Usuwanie konta (tylko właściciel).
 
-**Response:**
-- `204 No Content` - Konto usunięte
-- `403 Forbidden` - Brak uprawnień
-- `404 Not Found` - Konto nie istnieje
-
-#### POST /api/wallet/{id}/members
+#### POST /api/wallets/{id}/members
 Dodawanie członka do konta.
 
 **Request Body:**
@@ -247,138 +247,97 @@ Dodawanie członka do konta.
 }
 ```
 
-#### DELETE /api/wallet/{walletId}/members/{userId}
+#### DELETE /api/wallets/{walletId}/members/{userId}
 Usuwanie członka z konta.
 
 ### 4. TransactionsController - Zarządzanie transakcjami
 
 #### GET /api/transactions
-Pobieranie transakcji z filtrowaniem i paginacją.
-
-**Query Parameters:**
-- `walletId` (optional) - ID konta
-- `categoryId` (optional) - ID kategorii
-- `startDate` (optional) - Data początkowa (YYYY-MM-DD)
-- `endDate` (optional) - Data końcowa (YYYY-MM-DD)
-- `type` (optional) - Typ transakcji (Income/Expense)
-- `page` (default: 1) - Numer strony
-- `pageSize` (default: 20) - Rozmiar strony
-
-**Przykład:**
-```
-GET /api/transactions?walletId=456e7890-e89b-12d3-a456-426614174001&startDate=2024-12-01&endDate=2024-12-31&page=1&pageSize=10
-```
+Pobieranie wszystkich transakcji użytkownika.
 
 **Response:**
 ```json
-{
-  "transactions": [
-    {
-      "id": "abc123def456",
-      "walletId": "456e7890-e89b-12d3-a456-426614174001",
-      "categoryId": "cat123",
-      "amount": -50.00,
-      "description": "Zakupy spożywcze",
-      "date": "2024-12-01T10:30:00Z",
-      "type": "Expense",
-      "category": {
-        "id": "cat123",
-        "name": "Jedzenie",
-        "type": "Expense",
-        "icon": "🍕"
-      }
-    }
-  ],
-  "totalCount": 150,
-  "page": 1,
-  "pageSize": 10,
-  "totalPages": 15
-}
+[
+  {
+    "id": "abc123def456",
+    "amount": -50.00,
+    "description": "Zakupy spożywcze",
+    "createdAt": "2024-12-01T10:30:00Z",
+    "updatedAt": "2024-12-01T10:30:00Z",
+    "categoryId": "cat123",
+    "category": {
+      "id": "cat123",
+      "name": "Jedzenie"
+    },
+    "walletId": "wallet123"
+  }
+]
 ```
 
-#### POST /api/transactions
-Tworzenie nowej transakcji.
+#### GET /api/transactions/income
+Pobieranie tylko przychodów (amount > 0).
+
+#### GET /api/transactions/expenses
+Pobieranie tylko wydatków (amount < 0).
+
+#### GET /api/transactions/wallet/{walletId}
+Pobieranie transakcji z konkretnego konta.
+
+#### GET /api/transactions/{id}
+Pobieranie szczegółów transakcji.
+
+#### POST /api/transactions/income
+Dodawanie przychodu.
 
 **Request Body:**
 ```json
 {
   "walletId": "456e7890-e89b-12d3-a456-426614174001",
   "categoryId": "cat123",
-  "amount": -75.50,
-  "description": "Tankowanie samochodu",
-  "date": "2024-12-01T15:30:00Z",
-  "type": "Expense"
+  "amount": 1000.00,
+  "description": "Wynagrodzenie",
+  "createdAt": "2024-12-01T10:30:00Z"
 }
 ```
 
-**Response:**
+**Uwaga:** Kwota zostanie automatycznie ustawiona jako dodatnia.
+
+#### POST /api/transactions/expenses
+Dodawanie wydatku.
+
+**Request Body:**
 ```json
 {
-  "id": "def456ghi789",
   "walletId": "456e7890-e89b-12d3-a456-426614174001",
   "categoryId": "cat123",
-  "amount": -75.50,
-  "description": "Tankowanie samochodu",
-  "date": "2024-12-01T15:30:00Z",
-  "type": "Expense"
+  "amount": 50.00,
+  "description": "Zakupy",
+  "createdAt": "2024-12-01T10:30:00Z"
 }
 ```
 
-#### GET /api/transactions/{id}
-Pobieranie szczegółów transakcji.
+**Uwaga:** Kwota zostanie automatycznie ustawiona jako ujemna.
 
-#### PUT /api/transactions/{id}
-Aktualizacja transakcji.
+#### PUT /api/transactions/income/{id}
+Aktualizacja przychodu (tylko transakcje z amount > 0).
+
+#### PUT /api/transactions/expenses/{id}
+Aktualizacja wydatku (tylko transakcje z amount < 0).
 
 #### DELETE /api/transactions/{id}
 Usuwanie transakcji.
 
-#### GET /api/transactions/statistics
-Pobieranie statystyk transakcji.
+#### GET /api/transactions/statistics/income-expense
+Pobieranie statystyk przychodów vs wydatków.
 
 **Query Parameters:**
-- `walletId` (optional) - ID konta
-- `startDate` (optional) - Data początkowa
-- `endDate` (optional) - Data końcowa
+- `from` (optional) - Data początkowa (YYYY-MM-DD)
+- `to` (optional) - Data końcowa (YYYY-MM-DD)
 
-**Response:**
-```json
-{
-  "totalIncome": 3000.00,
-  "totalExpenses": 2150.50,
-  "balance": 849.50,
-  "transactionCount": 45,
-  "expensesByCategory": [
-    {
-      "categoryName": "Jedzenie",
-      "amount": 650.00,
-      "percentage": 30.2
-    },
-    {
-      "categoryName": "Transport",
-      "amount": 400.00,
-      "percentage": 18.6
-    }
-  ],
-  "monthlyTrend": [
-    {
-      "month": "2024-11",
-      "income": 2500.00,
-      "expenses": 1800.00
-    },
-    {
-      "month": "2024-12",
-      "income": 2600.00,
-      "expenses": 1950.00
-    }
-  ]
-}
-```
+### 5. CategoriesController - Zarządzanie kategoriami
 
-### 5. CategoryController - Zarządzanie kategoriami
-
-#### GET /api/category
-Pobieranie wszystkich kategorii (domyślnych + niestandardowych użytkownika).
+#### GET /api/categories
+Pobieranie wszystkich kategorii (globalne + niestandardowe użytkownika).
 
 **Response:**
 ```json
@@ -386,36 +345,33 @@ Pobieranie wszystkich kategorii (domyślnych + niestandardowych użytkownika).
   {
     "id": "cat123",
     "name": "Jedzenie",
-    "type": "Expense",
-    "icon": "🍕",
-    "isDefault": true
+    "userId": null
   },
   {
     "id": "cat456",
     "name": "Moja kategoria",
-    "type": "Expense",
-    "icon": "💼",
-    "isDefault": false
+    "userId": "user123"
   }
 ]
 ```
 
-#### POST /api/category
+#### GET /api/categories/{id}
+Pobieranie szczegółów kategorii.
+
+#### POST /api/categories
 Tworzenie niestandardowej kategorii.
 
 **Request Body:**
 ```json
 {
-  "name": "Hobby",
-  "type": "Expense",
-  "icon": "🎨"
+  "name": "Hobby"
 }
 ```
 
-#### PUT /api/category/{id}
+#### PUT /api/categories/{id}
 Aktualizacja kategorii (tylko niestandardowe).
 
-#### DELETE /api/category/{id}
+#### DELETE /api/categories/{id}
 Usuwanie kategorii (tylko niestandardowe).
 
 ## Kody błędów
@@ -424,7 +380,7 @@ Usuwanie kategorii (tylko niestandardowe).
 
 - `200 OK` - Żądanie wykonane pomyślnie
 - `201 Created` - Zasób utworzony
-- `204 No Content` - Operacja wykonana, brak treści do zwrócenia
+- `204 No Content` - Operacja wykonana, brak treści
 - `400 Bad Request` - Nieprawidłowe dane wejściowe
 - `401 Unauthorized` - Brak autoryzacji
 - `403 Forbidden` - Brak uprawnień
@@ -432,39 +388,22 @@ Usuwanie kategorii (tylko niestandardowe).
 - `409 Conflict` - Konflikt (np. duplikat)
 - `500 Internal Server Error` - Błąd serwera
 
-### Niestandardowe błędy
+### Przykłady błędów
 
 ```json
 {
-  "error": "ValidationError",
-  "message": "Kwota transakcji musi być większa od zera",
-  "details": {
-    "field": "amount",
-    "code": "INVALID_AMOUNT"
-  }
+  "message": "Error fetching transactions",
+  "error": "Database connection failed"
 }
 ```
 
-## Limity i ograniczenia
-
-### Rate Limiting
-- **Uwierzytelnianie**: 5 żądań/minutę na IP
-- **API ogólne**: 100 żądań/minutę na użytkownika
-- **Transakcje**: 50 żądań/minutę na użytkownika
-
-### Limity danych
-- **Maksymalna liczba kont**: 10 na użytkownika
-- **Maksymalna liczba transakcji**: 10,000 na konto
-- **Maksymalna liczba kategorii niestandardowych**: 50 na użytkownika
-- **Maksymalny rozmiar strony**: 100 elementów
-
-## Przykłady użycia
+## Przykład użycia
 
 ### Kompletny przepływ rejestracji i pierwszej transakcji
 
 ```bash
 # 1. Rejestracja
-curl -X POST "https://localhost:7001/api/auth/register" \
+curl -X POST "http://localhost:5032/api/auth/register" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jan.kowalski@example.com",
@@ -472,7 +411,7 @@ curl -X POST "https://localhost:7001/api/auth/register" \
   }'
 
 # 2. Logowanie
-TOKEN=$(curl -X POST "https://localhost:7001/api/auth/login" \
+TOKEN=$(curl -X POST "http://localhost:5032/api/auth/login" \
   -H "Content-Type: application/json" \
   -d '{
     "email": "jan.kowalski@example.com",
@@ -480,46 +419,25 @@ TOKEN=$(curl -X POST "https://localhost:7001/api/auth/login" \
   }' | jq -r '.accessToken')
 
 # 3. Pobieranie profilu
-curl -X GET "https://localhost:7001/api/user/profile" \
+curl -X GET "http://localhost:5032/api/users/me" \
   -H "Authorization: Bearer $TOKEN"
 
-# 4. Pobieranie kont
-WALLET_ID=$(curl -X GET "https://localhost:7001/api/wallet" \
-  -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
+# 4. Pobieranie głównego konta
+WALLET_ID=$(curl -X GET "http://localhost:5032/api/wallets/main" \
+  -H "Authorization: Bearer $TOKEN" | jq -r '.id')
 
 # 5. Pobieranie kategorii
-CATEGORY_ID=$(curl -X GET "https://localhost:7001/api/category" \
-  -H "Authorization: Bearer $TOKEN" | jq -r '.[] | select(.name=="Jedzenie") | .id')
+CATEGORY_ID=$(curl -X GET "http://localhost:5032/api/categories" \
+  -H "Authorization: Bearer $TOKEN" | jq -r '.[0].id')
 
-# 6. Dodanie transakcji
-curl -X POST "https://localhost:7001/api/transactions" \
+# 6. Dodanie wydatku
+curl -X POST "http://localhost:5032/api/transactions/expenses" \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d "{
     \"walletId\": \"$WALLET_ID\",
     \"categoryId\": \"$CATEGORY_ID\",
-    \"amount\": -25.50,
-    \"description\": \"Lunch w restauracji\",
-    \"type\": \"Expense\"
+    \"amount\": 25.50,
+    \"description\": \"Lunch w restauracji\"
   }"
 ```
-
-## Swagger/OpenAPI
-
-Dokumentacja interaktywna dostępna pod adresem:
-```
-https://localhost:7001/swagger
-```
-
-## Wersjonowanie
-
-Aktualna wersja API: **v1**
-
-Przyszłe wersje będą dostępne pod:
-```
-/api/v2/...
-```
-
----
-
-**Uwaga:** Wszystkie daty w API są w formacie ISO 8601 UTC. Kwoty są reprezentowane jako liczby dziesiętne z dokładnością do 2 miejsc po przecinku. 

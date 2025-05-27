@@ -1,52 +1,250 @@
-# Raport bezpieczeństwa aplikacji budżetowej
+# Bezpieczeństwo MyMoney
 
-## 1. Zaimplementowane zabezpieczenia
+## Zaimplementowane zabezpieczenia
 
-### 1.1 Uwierzytelnianie i autoryzacja
-Aplikacja posiada system logowania oparty na formularzu. Hasła użytkowników są przechowywane w formie haszowanej. Każde żądanie do chronionych zasobów jest weryfikowane pod kątem obecności ważnego tokenu użytkownika.
+### 1. Uwierzytelnianie JWT
 
-### 1.2 Ostrzeżenie w konsoli przeglądarki
-Dodano komunikat informacyjny w konsoli, który ostrzega użytkowników przed wpisywaniem tam komend. Ma to na celu zapobieganie atakom typu self-XSS, które mogą wykorzystać nieuwagę użytkowników.
+**Implementacja:**
+- Access Token: ważny 1 godzinę
+- Refresh Token: ważny 24 godziny
+- Klucz podpisywania: `"e5be8f13-627b-4632-805f-37a86ce0d76d"` (hardcoded)
+- Algorytm: HMAC SHA256
 
-### 1.3 Testy logowania
-Zaimplementowano testy weryfikujące poprawność logowania – zarówno dla poprawnych, jak i niepoprawnych danych. Testy te sprawdzają także sytuacje braku sesji i błędnych odpowiedzi serwera.
+**Kod:**
+```csharp
+// TokenService.cs
+var key = new SymmetricSecurityKey(
+    Encoding.UTF8.GetBytes("e5be8f13-627b-4632-805f-37a86ce0d76d")
+);
 
-### 1.4 Oddzielenie środowisk
-Zastosowano pliki `.env` do przechowywania wrażliwych danych. Pliki te są ignorowane w repozytorium i różnią się w zależności od środowiska (development/production).
+var token = new JwtSecurityToken(
+    claims: userClaims,
+    expires: DateTime.UtcNow.AddHours(1),
+    signingCredentials: new SigningCredentials(key, SecurityAlgorithms.HmacSha256)
+);
+```
 
-## 2. Proponowane ulepszenia
+### 2. Hashowanie haseł
 
-### 2.1 Rozszerzenie pokrycia testami
-Warto zautomatyzować testy jednostkowe i integracyjne dla całej aplikacji. Powinny one obejmować nie tylko logowanie, ale też operacje na danych budżetowych, formularze i zabezpieczenia.
+**Implementacja:**
+- ASP.NET Core PasswordHasher
+- Automatyczne solenie i hashowanie
 
-### 2.2 Automatyzacja testów z użyciem CI/CD
-Wdrożenie GitHub Actions lub Jenkinsa do automatycznego uruchamiania testów przy każdym commicie lub pull requeście. CI/CD może także odpowiadać za deploy do środowiska produkcyjnego tylko w przypadku pozytywnego wyniku testów.
+**Kod:**
+```csharp
+// AuthController.cs
+user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password);
 
-### 2.3 Ochrona API
-Zaleca się wdrożenie rate limiting, aby zapobiegać atakom typu brute-force. Dodatkowo, przy użyciu biblioteki Helmet, można zabezpieczyć aplikację odpowiednimi nagłówkami HTTP.
+// Weryfikacja
+var result = passwordHasher.VerifyHashedPassword(user, user.HashedPassword!, dto.Password);
+```
 
-### 2.4 Obsługa CORS
-Konieczne jest ograniczenie dostępnych domen poprzez odpowiednie ustawienie polityki CORS, aby zapobiec nieautoryzowanemu dostępowi z innych źródeł.
+### 3. Autoryzacja
 
-### 2.5 Monitorowanie i logowanie błędów
-Warto zintegrować aplikację z narzędziami typu Sentry, Logtail lub innym systemem logowania, który umożliwia analizę błędów oraz monitorowanie niepożądanych działań użytkowników.
+**Implementacja:**
+- Atrybut `[Authorize]` na kontrolerach
+- Wyciąganie User ID z JWT claims
+- Sprawdzanie dostępu do zasobów
 
-### 2.6 Analiza podatności i aktualizacje
-Zaleca się użycie narzędzi takich jak Dependabot do automatycznego wykrywania nieaktualnych i podatnych bibliotek. Dodatkowo można uruchamiać skanery bezpieczeństwa typu OWASP Dependency Check.
+**Kod:**
+```csharp
+[Authorize]
+public class TransactionsController : ControllerBase
+{
+    private Guid GetUserIdFromToken()
+    {
+        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : 
+            throw new UnauthorizedAccessException("Invalid user ID in token.");
+    }
+}
+```
 
-### 2.7 Szyfrowanie danych
-W przypadku przechowywania danych szczególnie wrażliwych (np. informacje finansowe, numery kart), należy je szyfrować zarówno w bazie danych, jak i podczas przesyłania (HTTPS).
+### 4. CORS
 
-### 2.8 Usuwanie danych użytkownika zgodnie z RODO
-Warto przewidzieć funkcję trwałego usuwania konta i danych użytkownika na jego żądanie.
+**Implementacja:**
+- Polityka "AllowAll" w trybie development
+- Brak ograniczeń origin/methods/headers
 
-## 3. Bezpieczeństwo środowiska chmurowego
+**Kod:**
+```csharp
+// Program.cs
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
+```
 
-### 3.1 Przechowywanie sekretów
-Zaleca się użycie systemów do zarządzania sekretami, np. GitHub Secrets lub AWS Secrets Manager, aby ograniczyć dostęp do wrażliwych danych środowiskowych.
+### 5. Automatyczne odświeżanie tokenów
 
-### 3.2 Backupy i dostęp do bazy danych
-Backupy powinny być szyfrowane i przechowywane poza główną infrastrukturą. Należy ograniczyć dostęp do bazy danych tylko do zaufanych adresów IP i aplikacji.
+**Implementacja:**
+- Interceptor w Axios (frontend)
+- Automatyczne odświeżanie przy 401
+- Przekierowanie na login przy błędzie
 
-### 3.3 HTTPS i certyfikaty
-Wdrożenie certyfikatów SSL oraz wymuszanie połączenia HTTPS w całej aplikacji.
+**Kod:**
+```javascript
+// apiClient.js
+apiClient.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            // Próba odświeżenia tokenu
+            const response = await axios.post(`${API_URL}/auth/refresh`, {
+                accessToken, refreshToken
+            });
+        }
+    }
+);
+```
+
+### 6. Upload plików
+
+**Implementacja:**
+- Walidacja typu pliku (JPEG, PNG, GIF)
+- Limit rozmiaru: 5MB
+- Unikalne nazwy plików
+
+**Kod:**
+```csharp
+// UsersController.cs
+const long maxFileSize = 5 * 1024 * 1024; // 5MB
+var allowedTypes = new[] { "image/jpeg", "image/jpg", "image/png", "image/gif" };
+
+if (profileImage.Length > maxFileSize)
+    return BadRequest("File size too large. Maximum size is 5MB.");
+```
+
+### 7. Walidacja dostępu do zasobów
+
+**Implementacja:**
+- Sprawdzanie czy użytkownik ma dostęp do konta
+- Sprawdzanie właściciela zasobu
+
+**Kod:**
+```csharp
+// TransactionsController.cs
+if (!await UserHasAccessToWallet(walletId, userId))
+{
+    return StatusCode(403, new { message = "No access to the wallet" });
+}
+```
+
+## Problemy bezpieczeństwa
+
+### 🔴 Krytyczne
+
+1. **Hardcoded JWT Secret**
+   - Klucz podpisywania JWT jest hardcoded w kodzie
+   - Powinien być w zmiennych środowiskowych
+
+2. **CORS AllowAll**
+   - Brak ograniczeń CORS w development
+   - Potencjalne ryzyko w produkcji
+
+3. **Brak HTTPS**
+   - Aplikacja działa na HTTP
+   - Tokeny przesyłane niezaszyfrowane
+
+4. **Brak walidacji haseł**
+   - Brak wymagań dotyczących siły hasła
+   - Brak ograniczeń długości
+
+### 🟡 Średnie
+
+1. **Brak rate limiting**
+   - Możliwość ataków brute-force
+   - Brak ograniczeń żądań
+
+2. **Podstawowe logowanie**
+   - Tylko Console.WriteLine
+   - Brak strukturalnego logowania
+
+3. **Brak walidacji input**
+   - Podstawowa walidacja DTO
+   - Brak sanityzacji danych
+
+4. **Refresh token w bazie**
+   - Przechowywanie w plain text
+   - Brak rotacji tokenów
+
+### 🟢 Niskie
+
+1. **Brak CSP headers**
+   - Brak Content Security Policy
+   - Potencjalne XSS
+
+2. **Brak security headers**
+   - Brak X-Frame-Options
+   - Brak X-Content-Type-Options
+
+## Zalecenia
+
+### Natychmiastowe
+
+1. **Przenieś JWT secret do zmiennych środowiskowych**
+```csharp
+var key = new SymmetricSecurityKey(
+    Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"])
+);
+```
+
+2. **Włącz HTTPS**
+```csharp
+app.UseHttpsRedirection();
+```
+
+3. **Ograniczenie CORS**
+```csharp
+policy.WithOrigins("http://localhost:3000")
+      .AllowCredentials();
+```
+
+### Krótkoterminowe
+
+1. **Dodaj walidację haseł**
+```csharp
+[RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$")]
+public string Password { get; set; }
+```
+
+2. **Dodaj rate limiting**
+```csharp
+builder.Services.AddRateLimiter(options => {
+    options.AddFixedWindowLimiter("AuthPolicy", opt => {
+        opt.PermitLimit = 5;
+        opt.Window = TimeSpan.FromMinutes(1);
+    });
+});
+```
+
+3. **Strukturalne logowanie**
+```csharp
+builder.Services.AddSerilog();
+```
+
+### Długoterminowe
+
+1. **Implementacja security headers**
+2. **Szyfrowanie refresh tokenów**
+3. **Audit log dla operacji finansowych**
+4. **Dwuskładnikowe uwierzytelnianie (2FA)**
+5. **Backup i recovery procedures**
+
+## Brak implementacji
+
+❌ **OAuth 2.0** - brak integracji z Google/Facebook  
+❌ **2FA** - brak dwuskładnikowego uwierzytelniania  
+❌ **Rate limiting** - brak ograniczeń żądań  
+❌ **Security headers** - brak dodatkowych nagłówków  
+❌ **Input sanitization** - podstawowa walidacja  
+❌ **Audit logging** - brak logów bezpieczeństwa  
+❌ **Password policies** - brak wymagań hasła  
+❌ **Session management** - podstawowe JWT  
+❌ **CSRF protection** - brak ochrony CSRF  
+❌ **SQL injection protection** - tylko EF parametryzacja  
