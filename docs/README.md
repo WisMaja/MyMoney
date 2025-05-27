@@ -30,12 +30,12 @@ MyMoney to aplikacja webowa do zarządzania finansami osobistymi, która umożli
 - **Upload zdjęć profilowych** - z walidacją typu i rozmiaru
 
 **Brak implementacji:**
-- ❌ Budżetowanie
-- ❌ Zaawansowane raporty finansowe
-- ❌ OAuth (Google/Facebook)
-- ❌ Funkcje społecznościowe
-- ❌ Powiadomienia
-- ❌ Eksport danych
+- Budżetowanie
+- Zaawansowane raporty finansowe
+- OAuth (Google/Facebook)
+- Funkcje społecznościowe
+- Powiadomienia
+- Eksport danych
 
 ### Technologie
 
@@ -165,11 +165,11 @@ npm start
 - Upload plików z walidacją
 
 **Problemy:**
-- 🔴 Hardcoded JWT secret
-- 🔴 Brak HTTPS
-- 🔴 CORS AllowAll
-- 🟡 Brak rate limiting
-- 🟡 Podstawowe logowanie
+- Hardcoded JWT secret
+- Brak HTTPS
+- CORS AllowAll
+- Brak rate limiting
+- Podstawowe logowanie
 
 ## Status projektu
 
