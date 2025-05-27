@@ -107,11 +107,18 @@ app.UseAuthorization();
 
 app.MapControllers();
 
-using (var scope = app.Services.CreateScope())
+// Uruchom migracje tylko jeśli nie jesteśmy w środowisku testowym
+if (!app.Environment.IsEnvironment("Testing"))
 {
-    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // stosuje wszystkie migracje (jeśli istnieją)
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        db.Database.Migrate(); // stosuje wszystkie migracje (jeśli istnieją)
+    }
 }
 
 app.Run();
+
+// Make the implicit Program class public for integration tests
+public partial class Program { }
 

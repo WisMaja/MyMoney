@@ -14,7 +14,7 @@ namespace api.Models
         public required string Name { get; set; }
 
         public Guid? UserId { get; set; } // NULL = global category
-        public required User User { get; set; }
+        public User? User { get; set; } // Nullable dla globalnych kategorii
 
         public required ICollection<Transaction> Transactions { get; set; }
         }
