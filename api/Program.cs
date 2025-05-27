@@ -16,7 +16,7 @@ builder.Services.AddEndpointsApiExplorer();
 //builder.Services.AddSwaggerGen();
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new() { Title = "AuthExample", Version = "v1" });
+    c.SwaggerDoc("v1", new() { Title = "MyMoney API", Version = "v1" });
     c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
     {
         Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
@@ -41,10 +41,21 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
+// 2. CORS - Updated for production
+var corsOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>() 
+    ?? new[] { "http://localhost:3000", "https://localhost:3000" };
 
-// 2. CORS
 builder.Services.AddCors(options =>
 {
+    options.AddPolicy("AllowSpecificOrigins", policy =>
+    {
+        policy.WithOrigins(corsOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+    
+    // Fallback policy for development
     options.AddPolicy("AllowAll", policy =>
     {
         policy.AllowAnyOrigin()
@@ -68,15 +79,21 @@ builder.Services.AddControllers()
 //5. Dodanie TokenService do buildera
 builder.Services.AddScoped<ITokenService, TokenService>();
 
+// 6. JWT Configuration from appsettings
+var jwtSecretKey = builder.Configuration["JwtSettings:SecretKey"] 
+    ?? throw new InvalidOperationException("JWT Secret Key not configured");
+
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
         options.TokenValidationParameters = new TokenValidationParameters
         {
             ValidateIssuerSigningKey = true,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("e5be8f13-627b-4632-805f-37a86ce0d76d")),
-            ValidateIssuer = false,
-            ValidateAudience = false,
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecretKey)),
+            ValidateIssuer = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidateAudience = true,
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero
         };
@@ -92,9 +109,16 @@ if (app.Environment.IsDevelopment())
 }
 
 // 6. Middleware
-//app.UseHttpsRedirection();
+// Enable HTTPS redirection in production
+if (app.Environment.IsProduction())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
 
-app.UseCors("AllowAll");
+// Use appropriate CORS policy
+var corsPolicy = app.Environment.IsProduction() ? "AllowSpecificOrigins" : "AllowAll";
+app.UseCors(corsPolicy);
 
 // Serve static files from wwwroot
 app.UseStaticFiles();
@@ -107,10 +131,24 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+// Database migration and seeding
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    db.Database.Migrate(); // stosuje wszystkie migracje (jeśli istnieją)
+    try
+    {
+        db.Database.Migrate(); // stosuje wszystkie migracje (jeśli istnieją)
+        
+        // Log successful migration
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogInformation("Database migration completed successfully");
+    }
+    catch (Exception ex)
+    {
+        var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        logger.LogError(ex, "An error occurred while migrating the database");
+        throw;
+    }
 }
 
 app.Run();
