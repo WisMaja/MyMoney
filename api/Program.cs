@@ -55,7 +55,7 @@ builder.Services.AddCors(options =>
 
 // 3. DbContext (Entity Framework)
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // 4. Konfiguracja JSON do obsługi cyklicznych referencji
 builder.Services.AddControllers()

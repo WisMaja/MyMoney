@@ -66,6 +66,23 @@ namespace api.Controllers
                 user.MainWalletId = mainWallet.Id;
                 await _context.SaveChangesAsync();
 
+            
+                var defaultCategories = new List<string> { "Food", "Work", "Transport", "Entertainment" };
+
+                foreach (var categoryName in defaultCategories)
+                {
+                    var category = new Category
+                    {
+                        Id = Guid.NewGuid(),
+                        Name = categoryName,
+                        UserId = user.Id,
+                        User = user,
+                        Transactions = new List<Transaction>()
+                    };
+                    _context.Categories.Add(category);
+                }
+
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
 
                 return NoContent();
