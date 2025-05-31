@@ -30,7 +30,7 @@ namespace api.Models
         public DateTime? BalanceResetAt { get; set; }
 
         [MaxLength(10)]
-        public string Currency { get; set; } = "PLN";
+        public string Currency { get; set; } = "zł";
 
         public Guid CreatedByUserId { get; set; }
         public required User CreatedByUser { get; set; }
