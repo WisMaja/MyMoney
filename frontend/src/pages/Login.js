@@ -28,67 +28,54 @@ const Login = () => {
       if (isRegistering) {
         if (password !== repeatPassword) {
           setError('Passwords do not match');
-          setLoading(false);
           return;
         }
-
         if (password.length < 8) {
           setError('Password must be at least 8 characters long');
-          setLoading(false);
           return;
         }
-
         if (!/\d/.test(password)) {
-          setError('Password must contain at least one number'); 
-          setLoading(false);
+          setError('Password must contain at least one number');
           return;
         }
-
         if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
           setError('Password must contain at least one special character');
-          setLoading(false);
           return;
         }
-
         if (!/[A-Z]/.test(password)) {
           setError('Password must contain at least one uppercase letter');
-          setLoading(false);
           return;
         }
-
         if (!/[a-z]/.test(password)) {
           setError('Password must contain at least one lowercase letter');
-          setLoading(false);
           return;
         }
 
-        await apiClient.post('/auth/register', {
-          email,
-          password,
-        });
-
+        await apiClient.post('/auth/register', { email, password });
         alert('Account created! You can now log in.');
         setIsRegistering(false);
       } else {
-        const response = await apiClient.post('/auth/login', {
-          email,
-          password,
-        });
-
+        const response = await apiClient.post('/auth/login', { email, password });
         const { accessToken, refreshToken } = response.data;
         login(accessToken, refreshToken);
-
         navigate('/dashboard');
       }
     } catch (err) {
+      console.error('Login/Register error:', err);
       if (err.response?.data) {
-        setError(err.response.data);
+        if (err.response.data.status === 401) {
+          setError('Invalid email or password. Please try again.');
+        } else {
+        setError(typeof err.response.data === 'string' ? err.response.data : err.response.data.message || 'An error occurred.');
+        }
+      } else if (err.message) {
+        setError(err.message);
       } else {
         setError('Unexpected error occurred.');
       }
+    } finally {
+      setLoading(false);
     }
-
-    setLoading(false);
   };
 
   const toggleRegister = () => {
