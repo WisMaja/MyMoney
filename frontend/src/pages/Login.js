@@ -113,11 +113,11 @@ const Login = () => {
                       A password must:
                     </Typography>
                     <List className="password-requirements-list" sx={{ paddingLeft: 2, marginBottom: 2, marginLeft: 2, textAlign: 'left', listStyleType: 'disc' }}>
-                      <li>8 characters long</li>
-                      <li>Contain at least one number</li>
-                      <li>Contain at least one special character</li>
-                      <li>Contain at least one uppercase letter</li>
-                      <li>Contain at least one lowercase letter</li>
+                      <li style={{ color: password.length < 8 ? 'red' : 'green' }}>Be at least 8 characters long</li>
+                      <li style={{ color: !/\d/.test(password) ? 'red' : 'green' }}>Contain at least one number</li>
+                      <li style={{ color: !/[!@#$%^&*(),.?":{}|<>]/.test(password) ? 'red' : 'green' }}>Contain at least one special character</li>
+                      <li style={{ color: !/[A-Z]/.test(password) ? 'red' : 'green' }}>Contain at least one uppercase letter</li>
+                      <li style={{ color: !/[a-z]/.test(password) ? 'red' : 'green' }}>Contain at least one lowercase letter</li>
                     </List>
                   </Box>
                 )}
