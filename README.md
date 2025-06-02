@@ -53,8 +53,8 @@ npm start
 
 **Gotowe!** Aplikacja działa na:
 - Frontend: http://localhost:3000
-- Backend: http://localhost:5000 (lub sprawdź w terminalu)
-- Swagger: http://localhost:5000/swagger
+- Backend: http://localhost:5032 (lub sprawdź w terminalu)
+- Swagger: http://localhost:5032/swagger
 
 ### Opcja 2: Bez Docker
 
@@ -136,7 +136,7 @@ docker-compose down
 ### Frontend (.env w katalogu frontend/)
 
 ```env
-REACT_APP_API_URL=http://localhost:5000/api
+REACT_APP_API_URL=http://localhost:5032/api
 REACT_APP_GOOGLE_CLIENT_ID=your-google-client-id
 REACT_APP_FACEBOOK_APP_ID=your-facebook-app-id
 ```
