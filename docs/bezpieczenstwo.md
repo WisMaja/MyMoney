@@ -39,7 +39,19 @@ user.HashedPassword = new PasswordHasher<User>().HashPassword(user, dto.Password
 var result = passwordHasher.VerifyHashedPassword(user, user.HashedPassword!, dto.Password);
 ```
 
-### 3. Autoryzacja
+### 3. Walidacja haseł z wizualnym feedbackiem
+
+**Implementacja:**
+- Jedynie na warstwie frontendu
+- Wymusza na użytkowniku hasło zgodnego z wymaganiami:
+      - długość min. 8 znaków
+      - przynajmniej jedna cyfra
+      - przynajmniej jeden znak specjalny
+      - przynajmniej jedna wielka litra
+      - przynajmniej jedna mała litera
+- W przypadku niespełnienia któregoś z wymaganiań, użytkownik ma o tym informację przed próbą utworzenia konta
+  
+### 4. Autoryzacja
 
 **Implementacja:**
 - Atrybut `[Authorize]` na kontrolerach
@@ -60,7 +72,7 @@ public class TransactionsController : ControllerBase
 }
 ```
 
-### 4. CORS
+### 5. CORS
 
 **Implementacja:**
 - Polityka "AllowAll" w trybie development
@@ -80,7 +92,7 @@ builder.Services.AddCors(options =>
 });
 ```
 
-### 5. Automatyczne odświeżanie tokenów
+### 6. Automatyczne odświeżanie tokenów
 
 **Implementacja:**
 - Interceptor w Axios (frontend)
@@ -103,7 +115,7 @@ apiClient.interceptors.response.use(
 );
 ```
 
-### 6. Upload plików
+### 7. Upload plików
 
 **Implementacja:**
 - Walidacja typu pliku (JPEG, PNG, GIF)
@@ -120,7 +132,7 @@ if (profileImage.Length > maxFileSize)
     return BadRequest("File size too large. Maximum size is 5MB.");
 ```
 
-### 7. Walidacja dostępu do zasobów
+### 8. Walidacja dostępu do zasobów
 
 **Implementacja:**
 - Sprawdzanie czy użytkownik ma dostęp do konta
@@ -150,10 +162,7 @@ if (!await UserHasAccessToWallet(walletId, userId))
 3. **Brak HTTPS**
    - Aplikacja działa na HTTP
    - Tokeny przesyłane niezaszyfrowane
-
-4. **Brak walidacji haseł**
-   - Brak wymagań dotyczących siły hasła
-   - Brak ograniczeń długości
+     
 
 ### 🟡 Średnie
 
@@ -161,15 +170,7 @@ if (!await UserHasAccessToWallet(walletId, userId))
    - Możliwość ataków brute-force
    - Brak ograniczeń żądań
 
-2. **Podstawowe logowanie**
-   - Tylko Console.WriteLine
-   - Brak strukturalnego logowania
-
-3. **Brak walidacji input**
-   - Podstawowa walidacja DTO
-   - Brak sanityzacji danych
-
-4. **Refresh token w bazie**
+2. **Refresh token w bazie**
    - Przechowywanie w plain text
    - Brak rotacji tokenów
 
@@ -197,12 +198,6 @@ var key = new SymmetricSecurityKey(
 2. **Włącz HTTPS**
 ```csharp
 app.UseHttpsRedirection();
-```
-
-3. **Ograniczenie CORS**
-```csharp
-policy.WithOrigins("http://localhost:3000")
-      .AllowCredentials();
 ```
 
 ### Krótkoterminowe
@@ -244,7 +239,5 @@ builder.Services.AddSerilog();
 ❌ **Security headers** - brak dodatkowych nagłówków  
 ❌ **Input sanitization** - podstawowa walidacja  
 ❌ **Audit logging** - brak logów bezpieczeństwa  
-❌ **Password policies** - brak wymagań hasła  
 ❌ **Session management** - podstawowe JWT  
 ❌ **CSRF protection** - brak ochrony CSRF  
-❌ **SQL injection protection** - tylko EF parametryzacja  
