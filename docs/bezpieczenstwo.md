@@ -14,7 +14,7 @@
 ```csharp
 // TokenService.cs
 var key = new SymmetricSecurityKey(
-    Encoding.UTF8.GetBytes("e5be8f13-627b-4632-805f-37a86ce0d76d")
+    Encoding.UTF8.GetBytes("Secret_Key")
 );
 
 var token = new JwtSecurityToken(
