@@ -50,6 +50,34 @@ var result = passwordHasher.VerifyHashedPassword(user, user.HashedPassword!, dto
       - przynajmniej jedna wielka litra
       - przynajmniej jedna mała litera
 - W przypadku niespełnienia któregoś z wymaganiań, użytkownik ma o tym informację przed próbą utworzenia konta
+
+**Kod:**
+```javascript
+    if (password !== repeatPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      return;
+    }
+    if (!/\d/.test(password)) {
+      setError('Password must contain at least one number');
+      return;
+    }
+    if (!/[!@#$%^&*(),.?":{}|<>]/.test(password)) {
+      setError('Password must contain at least one special character');
+      return;
+    }
+    if (!/[A-Z]/.test(password)) {
+      setError('Password must contain at least one uppercase letter');
+      return;
+    }
+    if (!/[a-z]/.test(password)) {
+      setError('Password must contain at least one lowercase letter');
+      return;
+    }
+```
   
 ### 4. Autoryzacja
 
@@ -72,7 +100,29 @@ public class TransactionsController : ControllerBase
 }
 ```
 
-### 5. CORS
+### 5. Ostrzeżenie w konsoli
+**Implementacja:**
+- Komunikat wyświetlany w konsoli przeglądarki
+- Przestroga przed wklejaniem podejrzanych kodów (ochrona przed atakami typu Self-XSS)
+
+**Kod:**
+``` javascript
+if (typeof window !== "undefined" && window.console) {
+  console.log(
+    "%cOSTRZEŻENIE!",
+    "color: red; font-size: 40px; font-weight: bold; text-shadow: 1px 1px black;"
+  );
+  console.log(
+    "%cTa konsola jest przeznaczona dla deweloperów. Jeśli ktoś kazał Ci tutaj coś wkleić, może to być atak.",
+    "color: black; font-size: 16px;"
+  );
+  console.log(
+    "%cNigdy nie wpisuj tutaj nieznanych komend — możesz udostępnić dostęp do swojego konta.",
+    "color: black; font-size: 14px;"
+  );
+}
+```
+### 6. CORS
 
 **Implementacja:**
 - Polityka "AllowAll" w trybie development
@@ -92,7 +142,7 @@ builder.Services.AddCors(options =>
 });
 ```
 
-### 6. Automatyczne odświeżanie tokenów
+### 7. Automatyczne odświeżanie tokenów
 
 **Implementacja:**
 - Interceptor w Axios (frontend)
@@ -115,7 +165,7 @@ apiClient.interceptors.response.use(
 );
 ```
 
-### 7. Upload plików
+### 8. Upload plików
 
 **Implementacja:**
 - Walidacja typu pliku (JPEG, PNG, GIF)
@@ -132,7 +182,7 @@ if (profileImage.Length > maxFileSize)
     return BadRequest("File size too large. Maximum size is 5MB.");
 ```
 
-### 8. Walidacja dostępu do zasobów
+### 9. Walidacja dostępu do zasobów
 
 **Implementacja:**
 - Sprawdzanie czy użytkownik ma dostęp do konta
