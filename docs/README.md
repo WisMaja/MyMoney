@@ -51,7 +51,7 @@ MyMoney to aplikacja webowa do zarządzania finansami osobistymi, która umożli
 - .NET 9
 - ASP.NET Core Web API
 - Entity Framework Core 9.0.5
-- SQL Server 2022
+- PostgreSQL
 - JWT Authentication (Microsoft.AspNetCore.Authentication.JwtBearer 9.0.5)
 
 **Infrastruktura:**
@@ -62,7 +62,7 @@ MyMoney to aplikacja webowa do zarządzania finansami osobistymi, która umożli
 
 - Node.js 16+ (dla frontendu)
 - .NET 9.0 SDK (dla backendu)
-- SQL Server 2022 lub Docker
+- Docker
 - Git
 
 ### Struktura projektu
@@ -97,7 +97,7 @@ MyMoney/
 
 - **Frontend:** http://localhost:3000
 - **Backend API:** http://localhost:5032
-- **SQL Server:** localhost:1433
+- **PostgresSQL:** supabase
 - **Swagger UI:** http://localhost:5032/swagger (development)
 
 ## Szybki start
@@ -109,9 +109,7 @@ cd MyMoney
 ```
 
 2. **Uruchomienie bazy danych:**
-```bash
-docker-compose up -d
-```
+otworezenie bazy z supabase 
 
 3. **Backend:**
 ```bash
