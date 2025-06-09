@@ -6,54 +6,29 @@
 
 
 ## 2. Utworzono AppService MyMoney
+### 2.1 Utworzenie zasobu
 ![image](https://github.com/user-attachments/assets/98905f31-faf9-4070-ba5f-2cabb1825f2b)
+Teraz pod tym adresem po właczeniu usługi znajduje sie api:
+mymoneyapp-d6fzceh5g6ekb3gw.polandcentral-01.azurewebsites.net
 
+### 2.2 Deploy kodu przy pomocy wbudowanych narzędzi
+zalogowano sie do azure
+stworzono bilda zipa czy cos takiego
+i zrobienie deploy
 
-## 3. Zaloguj się do ACR
-
+## 3. Podmieniono w .env we Frontendzie adres backendu
 ```sh
-az acr login --name mymoneyacr
+REACT_APP_API_URL=https://mymoneyapp-d6fzceh5g6ekb3gw.polandcentral-01.azurewebsites.net/api
 ```
+Teraz lokalny frontend działa wraz z backendem wdrożonym na chmure Azure
+## 4. Wdrożenie bazy przy pomocy Azure Database for PostgreSQL flexible server
+### 4.1 Utworzenie servera na którym bedzi estała baza
+### 4.2 Utworzenie bazy danych
+### 4.3 Podmienienie connectionstring w appsetings.json
+### 4.4 Wykonanie stworzonych juz migracji przy pomocy 
 
-## 4. Otaguj obraz Dockera
 
-```sh
-docker tag frontend-mymoney:latest mymoneyacr.azurecr.io/frontend-mymoney:latest
-```
-
-## 5. Zaloguj się do rejestru Docker
-
-```sh
-docker login mymoneyacr.azurecr.io
-```
-
-## 6. Wypchnij obraz do ACR
-
-```sh
-docker push mymoneyacr.azurecr.io/frontend-mymoney:latest
-```
-
-## 7. Utwórz instancję kontenera w Azure
-
-```sh
-az container create \
-  --resource-group my-money \
-  --name mymoneycontainerinstance \
-  --image mymoneyacr.azurecr.io/frontend-mymoney:latest \
-  --registry-login-server mymoneyacr.azurecr.io \
-  --dns-name-label frontendmymoney \
-  --ports 80 3000 \
-  --registry-username mymoneyacr \
-  --registry-password <ACR_PASSWORD>
-```
-
-> **Uwaga:** Hasło do rejestru możesz pobrać poniższą komendą:
-
-```sh
-az acr credential show --name mymoneyacr
-```
-
-Zaleca się nie trzymać hasła w plikach ani w repozytorium.
+## 5. 
 
 ---
 
