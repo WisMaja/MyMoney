@@ -2,7 +2,8 @@
 
 ## Przegląd
 
-Baza danych MyMoney używa Microsoft SQL Server z Entity Framework Core 9.0.5 jako ORM. Struktura obsługuje podstawowe zarządzanie użytkownikami, kontami finansowymi, transakcjami i kategoriami.
+Baza danych MyMoney używa PostgresSQL i jest postawiona na Supabase pod adresem:
+
 
 ## Schemat bazy danych
 
