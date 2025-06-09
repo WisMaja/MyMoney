@@ -1,18 +1,13 @@
-# Wdrożenie aplikacji do Azure za pomocą Azure Container Registry (ACR)
+# Wdrożenie aplikacji do Azure za pomocą Azure Service
 
-Poniżej znajduje się instrukcja krok po kroku, jak wdrożyć aplikację do Azure z wykorzystaniem Azure Container Registry (ACR) oraz Azure Container Instances.
 
-## 1. Zaloguj się do Azure
+## 1. Utworzono Grupe zasobów MyMoney
 
-```sh
-az login
-```
 
-## 2. Utwórz Azure Container Registry (ACR)
 
-```sh
-az acr create --resource-group my-money --name mymoneyacr --sku Basic --admin-enabled true
-```
+## 2. Utworzono AppService MyMoney
+![image](https://github.com/user-attachments/assets/98905f31-faf9-4070-ba5f-2cabb1825f2b)
+
 
 ## 3. Zaloguj się do ACR
 
